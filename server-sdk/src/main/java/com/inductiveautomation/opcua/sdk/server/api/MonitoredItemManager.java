@@ -1,0 +1,68 @@
+package com.inductiveautomation.opcua.sdk.server.api;
+
+import java.util.List;
+
+import com.inductiveautomation.opcua.stack.core.types.enumerated.MonitoringMode;
+
+public interface MonitoredItemManager {
+
+    /**
+     * {@link SampledItem}s have been created for nodes belonging to this {@link NodeManager}.
+     * <p>
+     * If sampling is enabled for this item, it is expected that a best-effort will be made to update the item's value
+     * at the sampling rate.
+     *
+     * @param sampledItems the {@link SampledItem}s that were created.
+     */
+    void onSampledItemsCreated(List<SampledItem> sampledItems);
+
+    /**
+     * {@link SampledItem}s have been modified for nodes belonging to this {@link NodeManager}.
+     * <p>
+     * Check to see if the sampling rate has changed or if sampling has been enabled or disabled. Result have not been
+     * returned to the client yet, so if the requested sampling rate cannot be supported now is the time to revise it.
+     *
+     * @param sampledItems the {@link SampledItem}s that were modified.
+     */
+    void onSampledItemsModified(List<SampledItem> sampledItems);
+
+    /**
+     * {@link SampledItem}s have been deleted for nodes belonging to this {@link NodeManager}.
+     * <p>
+     * Updates to this item should cease and any references to it should be removed.
+     *
+     * @param sampledItems the {@link SampledItem}s that were deleted.
+     */
+    void onSampledItemsDeleted(List<SampledItem> sampledItems);
+
+    /**
+     * {@link EventItem}s have been created for nodes belonging to this {@link NodeManager}.
+     *
+     * @param eventItems the {@link EventItem}s that were created.
+     */
+    default void onEventItemsCreated(List<EventItem> eventItems) {}
+
+    /**
+     * {@link EventItem}s have been modified for nodes belonging to this {@link NodeManager}.
+     *
+     * @param eventItems the {@link EventItem}s that were modified.
+     */
+    default void onEventItemsModified(List<EventItem> eventItems) {}
+
+    /**
+     * {@link EventItem}s have been deleted for nodes belonging to this {@link NodeManager}.
+     *
+     * @param eventItems the {@link EventItem}s that were deleted.
+     */
+    default void onEventItemsDeleted(List<EventItem> eventItems) {}
+
+    /**
+     * {@link MonitoredItem}s have had their {@link MonitoringMode} modified by a client.
+     * <p>
+     * Check if sampling is still enabled and react accordingly.
+     *
+     * @param monitoredItems The {@link MonitoredItem}s whose {@link MonitoringMode} was modified.
+     */
+    void onMonitoringModeChanged(List<MonitoredItem> monitoredItems);
+
+}

@@ -1,0 +1,133 @@
+package com.inductiveautomation.opcua.sdk.server.items;
+
+import java.util.List;
+
+import com.inductiveautomation.opcua.sdk.server.api.MonitoredItem;
+import com.inductiveautomation.opcua.sdk.server.util.RingBuffer;
+import com.inductiveautomation.opcua.stack.core.UaException;
+import com.inductiveautomation.opcua.stack.core.serialization.UaStructure;
+import com.inductiveautomation.opcua.stack.core.types.builtin.ExtensionObject;
+import com.inductiveautomation.opcua.stack.core.types.enumerated.MonitoringMode;
+import com.inductiveautomation.opcua.stack.core.types.enumerated.TimestampsToReturn;
+import com.inductiveautomation.opcua.stack.core.types.structured.MonitoringParameters;
+import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
+import com.google.common.primitives.Ints;
+
+public abstract class BaseMonitoredItem<ValueType> implements MonitoredItem {
+
+    protected volatile RingBuffer<ValueType> queue;
+
+    protected volatile long clientHandle;
+    protected volatile long queueSize;
+    protected volatile double samplingInterval;
+    protected volatile boolean discardOldest;
+
+    protected final long id;
+    protected final ReadValueId readValueId;
+    protected volatile MonitoringMode monitoringMode;
+    protected volatile TimestampsToReturn timestamps;
+
+    protected BaseMonitoredItem(long id,
+                                ReadValueId readValueId,
+                                MonitoringMode monitoringMode,
+                                TimestampsToReturn timestamps,
+                                MonitoringParameters parameters) {
+
+        this.id = id;
+        this.readValueId = readValueId;
+        this.monitoringMode = monitoringMode;
+        this.timestamps = timestamps;
+
+        clientHandle = parameters.getClientHandle();
+        queueSize = (parameters.getQueueSize().intValue() <= 1) ? 1L : parameters.getQueueSize();
+        samplingInterval = parameters.getSamplingInterval();
+        discardOldest = parameters.getDiscardOldest();
+
+        queue = new RingBuffer<>(Ints.saturatedCast(queueSize));
+    }
+
+    public synchronized int getNotifications(List<UaStructure> notifications, int max) {
+        int queueSize = queue.size();
+        int count = Math.min(queueSize, max);
+
+        for (int i = 0; i < count; i++) {
+            notifications.add(wrapQueueValue(queue.remove()));
+        }
+
+        return queueSize - count;
+    }
+
+    public synchronized boolean hasNotifications() {
+        return queue.size() > 0 && monitoringMode == MonitoringMode.Reporting;
+    }
+
+    public synchronized void modify(MonitoringParameters parameters, TimestampsToReturn ttr) throws UaException {
+        installFilter(parameters.getFilter());
+
+        timestamps = ttr;
+
+        clientHandle = parameters.getClientHandle();
+        samplingInterval = parameters.getSamplingInterval();
+        discardOldest = parameters.getDiscardOldest();
+
+        if (queueSize != parameters.getQueueSize()) {
+            queueSize = (parameters.getQueueSize().intValue() <= 1) ?
+                    1L : parameters.getQueueSize();
+
+            RingBuffer<ValueType> nq = new RingBuffer<>(Ints.saturatedCast(queueSize));
+            while (queue.size() > 0) {
+                nq.add(queue.remove());
+            }
+            queue = nq;
+        }
+    }
+
+    public void setMonitoringMode(MonitoringMode monitoringMode) {
+        this.monitoringMode = monitoringMode;
+    }
+
+    public void setSamplingInterval(double samplingInterval) {
+        this.samplingInterval = samplingInterval;
+    }
+
+    @Override
+    public Long getId() {
+        return id;
+    }
+
+    @Override
+    public ReadValueId getReadValueId() {
+        return readValueId;
+    }
+
+    public long getClientHandle() {
+        return clientHandle;
+    }
+
+    public long getQueueSize() {
+        return queueSize;
+    }
+
+    public double getSamplingInterval() {
+        return samplingInterval;
+    }
+
+    public boolean isDiscardOldest() {
+        return discardOldest;
+    }
+
+    public MonitoringMode getMonitoringMode() {
+        return monitoringMode;
+    }
+
+    public TimestampsToReturn getTimestamps() {
+        return timestamps;
+    }
+
+    public abstract ExtensionObject getFilterResult();
+
+    protected abstract void installFilter(ExtensionObject filterXo) throws UaException;
+
+    protected abstract UaStructure wrapQueueValue(ValueType value);
+
+}

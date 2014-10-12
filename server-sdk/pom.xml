@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ OPC-UA SDK
+  ~
+  ~ Copyright (C) 2014 Kevin Herron
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU Affero General Public License as
+  ~ published by the Free Software Foundation, either version 3 of the
+  ~ License, or (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU Affero General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.inductiveautomation.opcua</groupId>
+        <artifactId>opc-ua-sdk</artifactId>
+        <version>0.2.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>server-sdk</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.inductiveautomation.opcua</groupId>
+            <artifactId>stack-core</artifactId>
+            <version>${opc-ua-stack.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.inductiveautomation.opcua</groupId>
+            <artifactId>stack-server</artifactId>
+            <version>${opc-ua-stack.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.inductiveautomation.opcua</groupId>
+            <artifactId>uanodeset-parser</artifactId>
+            <version>${uanodesetparser.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.codahale.metrics</groupId>
+            <artifactId>metrics-core</artifactId>
+            <version>3.0.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>6.1.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.7.5</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+</project>
