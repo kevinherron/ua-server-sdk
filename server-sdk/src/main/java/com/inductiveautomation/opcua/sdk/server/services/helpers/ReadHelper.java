@@ -48,8 +48,18 @@ public class ReadHelper {
 
         long maxNodesPerRead = server.getConfig().getServerCapabilities().getOperationLimits().getMaxNodesPerRead();
 
+        if (request.getNodesToRead().length == 0) {
+            service.setServiceFault(StatusCodes.Bad_NothingToDo);
+            return;
+        }
+
         if (request.getNodesToRead().length > maxNodesPerRead) {
             service.setServiceFault(StatusCodes.Bad_TooManyOperations);
+            return;
+        }
+
+        if (request.getMaxAge() < 0d) {
+            service.setServiceFault(StatusCodes.Bad_MaxAgeInvalid);
             return;
         }
 
