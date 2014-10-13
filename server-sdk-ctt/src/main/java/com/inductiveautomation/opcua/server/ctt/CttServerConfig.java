@@ -1,20 +1,17 @@
 /*
- * OPC-UA SDK
+ * Copyright 2014 Inductive Automation
  *
- * Copyright (C) 2014 Kevin Herron
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.inductiveautomation.opcua.server.ctt;
@@ -25,10 +22,12 @@ import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
+import java.util.EnumSet;
 
 import com.inductiveautomation.opcua.sdk.server.api.OpcUaServerConfig;
 import com.inductiveautomation.opcua.sdk.server.objects.OperationLimits;
 import com.inductiveautomation.opcua.sdk.server.objects.ServerCapabilities;
+import com.inductiveautomation.opcua.stack.core.security.SecurityPolicy;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.structured.SignedSoftwareCertificate;
 import org.slf4j.LoggerFactory;
@@ -64,12 +63,12 @@ public class CttServerConfig implements OpcUaServerConfig {
 
     @Override
     public LocalizedText getApplicationName() {
-        return LocalizedText.english("CTT OPC-UA Server");
+        return LocalizedText.english("Compliance Test OPC-UA Server");
     }
 
     @Override
     public String getServerName() {
-        return "ctt-server";
+        return "test-server";
     }
 
     @Override
@@ -80,6 +79,11 @@ public class CttServerConfig implements OpcUaServerConfig {
     @Override
     public Certificate getCertificate() {
         return certificate;
+    }
+
+    @Override
+    public EnumSet<SecurityPolicy> getSecurityPolicies() {
+        return EnumSet.of(SecurityPolicy.None, SecurityPolicy.Basic128Rsa15);
     }
 
     @Override
