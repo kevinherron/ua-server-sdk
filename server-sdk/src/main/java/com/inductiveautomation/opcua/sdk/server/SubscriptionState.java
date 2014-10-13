@@ -19,7 +19,6 @@ package com.inductiveautomation.opcua.sdk.server;
 import java.math.RoundingMode;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -29,6 +28,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
+import com.google.common.collect.PeekingIterator;
+import com.google.common.math.DoubleMath;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.inductiveautomation.opcua.sdk.server.api.MonitoredDataItem;
 import com.inductiveautomation.opcua.sdk.server.items.BaseMonitoredItem;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
@@ -37,7 +41,6 @@ import com.inductiveautomation.opcua.stack.core.serialization.UaStructure;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DiagnosticInfo;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ExtensionObject;
-import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
 import com.inductiveautomation.opcua.stack.core.types.structured.DataChangeNotification;
 import com.inductiveautomation.opcua.stack.core.types.structured.EventFieldList;
@@ -49,11 +52,6 @@ import com.inductiveautomation.opcua.stack.core.types.structured.PublishResponse
 import com.inductiveautomation.opcua.stack.core.types.structured.ResponseHeader;
 import com.inductiveautomation.opcua.stack.core.types.structured.StatusChangeNotification;
 import com.inductiveautomation.opcua.stack.core.util.ExecutionQueue;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
-import com.google.common.collect.PeekingIterator;
-import com.google.common.math.DoubleMath;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -266,26 +264,30 @@ public class SubscriptionState {
                                      List<UaStructure> notifications,
                                      boolean more) {
 
-        Map<NodeId, List<UaStructure>> byTypeId = notifications.stream()
-                .collect(Collectors.groupingBy(UaStructure::getTypeId));
+        List<MonitoredItemNotification> dataNotifications = Lists.newArrayList();
+        List<EventFieldList> eventNotifications = Lists.newArrayList();
 
-        Object[] dataNotifications = byTypeId.get(MonitoredItemNotification.TypeId).stream()
-                .map(s -> (MonitoredItemNotification) s).toArray();
-
-        Object[] eventNotifications = byTypeId.get(EventFieldList.TypeId).stream()
-                .map(s -> (EventFieldList) s).toArray();
+        notifications.forEach(notification -> {
+            if (notification instanceof MonitoredItemNotification) {
+                dataNotifications.add((MonitoredItemNotification) notification);
+            } else if (notification instanceof EventFieldList) {
+                eventNotifications.add((EventFieldList) notification);
+            }
+        });
 
         List<ExtensionObject> notificationData = Lists.newArrayList();
 
-        if (dataNotifications.length > 0) {
+        if (dataNotifications.size() > 0) {
             DataChangeNotification dataChange = new DataChangeNotification(
-                    (MonitoredItemNotification[]) dataNotifications, new DiagnosticInfo[0]);
+                    dataNotifications.toArray(new MonitoredItemNotification[dataNotifications.size()]),
+                    new DiagnosticInfo[0]);
 
             notificationData.add(new ExtensionObject(dataChange));
         }
 
-        if (eventNotifications.length > 0) {
-            EventNotificationList eventChange = new EventNotificationList((EventFieldList[]) eventNotifications);
+        if (eventNotifications.size() > 0) {
+            EventNotificationList eventChange = new EventNotificationList(
+                    eventNotifications.toArray(new EventFieldList[eventNotifications.size()]));
 
             notificationData.add(new ExtensionObject(eventChange));
         }
