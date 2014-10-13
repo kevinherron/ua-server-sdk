@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.inductiveautomation.opcua.sdk.core.AccessLevel;
+import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.server.OpcUaServer;
 import com.inductiveautomation.opcua.sdk.server.api.MonitoredItem;
 import com.inductiveautomation.opcua.sdk.server.api.Namespace;
@@ -103,6 +104,7 @@ public class CttNamespace implements Namespace {
             {"Bool", Identifiers.Boolean, new Variant(false)},
             {"Byte", Identifiers.Byte, new Variant((short) 0x00, OverloadedType.UByte)},
             {"ByteString", Identifiers.ByteString, new Variant(new ByteString(new byte[]{0x01, 0x02, 0x03, 0x04}))},
+            {"DateTime", Identifiers.DateTime, new Variant(DateTime.now())},
             {"Double", Identifiers.Double, new Variant(3.14d)},
             {"Float", Identifiers.Float, new Variant(3.14f)},
             {"Guid", Identifiers.Guid, new Variant(UUID.randomUUID())},
@@ -136,17 +138,19 @@ public class CttNamespace implements Namespace {
                     .setTypeDefinition(Identifiers.BaseDataVariableType)
                     .build();
 
+            DataValue dv = new DataValue(variant, StatusCode.Good);
+
             node.setValueDelegate(new ValueDelegate() {
-                private final AtomicReference<Variant> value = new AtomicReference<>(variant);
+                private final AtomicReference<DataValue> value = new AtomicReference<>(dv);
 
                 @Override
                 public void accept(DataValue dataValue) {
-                    value.set(dataValue.getValue());
+                    value.set(dataValue);
                 }
 
                 @Override
                 public DataValue get() {
-                    return new DataValue(value.get());
+                    return value.get();
                 }
             });
 
@@ -210,7 +214,9 @@ public class CttNamespace implements Namespace {
                     node.readAttribute(id.getAttributeId()) :
                     new DataValue(StatusCodes.Bad_NodeIdUnknown);
 
-            value = DataValue.derived(value, timestamps);
+            value = id.getAttributeId() == AttributeIds.Value ?
+                    DataValue.derivedValue(value, timestamps) :
+                    DataValue.derivedNonValue(value, timestamps);
 
             results.add(value);
         }
