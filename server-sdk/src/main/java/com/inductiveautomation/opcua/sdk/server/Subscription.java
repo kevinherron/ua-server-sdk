@@ -27,6 +27,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.server.api.EventItem;
 import com.inductiveautomation.opcua.sdk.server.api.MonitoredItem;
@@ -70,8 +72,6 @@ import com.inductiveautomation.opcua.stack.core.types.structured.SetTriggeringRe
 import com.inductiveautomation.opcua.stack.core.types.structured.SetTriggeringResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.SubscriptionAcknowledgement;
 import com.inductiveautomation.opcua.stack.core.util.ExecutionQueue;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 import static com.inductiveautomation.opcua.sdk.server.util.ConversionUtil.a;
 
@@ -141,7 +141,8 @@ public class Subscription {
         executionQueue.submit(() -> {
             CreateSubscriptionRequest request = serviceRequest.getRequest();
 
-            this.publishingInterval = Math.max(request.getRequestedPublishingInterval(), FastestPublishingInterval);
+            setPublishingInterval(request.getRequestedPublishingInterval());
+
             this.lifetimeCount = request.getRequestedLifetimeCount();
             this.maxKeepAliveCount = request.getRequestedMaxKeepAliveCount();
             this.maxNotificationsPerPublish = request.getMaxNotificationsPerPublish();
@@ -163,13 +164,33 @@ public class Subscription {
         });
     }
 
+    /**
+     * Given the requested publishing interval, set it to something reasonable.
+     *
+     * @param requestedPublishingInterval the requested publishing interval.
+     */
+    private void setPublishingInterval(double requestedPublishingInterval) {
+        if (requestedPublishingInterval < FastestPublishingInterval ||
+                Double.isNaN(requestedPublishingInterval) ||
+                Double.isInfinite(requestedPublishingInterval)) {
+            requestedPublishingInterval = FastestPublishingInterval;
+        }
+
+        if (requestedPublishingInterval > Integer.MAX_VALUE) {
+            requestedPublishingInterval = Integer.MAX_VALUE;
+        }
+
+        this.publishingInterval = requestedPublishingInterval;
+    }
+
     public void modifySubscription(ServiceRequest<ModifySubscriptionRequest, ModifySubscriptionResponse> serviceRequest) {
         executionQueue.submit(() -> {
             ModifySubscriptionRequest request = serviceRequest.getRequest();
 
             this.lifetimeCount = request.getRequestedLifetimeCount();
             this.maxKeepAliveCount = request.getRequestedMaxKeepAliveCount();
-            this.publishingInterval = Math.max(request.getRequestedPublishingInterval(), FastestPublishingInterval);
+
+            setPublishingInterval(request.getRequestedPublishingInterval());
 
             ResponseHeader header = serviceRequest.createResponseHeader();
 
