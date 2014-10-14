@@ -29,6 +29,7 @@ import com.inductiveautomation.opcua.sdk.server.util.PendingCall;
 import com.inductiveautomation.opcua.stack.core.application.services.MethodServiceSet;
 import com.inductiveautomation.opcua.stack.core.application.services.ServiceRequest;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DiagnosticInfo;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UShort;
 import com.inductiveautomation.opcua.stack.core.types.structured.CallMethodRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.CallMethodResult;
 import com.inductiveautomation.opcua.stack.core.types.structured.CallRequest;
@@ -58,7 +59,7 @@ public class MethodServices implements MethodServiceSet {
          * Group by namespace and call asynchronously for each.
          */
 
-        Map<Integer, List<PendingCall>> byNamespace = pendingCalls.stream()
+        Map<UShort, List<PendingCall>> byNamespace = pendingCalls.stream()
                 .collect(Collectors.groupingBy(pending -> pending.getInput().getMethodId().getNamespaceIndex()));
 
         byNamespace.keySet().forEach(index -> {

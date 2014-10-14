@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
+import com.google.common.collect.Maps;
 import com.inductiveautomation.opcua.sdk.core.NamespaceTable;
 import com.inductiveautomation.opcua.sdk.server.api.Namespace;
 import com.inductiveautomation.opcua.sdk.server.api.Reference;
@@ -32,8 +33,11 @@ import com.inductiveautomation.opcua.stack.core.UaRuntimeException;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ExpandedNodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UShort;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.IdType;
-import com.google.common.collect.Maps;
+
+import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.ushort;
 
 public class NamespaceManager {
 
@@ -41,10 +45,10 @@ public class NamespaceManager {
 
     private final NamespaceTable namespaceTable = new NamespaceTable();
 
-    private final Map<Integer, Namespace> namespaces = Maps.newConcurrentMap();
+    private final Map<UShort, Namespace> namespaces = Maps.newConcurrentMap();
 
     public NamespaceManager() {
-        namespaceTable.putUri(NamespaceTable.OpcUaNamespace, 0);
+        namespaceTable.putUri(NamespaceTable.OpcUaNamespace, ushort(0));
     }
 
     /**
@@ -54,7 +58,7 @@ public class NamespaceManager {
      * @return The index assigned to the given namespace URI.
      * @see #registerAndAdd(String, Function)
      */
-    public int registerUri(String namespaceUri) {
+    public UShort registerUri(String namespaceUri) {
         return namespaceTable.addUri(namespaceUri);
     }
 
@@ -81,8 +85,8 @@ public class NamespaceManager {
      * @param namespaceFunction A function that returns a {@link Namespace} for the supplied namespace index.
      * @return The {@link Namespace} returned by {@code namespaceFunction}.
      */
-    public <T extends Namespace> T registerAndAdd(String namespaceUri, Function<Integer, T> namespaceFunction) {
-        int namespaceIndex = namespaceTable.addUri(namespaceUri);
+    public <T extends Namespace> T registerAndAdd(String namespaceUri, Function<UShort, T> namespaceFunction) {
+        UShort namespaceIndex = namespaceTable.addUri(namespaceUri);
         T namespace = namespaceFunction.apply(namespaceIndex);
         namespaces.put(namespaceIndex, namespace);
 
@@ -90,6 +94,10 @@ public class NamespaceManager {
     }
 
     public Namespace getNamespace(int index) {
+        return getNamespace(ushort(index));
+    }
+
+    public Namespace getNamespace(UShort index) {
         Namespace namespace = namespaces.get(index);
 
         return namespace != null ? namespace : NO_OP_NAMESPACE;
@@ -144,17 +152,17 @@ public class NamespaceManager {
         if (namespaceUri == null || namespaceUri.isEmpty()) {
             return Optional.of(createNodeId(expandedNodeId.getNamespaceIndex(), identifier, type));
         } else {
-            int index = namespaceTable.getIndex(namespaceUri);
+            UShort index = namespaceTable.getIndex(namespaceUri);
 
-            if (index == -1) return Optional.empty();
+            if (index == null) return Optional.empty();
             else return Optional.of(createNodeId(index, identifier, type));
         }
     }
 
-    private NodeId createNodeId(int namespaceIndex, Object identifier, IdType type) {
+    private NodeId createNodeId(UShort namespaceIndex, Object identifier, IdType type) {
         switch (type) {
             case Numeric:
-                return new NodeId(namespaceIndex, (Number) identifier);
+                return new NodeId(namespaceIndex, (UInteger) identifier);
             case String:
                 return new NodeId(namespaceIndex, (String) identifier);
             case Guid:

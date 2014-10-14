@@ -31,6 +31,7 @@ import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.application.services.ServiceRequest;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DiagnosticInfo;
 import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UShort;
 import com.inductiveautomation.opcua.stack.core.types.structured.ResponseHeader;
 import com.inductiveautomation.opcua.stack.core.types.structured.WriteRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.WriteResponse;
@@ -48,6 +49,11 @@ public class WriteHelper {
 
         long maxNodesPerWrite = server.getConfig().getServerCapabilities().getOperationLimits().getMaxNodesPerWrite();
 
+        if (request.getNodesToWrite().length == 0) {
+            service.setServiceFault(StatusCodes.Bad_NothingToDo);
+            return;
+        }
+
         if (request.getNodesToWrite().length > maxNodesPerWrite) {
             service.setServiceFault(StatusCodes.Bad_TooManyOperations);
             return;
@@ -57,7 +63,7 @@ public class WriteHelper {
                 .map(PendingWrite::new)
                 .collect(Collectors.toList());
 
-        Map<Integer, List<PendingWrite>> byNamespace = pendingWrites.stream()
+        Map<UShort, List<PendingWrite>> byNamespace = pendingWrites.stream()
                 .collect(Collectors.groupingBy(pending -> pending.getInput().getNodeId().getNamespaceIndex()));
 
         byNamespace.keySet().forEach(index -> {

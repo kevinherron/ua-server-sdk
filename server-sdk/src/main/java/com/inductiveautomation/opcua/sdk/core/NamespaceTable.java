@@ -20,52 +20,56 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.inductiveautomation.opcua.stack.core.StatusCodes;
-import com.inductiveautomation.opcua.stack.core.UaRuntimeException;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.inductiveautomation.opcua.stack.core.StatusCodes;
+import com.inductiveautomation.opcua.stack.core.UaRuntimeException;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UShort;
+
+import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.ushort;
 
 public class NamespaceTable {
 
-    public static String OpcUaNamespace = "http://opcfoundation.org/UA/";
+    public static final String OpcUaNamespace = "http://opcfoundation.org/UA/";
 
-    private final BiMap<Integer, String> uriTable = HashBiMap.create();
+    private final BiMap<UShort, String> uriTable = HashBiMap.create();
 
     public NamespaceTable() {
-        uriTable.put(0, OpcUaNamespace);
+        uriTable.put(ushort(0), OpcUaNamespace);
     }
 
-    public synchronized int addUri(String uri) {
-        int index = 1;
+    public synchronized UShort addUri(String uri) {
+        UShort index = ushort(1);
         while (uriTable.containsKey(index)) {
-            index++;
-            if (index == 65535) {
+            index = ushort(index.intValue() + 1);
+            if (index.intValue() == 65535) {
                 throw new UaRuntimeException(StatusCodes.Bad_InternalError, "uri table full");
             }
         }
         uriTable.put(index, uri);
+
         return index;
     }
 
-    public synchronized void putUri(String uri, int index) {
+    public synchronized void putUri(String uri, UShort index) {
         uriTable.put(index, uri);
     }
 
-    public synchronized String getUri(int index) {
+    public synchronized String getUri(UShort index) {
         return uriTable.get(index);
     }
 
     /**
      * @param uri the namespace URI to look up.
-     * @return the index of the namespace URI, or -1 if it is not present.
+     * @return the index of the namespace URI, or {@code null} if it is not present.
      */
-    public synchronized int getIndex(String uri) {
-        return uriTable.inverse().getOrDefault(uri, -1);
+    public synchronized UShort getIndex(String uri) {
+        return uriTable.inverse().getOrDefault(uri, null);
     }
 
     public synchronized String[] toArray() {
         List<String> uris = uriTable.entrySet().stream()
-                .sorted((e1, e2) -> e1.getKey() - e2.getKey())
+                .sorted((e1, e2) -> e1.getKey().intValue() - e2.getKey().intValue())
                 .map(Map.Entry::getValue)
                 .collect(Collectors.toList());
 

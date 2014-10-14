@@ -18,6 +18,10 @@ package com.inductiveautomation.opcua.sdk.core;
 
 import java.util.EnumSet;
 
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UByte;
+
+import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.ubyte;
+
 public enum AccessLevel {
 
     CurrentRead(0x01),
@@ -52,6 +56,20 @@ public enum AccessLevel {
         short result = 0;
         for (AccessLevel level : levels) result |= level.value;
         return result;
+    }
+
+    public static EnumSet<AccessLevel> fromMask(int accessLevel) {
+        EnumSet<AccessLevel> e = EnumSet.noneOf(AccessLevel.class);
+        for (AccessLevel al : values()) {
+            if ((al.value & accessLevel) != 0) {
+                e.add(al);
+            }
+        }
+        return e;
+    }
+
+    public static EnumSet<AccessLevel> fromMask(UByte accessLevel) {
+        return fromMask(accessLevel.intValue());
     }
 
 }

@@ -44,12 +44,15 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ExpandedNodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UShort;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
 import com.inductiveautomation.opcua.stack.core.types.structured.WriteValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.ushort;
 
 public class OpcUaNamespace implements Namespace {
 
@@ -73,8 +76,8 @@ public class OpcUaNamespace implements Namespace {
     }
 
     @Override
-    public int getNamespaceIndex() {
-        return 0;
+    public UShort getNamespaceIndex() {
+        return ushort(0);
     }
 
     @Override

@@ -44,6 +44,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.DiagnosticInfo;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UShort;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.MonitoringMode;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import com.inductiveautomation.opcua.stack.core.types.structured.CreateMonitoredItemsRequest;
@@ -214,11 +215,11 @@ public class Subscription {
         	/*
              * Notify namespaces that all items have been deleted.
              */
-            Map<Integer, List<BaseMonitoredItem<?>>> byNamespace = itemsById.values().stream()
+            Map<UShort, List<BaseMonitoredItem<?>>> byNamespace = itemsById.values().stream()
                     .collect(Collectors.groupingBy(item -> item.getReadValueId().getNodeId().getNamespaceIndex()));
 
             byNamespace.entrySet().forEach(entry -> {
-                int namespaceIndex = entry.getKey();
+                UShort namespaceIndex = entry.getKey();
                 List<BaseMonitoredItem<?>> items = entry.getValue();
 
                 List<SampledItem> sampled = items.stream()
@@ -280,11 +281,11 @@ public class Subscription {
             /*
              * Notify namespaces of the items we just created.
              */
-            Map<Integer, List<BaseMonitoredItem<?>>> byNamespace = createdItems.stream()
+            Map<UShort, List<BaseMonitoredItem<?>>> byNamespace = createdItems.stream()
                     .collect(Collectors.groupingBy(item -> item.getReadValueId().getNodeId().getNamespaceIndex()));
 
             byNamespace.entrySet().forEach(entry -> {
-                int namespaceIndex = entry.getKey();
+                UShort namespaceIndex = entry.getKey();
                 List<BaseMonitoredItem<?>> items = entry.getValue();
 
                 List<SampledItem> sampled = items.stream()
@@ -380,11 +381,11 @@ public class Subscription {
                     .filter(item -> item != null)
                     .collect(Collectors.toList());
 
-            Map<Integer, List<BaseMonitoredItem<?>>> byNamespace = modifiedItems.stream()
+            Map<UShort, List<BaseMonitoredItem<?>>> byNamespace = modifiedItems.stream()
                     .collect(Collectors.groupingBy(item -> item.getReadValueId().getNodeId().getNamespaceIndex()));
 
             byNamespace.entrySet().forEach(entry -> {
-                int namespaceIndex = entry.getKey();
+                UShort namespaceIndex = entry.getKey();
                 List<BaseMonitoredItem<?>> items = entry.getValue();
 
                 List<SampledItem> sampled = items.stream()
@@ -459,11 +460,11 @@ public class Subscription {
             /*
              * Notify namespaces of the items that have been deleted.
              */
-            Map<Integer, List<BaseMonitoredItem<?>>> byNamespace = deleted.stream()
+            Map<UShort, List<BaseMonitoredItem<?>>> byNamespace = deleted.stream()
                     .collect(Collectors.groupingBy(item -> item.getReadValueId().getNodeId().getNamespaceIndex()));
 
             byNamespace.entrySet().forEach(entry -> {
-                int namespaceIndex = entry.getKey();
+                UShort namespaceIndex = entry.getKey();
                 List<BaseMonitoredItem<?>> items = entry.getValue();
 
                 List<SampledItem> sampled = items.stream()
@@ -516,7 +517,7 @@ public class Subscription {
             /*
              * Notify namespaces of the items whose MonitoringMode has been modified.
              */
-            Map<Integer, List<MonitoredItem>> byNamespace = modified.stream()
+            Map<UShort, List<MonitoredItem>> byNamespace = modified.stream()
                     .collect(Collectors.groupingBy(item -> item.getReadValueId().getNodeId().getNamespaceIndex()));
 
             byNamespace.keySet().forEach(namespaceIndex -> {

@@ -49,6 +49,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
 import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
 import com.inductiveautomation.opcua.stack.core.types.builtin.Variant;
 import com.inductiveautomation.opcua.stack.core.types.builtin.XmlElement;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UShort;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
@@ -64,7 +65,7 @@ import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Un
 public class CttNamespace implements Namespace {
 
     public static final String NamespaceUri = "ctt";
-    public static final int NamespaceIndex = 2;
+    public static final UShort NamespaceIndex = ushort(2);
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -73,7 +74,11 @@ public class CttNamespace implements Namespace {
     private final UaNode folderNode;
     private final SubscriptionModel subscriptionModel;
 
+    private final OpcUaServer server;
+
     public CttNamespace(OpcUaServer server) {
+        this.server = server;
+
         NodeId folderNodeId = new NodeId(NamespaceIndex, "CttNodes");
 
         folderNode = UaObjectNode.builder()
@@ -156,7 +161,7 @@ public class CttNamespace implements Namespace {
 
 
     @Override
-    public int getNamespaceIndex() {
+    public UShort getNamespaceIndex() {
         return NamespaceIndex;
     }
 
@@ -220,7 +225,9 @@ public class CttNamespace implements Namespace {
                 UaNode node = Optional.ofNullable(nodes.get(writeValue.getNodeId()))
                         .orElseThrow(() -> new UaException(StatusCodes.Bad_NodeIdUnknown));
 
-                node.writeAttribute(writeValue.getAttributeId(), writeValue.getValue());
+                node.writeAttribute(writeValue.getAttributeId(), writeValue.getValue(), server.getNamespaceManager());
+
+                results.add(StatusCode.Good);
             } catch (UaException e) {
                 results.add(e.getStatusCode());
             }

@@ -18,6 +18,7 @@ package com.inductiveautomation.opcua.sdk.server.api.nodes;
 
 import java.util.Optional;
 
+import com.inductiveautomation.opcua.sdk.server.NamespaceManager;
 import com.inductiveautomation.opcua.sdk.server.util.AttributeReader;
 import com.inductiveautomation.opcua.sdk.server.util.AttributeWriter;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
@@ -200,8 +201,8 @@ public interface Node {
      * @param value     the {@link DataValue} write.
      * @throws UaException if the attribute is not present or not writable.
      */
-    default void writeAttribute(UInteger attribute, DataValue value) throws UaException {
-        writeAttribute(attribute.intValue(), value);
+    default void writeAttribute(UInteger attribute, DataValue value, NamespaceManager ns) throws UaException {
+        writeAttribute(attribute.intValue(), value, ns);
     }
 
     /**
@@ -211,8 +212,8 @@ public interface Node {
      * @param value     the {@link DataValue} write.
      * @throws UaException if the attribute is not present or not writable.
      */
-    default void writeAttribute(int attribute, DataValue value) throws UaException {
-        AttributeWriter.writeAttribute(attribute, value, this);
+    default void writeAttribute(int attribute, DataValue value, NamespaceManager ns) throws UaException {
+        AttributeWriter.writeAttribute(attribute, value, this, ns);
     }
 
 }

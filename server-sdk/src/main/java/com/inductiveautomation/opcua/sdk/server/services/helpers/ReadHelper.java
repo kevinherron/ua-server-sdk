@@ -31,6 +31,7 @@ import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.application.services.ServiceRequest;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DiagnosticInfo;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UShort;
 import com.inductiveautomation.opcua.stack.core.types.structured.ReadRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.ReadResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
@@ -71,7 +72,7 @@ public class ReadHelper {
          * Group PendingReads by namespace and call read asynchronously for each.
 		 */
 
-        Map<Integer, List<PendingRead>> byNamespace = pendingReads.stream()
+        Map<UShort, List<PendingRead>> byNamespace = pendingReads.stream()
                 .collect(Collectors.groupingBy(pending -> pending.getInput().getNodeId().getNamespaceIndex()));
 
         byNamespace.keySet().forEach(index -> {

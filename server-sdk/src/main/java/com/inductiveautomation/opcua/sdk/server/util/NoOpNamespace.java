@@ -31,15 +31,18 @@ import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UShort;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
 import com.inductiveautomation.opcua.stack.core.types.structured.WriteValue;
 
+import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.ushort;
+
 public class NoOpNamespace implements Namespace {
 
     @Override
-    public int getNamespaceIndex() {
-        return -1;
+    public UShort getNamespaceIndex() {
+        return ushort(UShort.MAX_VALUE);
     }
 
     @Override
