@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 
 public class CttServerConfig implements OpcUaServerConfig {
 
-    private static final String SERVER_ALIAS = "server-test-certificate";
+    private static final String SERVER_ALIAS = "ctt-server-certificate";
     private static final char[] PASSWORD = "test".toCharArray();
 
     private volatile Certificate certificate;
@@ -44,7 +44,7 @@ public class CttServerConfig implements OpcUaServerConfig {
         try {
             KeyStore keyStore = KeyStore.getInstance("PKCS12");
 
-            keyStore.load(getClass().getClassLoader().getResourceAsStream("keystore.pfx"), PASSWORD);
+            keyStore.load(getClass().getClassLoader().getResourceAsStream("ctt-server-keystore.pfx"), PASSWORD);
 
             Key serverPrivateKey = keyStore.getKey(SERVER_ALIAS, PASSWORD);
 
@@ -67,8 +67,13 @@ public class CttServerConfig implements OpcUaServerConfig {
     }
 
     @Override
+    public String getApplicationUri() {
+        return "urn:inductiveautomation:ctt-test-server";
+    }
+
+    @Override
     public String getServerName() {
-        return "test-server";
+        return "ctt-test-server";
     }
 
     @Override
@@ -91,7 +96,7 @@ public class CttServerConfig implements OpcUaServerConfig {
         return new ServerCapabilities() {
             @Override
             public double getMinSupportedSampleRate() {
-                return 0;
+                return 100;
             }
 
             @Override
