@@ -129,6 +129,8 @@ public class SampledMonitoredItem extends BaseMonitoredItem<DataValue> implement
 
     @Override
     protected MonitoredItemNotification wrapQueueValue(DataValue value) {
+        value = DataValue.derivedValue(value, timestamps);
+
         return new MonitoredItemNotification(uint(getClientHandle()), value);
     }
 
