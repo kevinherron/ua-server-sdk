@@ -32,10 +32,12 @@ import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
 
 public abstract class BaseMonitoredItem<ValueType> implements MonitoredItem {
 
+    private static final long MAX_QUEUE_SIZE = 0xFFFF;
+    
     protected volatile RingBuffer<ValueType> queue;
 
     protected volatile long clientHandle;
-    protected volatile long queueSize;
+    protected volatile int queueSize;
     protected volatile double samplingInterval;
     protected volatile boolean discardOldest;
 
@@ -56,11 +58,19 @@ public abstract class BaseMonitoredItem<ValueType> implements MonitoredItem {
         this.timestamps = timestamps;
 
         clientHandle = parameters.getClientHandle().longValue();
-        queueSize = (parameters.getQueueSize().intValue() <= 1) ? 1L : parameters.getQueueSize().longValue();
         samplingInterval = parameters.getSamplingInterval();
         discardOldest = parameters.getDiscardOldest();
 
+        setReasonableQueueSize(parameters);
+
         queue = new RingBuffer<>(Ints.saturatedCast(queueSize));
+    }
+
+    protected void setReasonableQueueSize(MonitoringParameters parameters) {
+        long qs = parameters.getQueueSize().longValue();
+        qs = Math.min(qs, MAX_QUEUE_SIZE);
+        qs = Math.max(qs, 1);
+        this.queueSize = (int) qs;
     }
 
     public synchronized int getNotifications(List<UaStructure> notifications, int max) {
@@ -87,11 +97,10 @@ public abstract class BaseMonitoredItem<ValueType> implements MonitoredItem {
         samplingInterval = parameters.getSamplingInterval();
         discardOldest = parameters.getDiscardOldest();
 
-        if (queueSize != parameters.getQueueSize().longValue()) {
-            queueSize = (parameters.getQueueSize().longValue() <= 1) ?
-                    1L : parameters.getQueueSize().longValue();
+        if (queueSize != parameters.getQueueSize().intValue()) {
+            setReasonableQueueSize(parameters);
 
-            RingBuffer<ValueType> nq = new RingBuffer<>(Ints.saturatedCast(queueSize));
+            RingBuffer<ValueType> nq = new RingBuffer<>(queueSize);
             while (queue.size() > 0) {
                 nq.add(queue.remove());
             }
@@ -121,7 +130,7 @@ public abstract class BaseMonitoredItem<ValueType> implements MonitoredItem {
         return clientHandle;
     }
 
-    public long getQueueSize() {
+    public int getQueueSize() {
         return queueSize;
     }
 
