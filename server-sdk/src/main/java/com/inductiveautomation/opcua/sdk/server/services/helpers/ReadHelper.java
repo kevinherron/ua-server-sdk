@@ -64,6 +64,11 @@ public class ReadHelper {
             return;
         }
 
+        if (request.getTimestampsToReturn() == null) {
+            service.setServiceFault(StatusCodes.Bad_TimestampsToReturnInvalid);
+            return;
+        }
+
         List<PendingRead> pendingReads = Arrays.stream(request.getNodesToRead())
                 .map(PendingRead::new)
                 .collect(Collectors.toList());
