@@ -19,6 +19,7 @@ package com.inductiveautomation.opcua.sdk.server;
 import java.math.RoundingMode;
 import java.nio.ByteBuffer;
 import java.security.KeyPair;
+import java.security.cert.CertificateEncodingException;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
@@ -183,7 +184,16 @@ public class SessionManager implements
         double revisedSessionTimeout = Math.max(5000, Math.min(30000, request.getRequestedSessionTimeout()));
 
         ServerSecureChannel secureChannel = serviceRequest.getSecureChannel();
-        ByteString serverCertificate = secureChannel.getLocalCertificateBytes();
+
+        ByteString serverCertificate;
+        try {
+            serverCertificate = server.getCertificate() != null ?
+                    ByteString.of(server.getCertificate().getEncoded()) :
+                    ByteString.NullValue;
+        } catch (CertificateEncodingException e) {
+            serverCertificate = ByteString.NullValue;
+        }
+
         SignedSoftwareCertificate[] serverSoftwareCertificates = server.getSoftwareCertificates();
         EndpointDescription[] serverEndpoints = server.getEndpointDescriptions();
 

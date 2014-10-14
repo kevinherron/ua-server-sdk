@@ -16,6 +16,7 @@
 
 package com.inductiveautomation.opcua.sdk.server;
 
+import javax.annotation.Nullable;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.KeyPair;
@@ -161,6 +162,11 @@ public class OpcUaServer {
 
     public Optional<KeyPair> getKeyPair(ByteString thumbprint) {
         return server.getKeyPair(thumbprint);
+    }
+
+    @Nullable
+    public Certificate getCertificate() {
+        return server.getCertificate();
     }
 
     public Optional<Certificate> getCertificate(ByteString thumbprint) {
