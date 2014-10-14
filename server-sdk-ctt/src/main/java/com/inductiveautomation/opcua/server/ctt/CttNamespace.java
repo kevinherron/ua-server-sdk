@@ -16,13 +16,11 @@
 
 package com.inductiveautomation.opcua.server.ctt;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicReference;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -38,7 +36,6 @@ import com.inductiveautomation.opcua.sdk.server.api.nodes.UaNode;
 import com.inductiveautomation.opcua.sdk.server.api.nodes.UaObjectNode;
 import com.inductiveautomation.opcua.sdk.server.api.nodes.UaVariableNode;
 import com.inductiveautomation.opcua.sdk.server.api.nodes.UaVariableNode.UaVariableNodeBuilder;
-import com.inductiveautomation.opcua.sdk.server.api.nodes.UaVariableNode.ValueDelegate;
 import com.inductiveautomation.opcua.sdk.server.util.SubscriptionModel;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
@@ -48,7 +45,6 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
-import com.inductiveautomation.opcua.stack.core.types.builtin.OverloadedType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
 import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
 import com.inductiveautomation.opcua.stack.core.types.builtin.Variant;
@@ -59,6 +55,11 @@ import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
 import com.inductiveautomation.opcua.stack.core.types.structured.WriteValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.ubyte;
+import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
+import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.ulong;
+import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.ushort;
 
 public class CttNamespace implements Namespace {
 
@@ -102,7 +103,7 @@ public class CttNamespace implements Namespace {
 
     private static final Object[][] StaticScalarNodes = new Object[][]{
             {"Bool", Identifiers.Boolean, new Variant(false)},
-            {"Byte", Identifiers.Byte, new Variant((short) 0x00, OverloadedType.UByte)},
+            {"Byte", Identifiers.Byte, new Variant(ubyte(0x00))},
             {"ByteString", Identifiers.ByteString, new Variant(new ByteString(new byte[]{0x01, 0x02, 0x03, 0x04}))},
             {"DateTime", Identifiers.DateTime, new Variant(DateTime.now())},
             {"Double", Identifiers.Double, new Variant(3.14d)},
@@ -117,9 +118,9 @@ public class CttNamespace implements Namespace {
             {"SByte", Identifiers.SByte, new Variant((byte) 0x00)},
             {"String", Identifiers.String, new Variant("string value")},
             {"UtcTime", Identifiers.UtcTime, new Variant(DateTime.now())},
-            {"UInt16", Identifiers.UInt16, new Variant(16, OverloadedType.UInt16)},
-            {"UInt32", Identifiers.UInt32, new Variant(32L, OverloadedType.UInt32)},
-            {"UInt64", Identifiers.UInt64, new Variant(64L, OverloadedType.UInt64)},
+            {"UInt16", Identifiers.UInt16, new Variant(ushort(16))},
+            {"UInt32", Identifiers.UInt32, new Variant(uint(32))},
+            {"UInt64", Identifiers.UInt64, new Variant(ulong(64L))},
             {"XmlElement", Identifiers.XmlElement, new Variant(new XmlElement("<a>hello</a>"))},
     };
 
@@ -131,28 +132,14 @@ public class CttNamespace implements Namespace {
 
             UaVariableNode node = new UaVariableNodeBuilder()
                     .setNodeId(new NodeId(NamespaceIndex, name))
-                    .setAccessLevel(AccessLevel.getMask(AccessLevel.ReadWrite))
+                    .setAccessLevel(ubyte(AccessLevel.getMask(AccessLevel.ReadWrite)))
                     .setBrowseName(new QualifiedName(NamespaceIndex, name))
                     .setDisplayName(LocalizedText.english(name))
                     .setDataType(typeId)
                     .setTypeDefinition(Identifiers.BaseDataVariableType)
                     .build();
 
-            DataValue dv = new DataValue(variant, StatusCode.Good);
-
-            node.setValueDelegate(new ValueDelegate() {
-                private final AtomicReference<DataValue> value = new AtomicReference<>(dv);
-
-                @Override
-                public void accept(DataValue dataValue) {
-                    value.set(dataValue);
-                }
-
-                @Override
-                public DataValue get() {
-                    return value.get();
-                }
-            });
+            node.setValue(new DataValue(variant));
 
             Reference reference = new Reference(
                     folderNode.getNodeId(),
@@ -214,7 +201,7 @@ public class CttNamespace implements Namespace {
                     node.readAttribute(id.getAttributeId()) :
                     new DataValue(StatusCodes.Bad_NodeIdUnknown);
 
-            value = id.getAttributeId() == AttributeIds.Value ?
+            value = id.getAttributeId().intValue() == AttributeIds.Value ?
                     DataValue.derivedValue(value, timestamps) :
                     DataValue.derivedNonValue(value, timestamps);
 
@@ -226,7 +213,18 @@ public class CttNamespace implements Namespace {
 
     @Override
     public void write(List<WriteValue> writeValues, CompletableFuture<List<StatusCode>> future) {
-        List<StatusCode> results = Collections.nCopies(writeValues.size(), new StatusCode(StatusCodes.Bad_NotWritable));
+        List<StatusCode> results = Lists.newArrayListWithCapacity(writeValues.size());
+
+        for (WriteValue writeValue : writeValues) {
+            try {
+                UaNode node = Optional.ofNullable(nodes.get(writeValue.getNodeId()))
+                        .orElseThrow(() -> new UaException(StatusCodes.Bad_NodeIdUnknown));
+
+                node.writeAttribute(writeValue.getAttributeId(), writeValue.getValue());
+            } catch (UaException e) {
+                results.add(e.getStatusCode());
+            }
+        }
 
         future.complete(results);
     }

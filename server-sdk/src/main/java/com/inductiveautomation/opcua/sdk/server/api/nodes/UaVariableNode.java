@@ -23,16 +23,30 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimaps;
 import com.inductiveautomation.opcua.sdk.core.AccessLevel;
 import com.inductiveautomation.opcua.sdk.server.api.Reference;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
-import com.inductiveautomation.opcua.stack.core.types.builtin.*;
+import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
+import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
+import com.inductiveautomation.opcua.stack.core.types.builtin.ExpandedNodeId;
+import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
+import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
+import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
+import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
+import com.inductiveautomation.opcua.stack.core.types.builtin.Variant;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UByte;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
-import com.inductiveautomation.opcua.stack.core.util.annotations.UByte;
-import com.inductiveautomation.opcua.stack.core.util.annotations.UInt32;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.*;
+
+import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.ubyte;
+import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
 public class UaVariableNode extends UaNode implements VariableNode {
 
@@ -47,14 +61,14 @@ public class UaVariableNode extends UaNode implements VariableNode {
                           QualifiedName browseName,
                           LocalizedText displayName,
                           Optional<LocalizedText> description,
-                          @UInt32 Optional<Long> writeMask,
-                          @UInt32 Optional<Long> userWriteMask,
+                          Optional<UInteger> writeMask,
+                          Optional<UInteger> userWriteMask,
                           DataValue value,
                           NodeId dataType,
-                          int valueRank,
-                          @UInt32 Optional<Long[]> arrayDimensions,
-                          @UByte Short accessLevel,
-                          @UByte Short userAccessLevel,
+                          Integer valueRank,
+                          Optional<UInteger[]> arrayDimensions,
+                          UByte accessLevel,
+                          UByte userAccessLevel,
                           Optional<Double> minimumSamplingInterval,
                           boolean historizing,
                           List<Reference> references) {
@@ -64,14 +78,14 @@ public class UaVariableNode extends UaNode implements VariableNode {
         Preconditions.checkArgument(nodeClass == NodeClass.Variable);
 
         Attributes as = new Attributes(dataType, valueRank, arrayDimensions,
-                                       accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
+                accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
 
         attributes = new AtomicReference<>(as);
         valueDelegate = new AtomicReference<>(new AtomicValueDelegate(value));
 
-        references.stream().forEach(reference -> {
+        for (Reference reference : references) {
             referenceMap.put(reference.getReferenceTypeId(), reference);
-        });
+        }
     }
 
     public void setValueDelegate(ValueDelegate delegate) {
@@ -106,17 +120,17 @@ public class UaVariableNode extends UaNode implements VariableNode {
     }
 
     @Override
-    public Optional<Long[]> getArrayDimensions() {
+    public Optional<UInteger[]> getArrayDimensions() {
         return attributes.get().getArrayDimensions();
     }
 
     @Override
-    public Short getAccessLevel() {
+    public UByte getAccessLevel() {
         return attributes.get().getAccessLevel();
     }
 
     @Override
-    public Short getUserAccessLevel() {
+    public UByte getUserAccessLevel() {
         return attributes.get().getUserAccessLevel();
     }
 
@@ -130,30 +144,37 @@ public class UaVariableNode extends UaNode implements VariableNode {
         return attributes.get().isHistorizing();
     }
 
+    @Override
     public void setValue(DataValue value) {
         valueDelegate.get().accept(value);
     }
 
+    @Override
     public void setDataType(NodeId dataType) {
         safeSet(b -> b.setDataType(dataType));
     }
 
-    public void setValueRank(int valueRank) {
+    @Override
+    public void setValueRank(Integer valueRank) {
         safeSet(b -> b.setValueRank(valueRank));
     }
 
-    public void setArrayDimensions(Optional<Long[]> arrayDimensions) {
+    @Override
+    public void setArrayDimensions(Optional<UInteger[]> arrayDimensions) {
         safeSet(b -> b.setArrayDimensions(arrayDimensions));
     }
 
-    public void setAccessLevel(Short accessLevel) {
+    @Override
+    public void setAccessLevel(UByte accessLevel) {
         safeSet(b -> b.setAccessLevel(accessLevel));
     }
 
-    public void setUserAccessLevel(Short userAccessLevel) {
+    @Override
+    public void setUserAccessLevel(UByte userAccessLevel) {
         safeSet(b -> b.setUserAccessLevel(userAccessLevel));
     }
 
+    @Override
     public void setHistorizing(boolean historizing) {
         safeSet(b -> b.setHistorizing(historizing));
     }
@@ -217,18 +238,18 @@ public class UaVariableNode extends UaNode implements VariableNode {
     private static class Attributes {
 
         private final NodeId dataType;
-        private final int valueRank;
-        private final Optional<Long[]> arrayDimensions;
-        private final Short accessLevel;
-        private final Short userAccessLevel;
+        private final Integer valueRank;
+        private final Optional<UInteger[]> arrayDimensions;
+        private final UByte accessLevel;
+        private final UByte userAccessLevel;
         private final Optional<Double> minimumSamplingInterval;
         private final boolean historizing;
 
         private Attributes(NodeId dataType,
-                           int valueRank,
-                           @UInt32 Optional<Long[]> arrayDimensions,
-                           @UByte Short accessLevel,
-                           @UByte Short userAccessLevel,
+                           Integer valueRank,
+                           Optional<UInteger[]> arrayDimensions,
+                           UByte accessLevel,
+                           UByte  userAccessLevel,
                            Optional<Double> minimumSamplingInterval,
                            boolean historizing) {
 
@@ -249,18 +270,15 @@ public class UaVariableNode extends UaNode implements VariableNode {
             return valueRank;
         }
 
-        @UInt32
-        public Optional<Long[]> getArrayDimensions() {
+        public Optional<UInteger[]> getArrayDimensions() {
             return arrayDimensions;
         }
 
-        @UByte
-        public Short getAccessLevel() {
+        public UByte getAccessLevel() {
             return accessLevel;
         }
 
-        @UByte
-        public Short getUserAccessLevel() {
+        public UByte getUserAccessLevel() {
             return userAccessLevel;
         }
 
@@ -280,18 +298,18 @@ public class UaVariableNode extends UaNode implements VariableNode {
             Attributes that = (Attributes) o;
 
             return historizing == that.historizing &&
-                    valueRank == that.valueRank &&
                     accessLevel.equals(that.accessLevel) &&
                     arrayDimensions.equals(that.arrayDimensions) &&
                     dataType.equals(that.dataType) &&
                     minimumSamplingInterval.equals(that.minimumSamplingInterval) &&
-                    userAccessLevel.equals(that.userAccessLevel);
+                    userAccessLevel.equals(that.userAccessLevel) &&
+                    valueRank.equals(that.valueRank);
         }
 
         @Override
         public int hashCode() {
             int result = dataType.hashCode();
-            result = 31 * result + valueRank;
+            result = 31 * result + valueRank.hashCode();
             result = 31 * result + arrayDimensions.hashCode();
             result = 31 * result + accessLevel.hashCode();
             result = 31 * result + userAccessLevel.hashCode();
@@ -303,10 +321,10 @@ public class UaVariableNode extends UaNode implements VariableNode {
         private static class Builder implements Supplier<Attributes> {
 
             private NodeId dataType;
-            private int valueRank;
-            private Optional<Long[]> arrayDimensions;
-            private Short accessLevel;
-            private Short userAccessLevel;
+            private Integer valueRank;
+            private Optional<UInteger[]> arrayDimensions;
+            private UByte accessLevel;
+            private UByte userAccessLevel;
             private Optional<Double> minimumSamplingInterval;
             private boolean historizing;
 
@@ -320,22 +338,22 @@ public class UaVariableNode extends UaNode implements VariableNode {
                 return this;
             }
 
-            public Builder setValueRank(int valueRank) {
+            public Builder setValueRank(Integer valueRank) {
                 this.valueRank = valueRank;
                 return this;
             }
 
-            public Builder setArrayDimensions(@UInt32 Optional<Long[]> arrayDimensions) {
+            public Builder setArrayDimensions(Optional<UInteger[]> arrayDimensions) {
                 this.arrayDimensions = arrayDimensions;
                 return this;
             }
 
-            public Builder setAccessLevel(@UByte Short accessLevel) {
+            public Builder setAccessLevel(UByte accessLevel) {
                 this.accessLevel = accessLevel;
                 return this;
             }
 
-            public Builder setUserAccessLevel(@UByte Short userAccessLevel) {
+            public Builder setUserAccessLevel(UByte userAccessLevel) {
                 this.userAccessLevel = userAccessLevel;
                 return this;
             }
@@ -375,8 +393,8 @@ public class UaVariableNode extends UaNode implements VariableNode {
         private QualifiedName browseName;
         private LocalizedText displayName;
         private Optional<LocalizedText> description = Optional.empty();
-        private Optional<Long> writeMask = Optional.of(0L);
-        private Optional<Long> userWriteMask = Optional.of(0L);
+        private Optional<UInteger> writeMask = Optional.of(uint(0));
+        private Optional<UInteger> userWriteMask = Optional.of(uint(0));
 
         private DataValue value = new DataValue(
                 Variant.NullValue, new StatusCode(StatusCodes.Uncertain_InitialValue),
@@ -385,9 +403,9 @@ public class UaVariableNode extends UaNode implements VariableNode {
 
         private NodeId dataType;
         private int valueRank = -1;
-        private Optional<Long[]> arrayDimensions = Optional.empty();
-        private Short accessLevel = AccessLevel.getMask(AccessLevel.CurrentRead);
-        private Short userAccessLevel = AccessLevel.getMask(AccessLevel.CurrentRead);
+        private Optional<UInteger[]> arrayDimensions = Optional.empty();
+        private UByte accessLevel = ubyte(AccessLevel.getMask(AccessLevel.CurrentRead));
+        private UByte userAccessLevel = ubyte(AccessLevel.getMask(AccessLevel.CurrentRead));
         private Optional<Double> minimumSamplingInterval = Optional.empty();
         private boolean historizing = false;
 
@@ -448,12 +466,12 @@ public class UaVariableNode extends UaNode implements VariableNode {
             return this;
         }
 
-        public UaVariableNodeBuilder setWriteMask(@UInt32 Long writeMask) {
+        public UaVariableNodeBuilder setWriteMask(UInteger writeMask) {
             this.writeMask = Optional.of(writeMask);
             return this;
         }
 
-        public UaVariableNodeBuilder setUserWriteMask(@UInt32 Long userWriteMask) {
+        public UaVariableNodeBuilder setUserWriteMask(UInteger userWriteMask) {
             this.userWriteMask = Optional.of(userWriteMask);
             return this;
         }
@@ -473,17 +491,17 @@ public class UaVariableNode extends UaNode implements VariableNode {
             return this;
         }
 
-        public UaVariableNodeBuilder setArrayDimensions(@UInt32 Long[] arrayDimensions) {
+        public UaVariableNodeBuilder setArrayDimensions(UInteger[] arrayDimensions) {
             this.arrayDimensions = Optional.of(arrayDimensions);
             return this;
         }
 
-        public UaVariableNodeBuilder setAccessLevel(@UByte Short accessLevel) {
+        public UaVariableNodeBuilder setAccessLevel(UByte accessLevel) {
             this.accessLevel = accessLevel;
             return this;
         }
 
-        public UaVariableNodeBuilder setUserAccessLevel(@UByte Short userAccessLevel) {
+        public UaVariableNodeBuilder setUserAccessLevel(UByte userAccessLevel) {
             this.userAccessLevel = userAccessLevel;
             return this;
         }

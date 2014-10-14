@@ -26,6 +26,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.primitives.Ints;
 import com.inductiveautomation.opcua.sdk.server.NamespaceManager;
 import com.inductiveautomation.opcua.sdk.server.OpcUaServer;
 import com.inductiveautomation.opcua.sdk.server.api.Reference;
@@ -42,6 +45,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
 import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.BrowseResultMask;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
 import com.inductiveautomation.opcua.stack.core.types.structured.BrowseDescription;
@@ -53,13 +57,11 @@ import com.inductiveautomation.opcua.stack.core.types.structured.BrowseResult;
 import com.inductiveautomation.opcua.stack.core.types.structured.ReferenceDescription;
 import com.inductiveautomation.opcua.stack.core.types.structured.ResponseHeader;
 import com.inductiveautomation.opcua.stack.core.util.NonceUtil;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.primitives.Ints;
 
 import static com.inductiveautomation.opcua.sdk.server.util.FutureUtils.sequence;
 import static com.inductiveautomation.opcua.sdk.server.util.UaEnumUtil.browseResultMasks;
 import static com.inductiveautomation.opcua.sdk.server.util.UaEnumUtil.nodeClasses;
+import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
 public class BrowseHelper {
 
@@ -129,12 +131,12 @@ public class BrowseHelper {
     private class Browse implements Runnable {
 
         private final BrowseDescription description;
-        private final long maxReferences;
+        private final UInteger maxReferences;
         private final OpcUaServer server;
         private final CompletableFuture<BrowseResult> future;
 
         private Browse(BrowseDescription description,
-                       long maxReferences,
+                       UInteger maxReferences,
                        OpcUaServer server,
                        CompletableFuture<BrowseResult> future) {
 
@@ -166,9 +168,9 @@ public class BrowseHelper {
                     filtered.map(this::referenceDescription).collect(Collectors.toList());
 
 
-            int max = maxReferences == 0 ?
+            int max = maxReferences.longValue() == 0 ?
                     Integer.MAX_VALUE :
-                    Ints.saturatedCast(maxReferences);
+                    Ints.saturatedCast(maxReferences.longValue());
 
             return browseResult(descriptions, max);
         }
@@ -215,7 +217,7 @@ public class BrowseHelper {
         }
 
         private boolean nodeClassFilter(Reference reference) {
-            long mask = description.getNodeClassMask();
+            long mask = description.getNodeClassMask().longValue();
 
             EnumSet<NodeClass> nodeClasses = (mask == 0L) ?
                     EnumSet.allOf(NodeClass.class) : nodeClasses(mask);
@@ -224,7 +226,7 @@ public class BrowseHelper {
         }
 
         private ReferenceDescription referenceDescription(Reference reference) {
-            EnumSet<BrowseResultMask> resultMaskSet = browseResultMasks(description.getResultMask());
+            EnumSet<BrowseResultMask> resultMaskSet = browseResultMasks(description.getResultMask().longValue());
 
             Optional<Node> targetNode = server.getNamespaceManager().getNode(reference.getTargetNodeId());
 

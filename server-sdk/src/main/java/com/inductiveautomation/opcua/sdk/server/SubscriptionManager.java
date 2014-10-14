@@ -28,6 +28,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.inductiveautomation.opcua.sdk.server.services.ServiceAttributes;
 import com.inductiveautomation.opcua.sdk.server.util.Pending;
 import com.inductiveautomation.opcua.sdk.server.util.PendingAck;
@@ -36,6 +39,7 @@ import com.inductiveautomation.opcua.stack.core.UaException;
 import com.inductiveautomation.opcua.stack.core.application.services.ServiceRequest;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DiagnosticInfo;
 import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.structured.CreateMonitoredItemsRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.CreateMonitoredItemsResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.CreateSubscriptionRequest;
@@ -60,21 +64,19 @@ import com.inductiveautomation.opcua.stack.core.types.structured.SetPublishingMo
 import com.inductiveautomation.opcua.stack.core.types.structured.SetTriggeringRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.SetTriggeringResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.SubscriptionAcknowledgement;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.inductiveautomation.opcua.sdk.server.util.ConversionUtil.a;
 import static com.inductiveautomation.opcua.sdk.server.util.FutureUtils.sequence;
+import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
 public class SubscriptionManager {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final Queue<ServiceRequest<PublishRequest, PublishResponse>> publishingQueue = new ConcurrentLinkedQueue<>();
-    private final Map<Long, StatusCode[]> acknowledgements = Maps.newConcurrentMap();
+    private final Map<UInteger, StatusCode[]> acknowledgements = Maps.newConcurrentMap();
 
     private final Subscriptions subscriptions = new Subscriptions();
 
@@ -90,7 +92,7 @@ public class SubscriptionManager {
     public void createSubscription(ServiceRequest<CreateSubscriptionRequest, CreateSubscriptionResponse> service) {
         OpcUaServer server = service.attr(ServiceAttributes.ServerKey).get();
 
-        long subscriptionId = nextSubscriptionId();
+        UInteger subscriptionId = nextSubscriptionId();
 
         Subscription subscription = new Subscription(
                 subscriptionId,
@@ -107,7 +109,7 @@ public class SubscriptionManager {
 
     public void modifySubscription(ServiceRequest<ModifySubscriptionRequest, ModifySubscriptionResponse> service) {
         ModifySubscriptionRequest request = service.getRequest();
-        long subscriptionId = request.getSubscriptionId();
+        UInteger subscriptionId = request.getSubscriptionId();
 
         try {
             Subscription subscription = subscriptions
@@ -123,7 +125,7 @@ public class SubscriptionManager {
     public void deleteSubscription(ServiceRequest<DeleteSubscriptionsRequest, DeleteSubscriptionsResponse> service) {
 
         DeleteSubscriptionsRequest request = service.getRequest();
-        Long[] subscriptionIds = request.getSubscriptionIds();
+        UInteger[] subscriptionIds = request.getSubscriptionIds();
 
         List<StatusCode> results = Arrays.stream(subscriptionIds)
                 .map(subscriptions::remove)
@@ -173,7 +175,7 @@ public class SubscriptionManager {
 
     public void publish(ServiceRequest<PublishRequest, PublishResponse> service) {
         PublishRequest request = service.getRequest();
-        long requestHandle = request.getRequestHeader().getRequestHandle();
+        UInteger requestHandle = request.getRequestHeader().getRequestHandle();
 
         if (acknowledgements.containsKey(requestHandle)) {
             deliverPublish(service);
@@ -189,7 +191,7 @@ public class SubscriptionManager {
                 .map(PendingAck::new)
                 .collect(Collectors.toList());
 
-        Map<Long, List<PendingAck>> bySubscription =
+        Map<UInteger, List<PendingAck>> bySubscription =
                 pendingAcks.stream().collect(Collectors.groupingBy(ack -> ack.getInput().getSubscriptionId()));
 
         bySubscription.keySet().forEach(id -> {
@@ -217,7 +219,7 @@ public class SubscriptionManager {
                 .collect(Collectors.toList());
 
         sequence(futures).thenAccept(values -> {
-            long requestHandle = request.getRequestHeader().getRequestHandle();
+            UInteger requestHandle = request.getRequestHeader().getRequestHandle();
 
             acknowledgements.put(requestHandle, values.toArray(new StatusCode[values.size()]));
 
@@ -237,7 +239,7 @@ public class SubscriptionManager {
 
     public void republish(ServiceRequest<RepublishRequest, RepublishResponse> service) {
         RepublishRequest request = service.getRequest();
-        long subscriptionId = request.getSubscriptionId();
+        UInteger subscriptionId = request.getSubscriptionId();
 
         try {
             Subscription subscription = subscriptions
@@ -252,7 +254,7 @@ public class SubscriptionManager {
 
     public void createMonitoredItems(ServiceRequest<CreateMonitoredItemsRequest, CreateMonitoredItemsResponse> service) {
         CreateMonitoredItemsRequest request = service.getRequest();
-        long subscriptionId = request.getSubscriptionId();
+        UInteger subscriptionId = request.getSubscriptionId();
 
         try {
             Subscription subscription = subscriptions
@@ -267,7 +269,7 @@ public class SubscriptionManager {
 
     public void modifyMonitoredItems(ServiceRequest<ModifyMonitoredItemsRequest, ModifyMonitoredItemsResponse> service) {
         ModifyMonitoredItemsRequest request = service.getRequest();
-        long subscriptionId = request.getSubscriptionId();
+        UInteger subscriptionId = request.getSubscriptionId();
 
         try {
             Subscription subscription = subscriptions
@@ -282,7 +284,7 @@ public class SubscriptionManager {
 
     public void deleteMonitoredItems(ServiceRequest<DeleteMonitoredItemsRequest, DeleteMonitoredItemsResponse> service) {
         DeleteMonitoredItemsRequest request = service.getRequest();
-        long subscriptionId = request.getSubscriptionId();
+        UInteger subscriptionId = request.getSubscriptionId();
 
         try {
             Subscription subscription = subscriptions
@@ -297,7 +299,7 @@ public class SubscriptionManager {
 
     public void setMonitoringMode(ServiceRequest<SetMonitoringModeRequest, SetMonitoringModeResponse> service) {
         SetMonitoringModeRequest request = service.getRequest();
-        long subscriptionId = request.getSubscriptionId();
+        UInteger subscriptionId = request.getSubscriptionId();
 
         try {
             Subscription subscription = subscriptions
@@ -312,7 +314,7 @@ public class SubscriptionManager {
 
     public void setTriggering(ServiceRequest<SetTriggeringRequest, SetTriggeringResponse> service) {
         SetTriggeringRequest request = service.getRequest();
-        long subscriptionId = request.getSubscriptionId();
+        UInteger subscriptionId = request.getSubscriptionId();
 
         try {
             Subscription subscription = subscriptions
@@ -337,13 +339,13 @@ public class SubscriptionManager {
 
     private static final AtomicLong SubscriptionIds = new AtomicLong(0L);
 
-    private static long nextSubscriptionId() {
-        return SubscriptionIds.incrementAndGet();
+    private static UInteger nextSubscriptionId() {
+        return uint(SubscriptionIds.incrementAndGet());
     }
 
     private static class Subscriptions {
 
-        private final Map<Long, Subscription> subscriptions = Maps.newConcurrentMap();
+        private final Map<UInteger, Subscription> subscriptions = Maps.newConcurrentMap();
         private volatile Iterator<Subscription> iterator = Iterators.cycle(subscriptions.values());
 
         void add(Subscription subscription) {
@@ -351,11 +353,11 @@ public class SubscriptionManager {
             iterator = Iterators.cycle(subscriptions.values());
         }
 
-        Optional<Subscription> get(long subscriptionId) {
+        Optional<Subscription> get(UInteger subscriptionId) {
             return Optional.ofNullable(subscriptions.get(subscriptionId));
         }
 
-        Optional<Subscription> remove(long subscriptionId) {
+        Optional<Subscription> remove(UInteger subscriptionId) {
             Subscription subscription = subscriptions.remove(subscriptionId);
             iterator = Iterators.cycle(subscriptions.values());
 

@@ -19,9 +19,9 @@ package com.inductiveautomation.opcua.sdk.server.util;
 import java.util.EnumSet;
 import java.util.List;
 
+import com.google.common.collect.Lists;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.BrowseResultMask;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
-import com.google.common.collect.Lists;
 
 public class UaEnumUtil {
 

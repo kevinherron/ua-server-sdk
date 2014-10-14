@@ -20,8 +20,8 @@ import java.util.Locale;
 
 import com.inductiveautomation.opcua.stack.core.channel.ChannelConfig;
 import com.inductiveautomation.opcua.stack.core.types.structured.SignedSoftwareCertificate;
-import com.inductiveautomation.opcua.stack.core.util.annotations.UInt16;
-import com.inductiveautomation.opcua.stack.core.util.annotations.UInt32;
+import com.inductiveautomation.opcua.stack.core.util.annotations.UInt16Primitive;
+import com.inductiveautomation.opcua.stack.core.util.annotations.UInt32Primitive;
 
 public interface ServerCapabilities {
 
@@ -58,7 +58,7 @@ public interface ServerCapabilities {
      * @return the maximum number of parallel continuation points of the Browse Service that the Server can support per
      * session.
      */
-    @UInt16
+    @UInt16Primitive
     default int getMaxBrowseContinuationPoints() { return 32; }
 
     /**
@@ -74,7 +74,7 @@ public interface ServerCapabilities {
      * @return the maximum number of parallel continuation points of the QueryFirst Services that the Server can
      * support per session.
      */
-    @UInt16
+    @UInt16Primitive
     default int getMaxQueryContinuationPoints() { return 32; }
 
     /**
@@ -90,7 +90,7 @@ public interface ServerCapabilities {
      * @return the maximum number of parallel continuation points of the HistoryRead Services that the Server can
      * support per session.
      */
-    @UInt16
+    @UInt16Primitive
     default int getMaxHistoryContinuationPoints() { return 32; }
 
     /**
@@ -116,7 +116,7 @@ public interface ServerCapabilities {
      *
      * @return the maximum length of a one or multidimensional array supported by Variables of the Server.
      */
-    @UInt32
+    @UInt32Primitive
     default long getMaxArrayLength() { return ChannelConfig.DEFAULT_MAX_ARRAY_LENGTH; }
 
     /**
@@ -131,7 +131,7 @@ public interface ServerCapabilities {
      *
      * @return the maximum length of Strings supported by Variables of the Server.
      */
-    @UInt32
+    @UInt32Primitive
     default long getMaxStringLength() { return ChannelConfig.DEFAULT_MAX_STRING_LENGTH; }
 
     /**

@@ -35,6 +35,8 @@ import com.inductiveautomation.opcua.stack.core.types.enumerated.ServerState;
 import com.inductiveautomation.opcua.stack.core.types.structured.BuildInfo;
 import com.inductiveautomation.opcua.stack.core.types.structured.ServerStatusDataType;
 
+import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
+
 public class OpcUaNamespaceModel {
 
     private final ServerStatus serverStatus = new ServerStatus();
@@ -150,7 +152,7 @@ public class OpcUaNamespaceModel {
         }
 
         public ServerStatusDataType serverStatus() {
-            return new ServerStatusDataType(startTime, currentTime(), state(), buildInfo(), secondsTillShutdown(), shutdownReason());
+            return new ServerStatusDataType(startTime, currentTime(), state(), buildInfo(), uint(secondsTillShutdown()), shutdownReason());
         }
 
         public BuildInfo buildInfo() {

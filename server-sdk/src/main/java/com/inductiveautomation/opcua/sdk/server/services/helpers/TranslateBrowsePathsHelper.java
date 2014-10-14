@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Lists;
 import com.inductiveautomation.opcua.sdk.server.NamespaceManager;
 import com.inductiveautomation.opcua.sdk.server.OpcUaServer;
 import com.inductiveautomation.opcua.sdk.server.api.Reference;
@@ -41,9 +42,9 @@ import com.inductiveautomation.opcua.stack.core.types.structured.RelativePathEle
 import com.inductiveautomation.opcua.stack.core.types.structured.ResponseHeader;
 import com.inductiveautomation.opcua.stack.core.types.structured.TranslateBrowsePathsToNodeIdsRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.TranslateBrowsePathsToNodeIdsResponse;
-import com.google.common.collect.Lists;
 
 import static com.inductiveautomation.opcua.sdk.server.util.ConversionUtil.a;
+import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
 public class TranslateBrowsePathsHelper {
 
@@ -99,7 +100,7 @@ public class TranslateBrowsePathsHelper {
             if (targets.isEmpty()) throw new UaException(StatusCodes.Bad_NoMatch);
 
             return targets.stream()
-                    .map(n -> new BrowsePathTarget(n, 0L))
+                    .map(n -> new BrowsePathTarget(n, uint(0)))
                     .collect(Collectors.toList());
         } else {
             RelativePathElement e = elements.remove(0);
@@ -110,7 +111,7 @@ public class TranslateBrowsePathsHelper {
             if (next.isPresent()) {
                 return follow(next.get(), elements);
             } else {
-                return Lists.newArrayList(new BrowsePathTarget(eNext, (long) elements.size()));
+                return Lists.newArrayList(new BrowsePathTarget(eNext, uint(elements.size())));
             }
         }
     }

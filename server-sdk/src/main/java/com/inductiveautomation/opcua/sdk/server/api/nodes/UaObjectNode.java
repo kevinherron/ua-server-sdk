@@ -22,33 +22,40 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimaps;
 import com.inductiveautomation.opcua.sdk.server.api.Reference;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ExpandedNodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UByte;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
-import com.inductiveautomation.opcua.stack.core.util.annotations.UByte;
-import com.inductiveautomation.opcua.stack.core.util.annotations.UInt32;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.*;
+
+import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.ubyte;
+import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
 public class UaObjectNode extends UaNode implements ObjectNode {
 
     private final ListMultimap<NodeId, Reference> referenceMap =
             Multimaps.synchronizedListMultimap(ArrayListMultimap.create());
 
-    private final AtomicReference<Short> eventNotifier;
+    private final AtomicReference<UByte> eventNotifier;
 
     public UaObjectNode(NodeId nodeId,
                         NodeClass nodeClass,
                         QualifiedName browseName,
                         LocalizedText displayName,
                         Optional<LocalizedText> description,
-                        @UInt32 Optional<Long> writeMask,
-                        @UInt32 Optional<Long> userWriteMask,
-                        @UByte Short eventNotifier,
+                        Optional<UInteger> writeMask,
+                        Optional<UInteger> userWriteMask,
+                        UByte eventNotifier,
                         List<Reference> references) {
 
         super(nodeId, nodeClass, browseName, displayName, description, writeMask, userWriteMask);
@@ -77,13 +84,12 @@ public class UaObjectNode extends UaNode implements ObjectNode {
         return referenceMap.remove(reference.getReferenceTypeId(), reference);
     }
 
-    @UByte
     @Override
-    public Short getEventNotifier() {
+    public UByte getEventNotifier() {
         return eventNotifier.get();
     }
 
-    public void setEventNotifier(@UByte Short eventNotifier) {
+    public void setEventNotifier(UByte eventNotifier) {
         this.eventNotifier.set(eventNotifier);
     }
 
@@ -101,9 +107,9 @@ public class UaObjectNode extends UaNode implements ObjectNode {
         private QualifiedName browseName;
         private LocalizedText displayName;
         private Optional<LocalizedText> description = Optional.empty();
-        private @UInt32 Optional<Long> writeMask = Optional.of(0L);
-        private @UInt32 Optional<Long> userWriteMask = Optional.of(0L);
-        private @UByte Short eventNotifier = 0;
+        private Optional<UInteger> writeMask = Optional.of(uint(0));
+        private Optional<UInteger> userWriteMask = Optional.of(uint(0));
+        private UByte eventNotifier = ubyte(0);
 
         @Override
         public UaObjectNode get() {
@@ -169,17 +175,17 @@ public class UaObjectNode extends UaNode implements ObjectNode {
             return this;
         }
 
-        public UaObjectNodeBuilder setWriteMask(Long writeMask) {
+        public UaObjectNodeBuilder setWriteMask(UInteger writeMask) {
             this.writeMask = Optional.of(writeMask);
             return this;
         }
 
-        public UaObjectNodeBuilder setUserWriteMask(Long userWriteMask) {
+        public UaObjectNodeBuilder setUserWriteMask(UInteger userWriteMask) {
             this.userWriteMask = Optional.of(userWriteMask);
             return this;
         }
 
-        public UaObjectNodeBuilder setEventNotifier(Short eventNotifier) {
+        public UaObjectNodeBuilder setEventNotifier(UByte eventNotifier) {
             this.eventNotifier = eventNotifier;
             return this;
         }

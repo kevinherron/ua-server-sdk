@@ -19,7 +19,7 @@ package com.inductiveautomation.opcua.sdk.server.objects;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.structured.ServerStatusDataType;
-import com.inductiveautomation.opcua.stack.core.util.annotations.UByte;
+import com.inductiveautomation.opcua.stack.core.util.annotations.UBytePrimitive;
 
 public interface ServerObject extends ObjectPrototype {
 
@@ -32,7 +32,7 @@ public interface ServerObject extends ObjectPrototype {
 
     ServerStatusDataType getServerStatus();
 
-    @UByte
+    @UBytePrimitive
     short getServiceLevel();
 
     boolean isAuditing();

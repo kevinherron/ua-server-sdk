@@ -18,12 +18,13 @@ package com.inductiveautomation.opcua.sdk.server;
 
 import java.util.Map;
 
-import com.inductiveautomation.opcua.sdk.server.items.BaseMonitoredItem;
 import com.google.common.collect.Maps;
+import com.inductiveautomation.opcua.sdk.server.items.BaseMonitoredItem;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 
 public class TriggeringLinks {
 
-    private final Map<Long, BaseMonitoredItem<?>> triggeredItems = Maps.newConcurrentMap();
+    private final Map<UInteger, BaseMonitoredItem<?>> triggeredItems = Maps.newConcurrentMap();
 
     private final BaseMonitoredItem<?> triggeringItem;
 
@@ -35,7 +36,7 @@ public class TriggeringLinks {
         return triggeringItem;
     }
 
-    public Map<Long, BaseMonitoredItem<?>> getTriggeredItems() {
+    public Map<UInteger, BaseMonitoredItem<?>> getTriggeredItems() {
         return triggeredItems;
     }
 

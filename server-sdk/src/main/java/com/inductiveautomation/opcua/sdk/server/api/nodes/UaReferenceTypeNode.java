@@ -22,19 +22,19 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimaps;
 import com.inductiveautomation.opcua.sdk.server.api.Reference;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ExpandedNodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
-import com.inductiveautomation.opcua.stack.core.util.annotations.UInt32;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimaps;
 
 public class UaReferenceTypeNode extends UaNode implements ReferenceTypeNode {
 
@@ -48,8 +48,8 @@ public class UaReferenceTypeNode extends UaNode implements ReferenceTypeNode {
                                QualifiedName browseName,
                                LocalizedText displayName,
                                Optional<LocalizedText> description,
-                               @UInt32 Optional<Long> writeMask,
-                               @UInt32 Optional<Long> userWriteMask,
+                               Optional<UInteger> writeMask,
+                               Optional<UInteger> userWriteMask,
                                boolean isAbstract,
                                boolean symmetric,
                                Optional<LocalizedText> inverseName,

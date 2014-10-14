@@ -29,7 +29,6 @@ import com.inductiveautomation.opcua.sdk.server.api.nodes.ViewNode;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
-import com.inductiveautomation.opcua.stack.core.types.builtin.OverloadedType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
 import com.inductiveautomation.opcua.stack.core.types.builtin.Variant;
 
@@ -86,7 +85,7 @@ public class AttributeReader {
     }
 
     private static DataValue readObjectAttribute(int attribute, ObjectNode node) {
-        if (attribute == AttributeIds.EventNotifier) return dv(node.getEventNotifier(), OverloadedType.UByte);
+        if (attribute == AttributeIds.EventNotifier) return dv(node.getEventNotifier());
 
         return readNodeAttribute(attribute, node);
     }
@@ -114,8 +113,8 @@ public class AttributeReader {
         if (attribute == AttributeIds.ArrayDimensions) {
             return node.getArrayDimensions().map(AttributeReader::dv).orElse(AttributeIdInvalidValue);
         }
-        if (attribute == AttributeIds.AccessLevel) return dv(node.getAccessLevel(), OverloadedType.UByte);
-        if (attribute == AttributeIds.UserAccessLevel) return dv(node.getUserAccessLevel(), OverloadedType.UByte);
+        if (attribute == AttributeIds.AccessLevel) return dv(node.getAccessLevel());
+        if (attribute == AttributeIds.UserAccessLevel) return dv(node.getUserAccessLevel());
         if (attribute == AttributeIds.MinimumSamplingInterval) {
             return node.getMinimumSamplingInterval().map(AttributeReader::dv).orElse(AttributeIdInvalidValue);
         }
@@ -140,7 +139,7 @@ public class AttributeReader {
 
     private static DataValue readViewNodeAttribute(int attribute, ViewNode node) {
         if (attribute == AttributeIds.ContainsNoLoops) return dv(node.containsNoLoops());
-        if (attribute == AttributeIds.EventNotifier) return dv(node.getEventNotifier(), OverloadedType.UByte);
+        if (attribute == AttributeIds.EventNotifier) return dv(node.getEventNotifier());
 
         return readNodeAttribute(attribute, node);
     }
@@ -148,10 +147,6 @@ public class AttributeReader {
     /** DataValue for a non-value attribute; no source timestamp included. */
     private static DataValue dv(Object o) {
         return new DataValue(new Variant(o), StatusCode.Good, DateTime.now(), null);
-    }
-
-    private static DataValue dv(Object o, OverloadedType type) {
-        return new DataValue(new Variant(o, type), StatusCode.Good, DateTime.now(), null);
     }
 
 }

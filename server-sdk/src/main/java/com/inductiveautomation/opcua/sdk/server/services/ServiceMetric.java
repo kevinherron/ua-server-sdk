@@ -21,6 +21,8 @@ import com.codahale.metrics.Timer;
 import com.inductiveautomation.opcua.stack.core.application.services.ServiceRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.ServiceCounterDataType;
 
+import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
+
 public class ServiceMetric {
 
     private final Timer requestTimer = new Timer();
@@ -44,7 +46,10 @@ public class ServiceMetric {
     }
 
     public ServiceCounterDataType getServiceCounter() {
-        return new ServiceCounterDataType(requestTimer.getCount(), errorCounter.getCount());
+        return new ServiceCounterDataType(
+                uint(requestTimer.getCount()),
+                uint(errorCounter.getCount())
+        );
     }
 
 }

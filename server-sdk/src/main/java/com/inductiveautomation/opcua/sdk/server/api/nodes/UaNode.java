@@ -26,8 +26,8 @@ import com.inductiveautomation.opcua.sdk.server.api.Reference;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
-import com.inductiveautomation.opcua.stack.core.util.annotations.UInt32;
 
 public abstract class UaNode implements Node {
 
@@ -47,8 +47,8 @@ public abstract class UaNode implements Node {
                      QualifiedName browseName,
                      LocalizedText displayName,
                      Optional<LocalizedText> description,
-                     @UInt32 Optional<Long> writeMask,
-                     @UInt32 Optional<Long> userWriteMask) {
+                     Optional<UInteger> writeMask,
+                     Optional<UInteger> userWriteMask) {
 
         Attributes a = new Attributes(nodeId, nodeClass, browseName, displayName,
                 description, writeMask, userWriteMask);
@@ -86,40 +86,47 @@ public abstract class UaNode implements Node {
     }
 
     @Override
-    public Optional<Long> getWriteMask() {
+    public Optional<UInteger> getWriteMask() {
         return attributes.get().getWriteMask();
     }
 
     @Override
-    public Optional<Long> getUserWriteMask() {
+    public Optional<UInteger> getUserWriteMask() {
         return attributes.get().getUserWriteMask();
     }
 
+    @Override
     public void setNodeId(NodeId nodeId) {
         safeSet(b -> b.setNodeId(nodeId));
     }
 
+    @Override
     public void setNodeClass(NodeClass nodeClass) {
         safeSet(b -> b.setNodeClass(nodeClass));
     }
 
+    @Override
     public void setBrowseName(QualifiedName browseName) {
         safeSet(b -> b.setBrowseName(browseName));
     }
 
+    @Override
     public void setDisplayName(LocalizedText displayName) {
         safeSet(b -> b.setDisplayName(displayName));
     }
 
+    @Override
     public void setDescription(Optional<LocalizedText> description) {
         safeSet(b -> b.setDescription(description));
     }
 
-    public void setWriteMask(@UInt32 Optional<Long> writeMask) {
+    @Override
+    public void setWriteMask(Optional<UInteger> writeMask) {
         safeSet(b -> b.setWriteMask(writeMask));
     }
 
-    public void setUserWriteMask(@UInt32 Optional<Long> userWriteMask) {
+    @Override
+    public void setUserWriteMask(Optional<UInteger> userWriteMask) {
         safeSet(b -> b.setUserWriteMask(userWriteMask));
     }
 
@@ -146,16 +153,16 @@ public abstract class UaNode implements Node {
         private final QualifiedName browseName;
         private final LocalizedText displayName;
         private final Optional<LocalizedText> description;
-        private final Optional<Long> writeMask;
-        private final Optional<Long> userWriteMask;
+        private final Optional<UInteger> writeMask;
+        private final Optional<UInteger> userWriteMask;
 
         private Attributes(NodeId nodeId,
                            NodeClass nodeClass,
                            QualifiedName browseName,
                            LocalizedText displayName,
                            Optional<LocalizedText> description,
-                           @UInt32 Optional<Long> writeMask,
-                           @UInt32 Optional<Long> userWriteMask) {
+                           Optional<UInteger> writeMask,
+                           Optional<UInteger> userWriteMask) {
             this.nodeId = nodeId;
             this.nodeClass = nodeClass;
             this.browseName = browseName;
@@ -185,13 +192,11 @@ public abstract class UaNode implements Node {
             return description;
         }
 
-        @UInt32
-        public Optional<Long> getWriteMask() {
+        public Optional<UInteger> getWriteMask() {
             return writeMask;
         }
 
-        @UInt32
-        public Optional<Long> getUserWriteMask() {
+        public Optional<UInteger> getUserWriteMask() {
             return userWriteMask;
         }
 
@@ -202,15 +207,13 @@ public abstract class UaNode implements Node {
 
             Attributes that = (Attributes) o;
 
-            if (!browseName.equals(that.browseName)) return false;
-            if (!description.equals(that.description)) return false;
-            if (!displayName.equals(that.displayName)) return false;
-            if (nodeClass != that.nodeClass) return false;
-            if (!nodeId.equals(that.nodeId)) return false;
-            if (!userWriteMask.equals(that.userWriteMask)) return false;
-            if (!writeMask.equals(that.writeMask)) return false;
-
-            return true;
+            return browseName.equals(that.browseName) &&
+                    description.equals(that.description) &&
+                    displayName.equals(that.displayName) &&
+                    nodeClass == that.nodeClass &&
+                    nodeId.equals(that.nodeId) &&
+                    userWriteMask.equals(that.userWriteMask) &&
+                    writeMask.equals(that.writeMask);
         }
 
         @Override
@@ -232,8 +235,8 @@ public abstract class UaNode implements Node {
             private QualifiedName browseName;
             private LocalizedText displayName;
             private Optional<LocalizedText> description = Optional.empty();
-            private Optional<Long> writeMask = Optional.empty();
-            private Optional<Long> userWriteMask = Optional.empty();
+            private Optional<UInteger> writeMask = Optional.empty();
+            private Optional<UInteger> userWriteMask = Optional.empty();
 
             @Override
             public Attributes get() {
@@ -265,12 +268,12 @@ public abstract class UaNode implements Node {
                 return this;
             }
 
-            public Builder setWriteMask(@UInt32 Optional<Long> writeMask) {
+            public Builder setWriteMask(Optional<UInteger> writeMask) {
                 this.writeMask = writeMask;
                 return this;
             }
 
-            public Builder setUserWriteMask(@UInt32 Optional<Long> userWriteMask) {
+            public Builder setUserWriteMask(Optional<UInteger> userWriteMask) {
                 this.userWriteMask = userWriteMask;
                 return this;
             }

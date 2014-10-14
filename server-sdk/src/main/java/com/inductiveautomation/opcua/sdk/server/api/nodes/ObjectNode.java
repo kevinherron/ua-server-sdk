@@ -16,10 +16,10 @@
 
 package com.inductiveautomation.opcua.sdk.server.api.nodes;
 
-import com.inductiveautomation.opcua.stack.core.util.annotations.UByte;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UByte;
 
 public interface ObjectNode extends Node {
 
-    @UByte Short getEventNotifier();
+    UByte getEventNotifier();
 
 }

@@ -21,18 +21,18 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.inductiveautomation.opcua.sdk.server.api.Reference;
-import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
-import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
-import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
-import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
-import com.inductiveautomation.opcua.stack.core.util.annotations.UByte;
-import com.inductiveautomation.opcua.stack.core.util.annotations.UInt32;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
+import com.inductiveautomation.opcua.sdk.server.api.Reference;
+import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
+import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
+import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UByte;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
+import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
 
 public class UaViewNode extends UaNode implements ViewNode {
 
@@ -40,17 +40,17 @@ public class UaViewNode extends UaNode implements ViewNode {
             Multimaps.synchronizedListMultimap(ArrayListMultimap.create());
 
     private final AtomicBoolean containsNoLoops;
-    private final AtomicReference<Short> eventNotifier;
+    private final AtomicReference<UByte> eventNotifier;
 
     public UaViewNode(NodeId nodeId,
                       NodeClass nodeClass,
                       QualifiedName browseName,
                       LocalizedText displayName,
                       Optional<LocalizedText> description,
-                      @UInt32 Optional<Long> writeMask,
-                      @UInt32 Optional<Long> userWriteMask,
+                      Optional<UInteger> writeMask,
+                      Optional<UInteger> userWriteMask,
                       boolean containsNoLoops,
-                      @UByte Short eventNotifier,
+                      UByte eventNotifier,
                       List<Reference> references) {
 
         super(nodeId, nodeClass, browseName, displayName, description, writeMask, userWriteMask);
@@ -82,9 +82,8 @@ public class UaViewNode extends UaNode implements ViewNode {
         return containsNoLoops.get();
     }
 
-    @UByte
     @Override
-    public Short getEventNotifier() {
+    public UByte getEventNotifier() {
         return eventNotifier.get();
     }
 
@@ -92,7 +91,7 @@ public class UaViewNode extends UaNode implements ViewNode {
         this.containsNoLoops.set(containsNoLoops);
     }
 
-    public void setEventNotifier(@UByte Short eventNotifier) {
+    public void setEventNotifier(UByte eventNotifier) {
         this.eventNotifier.set(eventNotifier);
     }
 

@@ -43,6 +43,7 @@ import com.inductiveautomation.opcua.stack.core.application.services.ServiceRequ
 import com.inductiveautomation.opcua.stack.core.types.builtin.DiagnosticInfo;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.MonitoringMode;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import com.inductiveautomation.opcua.stack.core.types.structured.CreateMonitoredItemsRequest;
@@ -74,15 +75,16 @@ import com.inductiveautomation.opcua.stack.core.types.structured.SubscriptionAck
 import com.inductiveautomation.opcua.stack.core.util.ExecutionQueue;
 
 import static com.inductiveautomation.opcua.sdk.server.util.ConversionUtil.a;
+import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
 public class Subscription {
 
     private static final double FastestPublishingInterval = 100.0;
 
-    private final Map<Long, BaseMonitoredItem<?>> itemsById = Maps.newConcurrentMap();
-    private final Map<Long, TriggeringLinks> linksById = Maps.newConcurrentMap();
+    private final Map<UInteger, BaseMonitoredItem<?>> itemsById = Maps.newConcurrentMap();
+    private final Map<UInteger, TriggeringLinks> linksById = Maps.newConcurrentMap();
 
-    private final Map<Long, NotificationMessage> sentNotifications = Maps.newConcurrentMap();
+    private final Map<UInteger, NotificationMessage> sentNotifications = Maps.newConcurrentMap();
 
     private final AtomicLong itemIds = new AtomicLong(1L);
 
@@ -96,13 +98,13 @@ public class Subscription {
     private volatile long maxNotificationsPerPublish;
     private volatile boolean publishingEnabled;
 
-    private final long subscriptionId;
+    private final UInteger subscriptionId;
     private final Queue<ServiceRequest<PublishRequest, PublishResponse>> publishingQueue;
-    private final Map<Long, StatusCode[]> acknowledgements;
+    private final Map<UInteger, StatusCode[]> acknowledgements;
 
-    public Subscription(Long subscriptionId,
+    public Subscription(UInteger subscriptionId,
                         Queue<ServiceRequest<PublishRequest, PublishResponse>> publishingQueue,
-                        Map<Long, StatusCode[]> acknowledgements,
+                        Map<UInteger, StatusCode[]> acknowledgements,
                         OpcUaServer server) {
 
         this.subscriptionId = subscriptionId;
@@ -123,7 +125,7 @@ public class Subscription {
     public void acknowledge(List<SubscriptionAcknowledgement> pending, CompletableFuture<List<StatusCode>> future) {
         executionQueue.submit(() -> {
             List<StatusCode> results = pending.stream().map(ack -> {
-                long sequenceNumber = ack.getSequenceNumber();
+                UInteger sequenceNumber = ack.getSequenceNumber();
                 NotificationMessage notification = sentNotifications.remove(sequenceNumber);
 
                 if (notification != null) {
@@ -143,9 +145,9 @@ public class Subscription {
 
             setPublishingInterval(request.getRequestedPublishingInterval());
 
-            this.lifetimeCount = request.getRequestedLifetimeCount();
-            this.maxKeepAliveCount = request.getRequestedMaxKeepAliveCount();
-            this.maxNotificationsPerPublish = request.getMaxNotificationsPerPublish();
+            this.lifetimeCount = request.getRequestedLifetimeCount().longValue();
+            this.maxKeepAliveCount = request.getRequestedMaxKeepAliveCount().longValue();
+            this.maxNotificationsPerPublish = request.getMaxNotificationsPerPublish().longValue();
             this.publishingEnabled = request.getPublishingEnabled();
 
             subscriptionState.set(new SubscriptionState(this, executionQueue));
@@ -156,8 +158,8 @@ public class Subscription {
             CreateSubscriptionResponse response = new CreateSubscriptionResponse(
                     header, subscriptionId,
                     getPublishingInterval(),
-                    getLifetimeCount(),
-                    getMaxKeepAliveCount()
+                    uint(getLifetimeCount()),
+                    uint(getMaxKeepAliveCount())
             );
 
             serviceRequest.setResponse(response);
@@ -187,8 +189,8 @@ public class Subscription {
         executionQueue.submit(() -> {
             ModifySubscriptionRequest request = serviceRequest.getRequest();
 
-            this.lifetimeCount = request.getRequestedLifetimeCount();
-            this.maxKeepAliveCount = request.getRequestedMaxKeepAliveCount();
+            this.lifetimeCount = request.getRequestedLifetimeCount().longValue();
+            this.maxKeepAliveCount = request.getRequestedMaxKeepAliveCount().longValue();
 
             setPublishingInterval(request.getRequestedPublishingInterval());
 
@@ -197,8 +199,8 @@ public class Subscription {
             ModifySubscriptionResponse response = new ModifySubscriptionResponse(
                     header,
                     getPublishingInterval(),
-                    getLifetimeCount(),
-                    getMaxKeepAliveCount()
+                    uint(getLifetimeCount()),
+                    uint(getMaxKeepAliveCount())
             );
 
             serviceRequest.setResponse(response);
@@ -248,7 +250,7 @@ public class Subscription {
 
     public void republish(ServiceRequest<RepublishRequest, RepublishResponse> service) {
         executionQueue.submit(() -> {
-            long sequenceNumber = service.getRequest().getRetransmitSequenceNumber();
+            UInteger sequenceNumber = service.getRequest().getRetransmitSequenceNumber();
             NotificationMessage message = sentNotifications.get(sequenceNumber);
 
             if (message != null) {
@@ -320,7 +322,7 @@ public class Subscription {
                                                            List<BaseMonitoredItem<?>> createdItems) {
 
         NodeId nodeId = request.getItemToMonitor().getNodeId();
-        Long attributeId = request.getItemToMonitor().getAttributeId();
+        UInteger attributeId = request.getItemToMonitor().getAttributeId();
 
         try {
             Node node = namespaceManager.getNode(nodeId)
@@ -329,11 +331,11 @@ public class Subscription {
             if (node.hasAttribute(attributeId)) {
                 BaseMonitoredItem<?> item;
 
-                if (attributeId == AttributeIds.EventNotifier) {
+                if (attributeId.intValue() == AttributeIds.EventNotifier) {
                     throw new UaException(StatusCodes.Bad_AttributeIdInvalid); // TODO Create event item
                 } else {
                     item = SampledMonitoredItem.create(
-                            itemIds.getAndIncrement(),
+                            uint(itemIds.getAndIncrement()),
                             request.getItemToMonitor(),
                             request.getMonitoringMode(),
                             timestamps,
@@ -347,14 +349,14 @@ public class Subscription {
                         StatusCode.Good,
                         item.getId(),
                         item.getSamplingInterval(),
-                        item.getQueueSize(),
+                        uint(item.getQueueSize()),
                         item.getFilterResult()
                 );
             } else {
                 throw new UaException(StatusCodes.Bad_AttributeIdInvalid);
             }
         } catch (UaException e) {
-            return () -> new MonitoredItemCreateResult(e.getStatusCode(), 0L, 0d, 0L, null);
+            return () -> new MonitoredItemCreateResult(e.getStatusCode(), uint(0), 0d, uint(0), null);
         }
     }
 
@@ -414,7 +416,7 @@ public class Subscription {
     }
 
     private Supplier<MonitoredItemModifyResult> modifyItem(MonitoredItemModifyRequest request, TimestampsToReturn timestamps) {
-        long itemId = request.getMonitoredItemId();
+        UInteger itemId = request.getMonitoredItemId();
         MonitoringParameters parameters = request.getRequestedParameters();
 
         try {
@@ -426,17 +428,17 @@ public class Subscription {
             return () -> new MonitoredItemModifyResult(
                     StatusCode.Good,
                     item.getSamplingInterval(),
-                    item.getQueueSize(),
+                    uint(item.getQueueSize()),
                     item.getFilterResult()
             );
         } catch (UaException e) {
-            return () -> new MonitoredItemModifyResult(e.getStatusCode(), 0d, 0L, null);
+            return () -> new MonitoredItemModifyResult(e.getStatusCode(), 0d, uint(0), null);
         }
     }
 
     public void deleteMonitoredItems(ServiceRequest<DeleteMonitoredItemsRequest, DeleteMonitoredItemsResponse> service) {
         executionQueue.submit(() -> {
-            Long[] itemsToDelete = service.getRequest().getMonitoredItemIds();
+            UInteger[] itemsToDelete = service.getRequest().getMonitoredItemIds();
 
             /*
              * Remove each monitored item, if it exists.
@@ -444,7 +446,7 @@ public class Subscription {
             List<StatusCode> results = Lists.newArrayList();
             List<BaseMonitoredItem<?>> deleted = Lists.newArrayList();
 
-            for (Long itemId : itemsToDelete) {
+            for (UInteger itemId : itemsToDelete) {
                 BaseMonitoredItem<?> item = itemsById.remove(itemId);
                 if (item != null) {
                     deleted.add(item);
@@ -491,7 +493,7 @@ public class Subscription {
 
     public void setMonitoringMode(ServiceRequest<SetMonitoringModeRequest, SetMonitoringModeResponse> service) {
         executionQueue.submit(() -> {
-            Long[] itemsToModify = service.getRequest().getMonitoredItemIds();
+            UInteger[] itemsToModify = service.getRequest().getMonitoredItemIds();
             MonitoringMode monitoringMode = service.getRequest().getMonitoringMode();
 
             /*
@@ -500,7 +502,7 @@ public class Subscription {
             List<StatusCode> results = Lists.newArrayList();
             List<BaseMonitoredItem<?>> modified = Lists.newArrayList();
 
-            for (Long itemId : itemsToModify) {
+            for (UInteger itemId : itemsToModify) {
                 BaseMonitoredItem<?> item = itemsById.get(itemId);
                 if (item != null) {
                     item.setMonitoringMode(monitoringMode);
@@ -535,7 +537,7 @@ public class Subscription {
 
     public void setTriggering(ServiceRequest<SetTriggeringRequest, SetTriggeringResponse> service) {
         executionQueue.submit(() -> {
-            long triggerId = service.getRequest().getTriggeringItemId();
+            UInteger triggerId = service.getRequest().getTriggeringItemId();
 
             try {
                 BaseMonitoredItem<?> trigger = itemsById.get(triggerId);
@@ -592,23 +594,23 @@ public class Subscription {
         return publishingQueue;
     }
 
-    public Map<Long, StatusCode[]> getAcknowledgements() {
+    public Map<UInteger, StatusCode[]> getAcknowledgements() {
         return acknowledgements;
     }
 
-    public Map<Long, BaseMonitoredItem<?>> getItemsById() {
+    public Map<UInteger, BaseMonitoredItem<?>> getItemsById() {
         return itemsById;
     }
 
-    public Map<Long, TriggeringLinks> getLinksById() {
+    public Map<UInteger, TriggeringLinks> getLinksById() {
         return linksById;
     }
 
-    public Map<Long, NotificationMessage> getSentNotifications() {
+    public Map<UInteger, NotificationMessage> getSentNotifications() {
         return sentNotifications;
     }
 
-    Long getSubscriptionId() {
+    UInteger getSubscriptionId() {
         return subscriptionId;
     }
 

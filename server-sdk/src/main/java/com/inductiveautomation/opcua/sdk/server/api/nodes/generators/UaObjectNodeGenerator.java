@@ -33,6 +33,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Lists;
 import com.inductiveautomation.opcua.sdk.core.AccessLevel;
 import com.inductiveautomation.opcua.sdk.server.api.Reference;
 import com.inductiveautomation.opcua.sdk.server.api.nodes.UaNode;
@@ -45,7 +46,8 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
 import com.inductiveautomation.opcua.stack.core.types.builtin.Variant;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
-import com.google.common.collect.Lists;
+
+import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.ubyte;
 
 
 public class UaObjectNodeGenerator {
@@ -131,7 +133,7 @@ public class UaObjectNodeGenerator {
                     .setBrowseName(new QualifiedName(0, propertyDescriptor.getName()))
                     .setDisplayName(LocalizedText.english(propertyDescriptor.getDisplayName()))
                     .setDataType(dt)
-                    .setAccessLevel(AccessLevel.getMask(accessLevels))
+                    .setAccessLevel(ubyte(AccessLevel.getMask(accessLevels)))
                     .build();
 
             variableNode.setValueDelegate(new UaVariableNode.ValueDelegate() {

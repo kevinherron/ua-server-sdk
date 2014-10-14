@@ -50,6 +50,8 @@ import com.inductiveautomation.opcua.stack.core.types.structured.SessionSecurity
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
+
 public class Session implements SessionServiceSet {
 
     private static final ScheduledExecutorService ScheduledExecutor = Executors.newSingleThreadScheduledExecutor();
@@ -184,7 +186,7 @@ public class Session implements SessionServiceSet {
 
     @Override
     public void onCancel(ServiceRequest<CancelRequest, CancelResponse> serviceRequest) throws UaException {
-        serviceRequest.setResponse(new CancelResponse(serviceRequest.createResponseHeader(), 0L));
+        serviceRequest.setResponse(new CancelResponse(serviceRequest.createResponseHeader(), uint(0)));
     }
     //endregion
 

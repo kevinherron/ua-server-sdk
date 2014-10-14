@@ -20,18 +20,18 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.inductiveautomation.opcua.sdk.server.api.Reference;
-import com.inductiveautomation.opcua.stack.core.Identifiers;
-import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
-import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
-import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
-import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
-import com.inductiveautomation.opcua.stack.core.util.annotations.UInt32;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
+import com.inductiveautomation.opcua.sdk.server.api.Reference;
+import com.inductiveautomation.opcua.stack.core.Identifiers;
+import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
+import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
+import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
+import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
 
 public class UaDataTypeNode extends UaNode implements DataTypeNode {
 
@@ -45,8 +45,8 @@ public class UaDataTypeNode extends UaNode implements DataTypeNode {
                           QualifiedName browseName,
                           LocalizedText displayName,
                           Optional<LocalizedText> description,
-                          @UInt32 Optional<Long> writeMask,
-                          @UInt32 Optional<Long> userWriteMask,
+                          Optional<UInteger> writeMask,
+                          Optional<UInteger> userWriteMask,
                           boolean isAbstract,
                           List<Reference> references) {
 

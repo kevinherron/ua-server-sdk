@@ -22,18 +22,18 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import com.inductiveautomation.opcua.sdk.server.api.Reference;
-import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
-import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
-import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
-import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
-import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
-import com.inductiveautomation.opcua.stack.core.util.annotations.UInt32;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
+import com.inductiveautomation.opcua.sdk.server.api.Reference;
+import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
+import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
+import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
+import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
+import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
 
 public class UaVariableTypeNode extends UaNode implements VariableTypeNode {
 
@@ -47,12 +47,12 @@ public class UaVariableTypeNode extends UaNode implements VariableTypeNode {
                               QualifiedName browseName,
                               LocalizedText displayName,
                               Optional<LocalizedText> description,
-                              @UInt32 Optional<Long> writeMask,
-                              @UInt32 Optional<Long> userWriteMask,
+                              Optional<UInteger> writeMask,
+                              Optional<UInteger> userWriteMask,
                               Optional<DataValue> value,
                               NodeId dataType,
                               int valueRank,
-                              @UInt32 Optional<Long[]> arrayDimensions,
+                              Optional<UInteger[]> arrayDimensions,
                               boolean isAbstract,
                               List<Reference> references) {
 
@@ -63,9 +63,9 @@ public class UaVariableTypeNode extends UaNode implements VariableTypeNode {
         Attributes as = new Attributes(value, dataType, valueRank, arrayDimensions, isAbstract);
         attributes = new AtomicReference<>(as);
 
-        references.stream().forEach(reference -> {
+        for (Reference reference : references) {
             referenceMap.put(reference.getReferenceTypeId(), reference);
-        });
+        }
     }
 
     @Override
@@ -96,8 +96,7 @@ public class UaVariableTypeNode extends UaNode implements VariableTypeNode {
     }
 
     @Override
-    @UInt32
-    public Optional<Long[]> getArrayDimensions() {
+    public Optional<UInteger[]> getArrayDimensions() {
         return attributes.get().getArrayDimensions();
     }
 
@@ -118,7 +117,7 @@ public class UaVariableTypeNode extends UaNode implements VariableTypeNode {
         safeSet(b -> b.setValueRank(valueRank));
     }
 
-    public void setArrayDimensions(@UInt32 Optional<Long[]> arrayDimensions) {
+    public void setArrayDimensions(Optional<UInteger[]> arrayDimensions) {
         safeSet(b -> b.setArrayDimensions(arrayDimensions));
     }
 
@@ -147,13 +146,13 @@ public class UaVariableTypeNode extends UaNode implements VariableTypeNode {
         private final Optional<DataValue> value;
         private final NodeId dataType;
         private final int valueRank;
-        private final Optional<Long[]> arrayDimensions;
+        private final Optional<UInteger[]> arrayDimensions;
         private final boolean isAbstract;
 
         private Attributes(Optional<DataValue> value,
                            NodeId dataType,
                            int valueRank,
-                           @UInt32 Optional<Long[]> arrayDimensions,
+                           Optional<UInteger[]> arrayDimensions,
                            boolean isAbstract) {
 
             this.value = value;
@@ -175,8 +174,7 @@ public class UaVariableTypeNode extends UaNode implements VariableTypeNode {
             return valueRank;
         }
 
-        @UInt32
-        public Optional<Long[]> getArrayDimensions() {
+        public Optional<UInteger[]> getArrayDimensions() {
             return arrayDimensions;
         }
 
@@ -213,7 +211,7 @@ public class UaVariableTypeNode extends UaNode implements VariableTypeNode {
             private Optional<DataValue> value;
             private NodeId dataType;
             private int valueRank;
-            private Optional<Long[]> arrayDimensions;
+            private Optional<UInteger[]> arrayDimensions;
             private boolean isAbstract;
 
             @Override
@@ -236,7 +234,7 @@ public class UaVariableTypeNode extends UaNode implements VariableTypeNode {
                 return this;
             }
 
-            public Builder setArrayDimensions(@UInt32 Optional<Long[]> arrayDimensions) {
+            public Builder setArrayDimensions(Optional<UInteger[]> arrayDimensions) {
                 this.arrayDimensions = arrayDimensions;
                 return this;
             }

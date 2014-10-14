@@ -42,6 +42,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DiagnosticInfo;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ExtensionObject;
 import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.structured.DataChangeNotification;
 import com.inductiveautomation.opcua.stack.core.types.structured.EventFieldList;
 import com.inductiveautomation.opcua.stack.core.types.structured.EventNotificationList;
@@ -54,6 +55,8 @@ import com.inductiveautomation.opcua.stack.core.types.structured.StatusChangeNot
 import com.inductiveautomation.opcua.stack.core.util.ExecutionQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
 /**
  * Manages the subscription state table and variables defined in OPC-UA Part 4, 5.13.1.2 and 5.13.1.3.
@@ -173,13 +176,13 @@ public class SubscriptionState {
     private void returnKeepAlive(ServiceRequest<PublishRequest, PublishResponse> serviceRequest) {
         ResponseHeader header = serviceRequest.createResponseHeader();
 
-        Set<Long> keys = subscription.getSentNotifications().keySet();
-        Long[] available = keys.toArray(new Long[keys.size()]);
+        Set<UInteger> keys = subscription.getSentNotifications().keySet();
+        UInteger[] available = keys.toArray(new UInteger[keys.size()]);
 
         NotificationMessage notificationMessage = new NotificationMessage(
-                currentSequenceNumber(), DateTime.now(), new ExtensionObject[0]);
+                uint(currentSequenceNumber()), DateTime.now(), new ExtensionObject[0]);
 
-        long requestHandle = serviceRequest.getRequest().getRequestHeader().getRequestHandle();
+        UInteger requestHandle = serviceRequest.getRequest().getRequestHeader().getRequestHandle();
         StatusCode[] results = subscription.getAcknowledgements().get(requestHandle);
 
         PublishResponse response = new PublishResponse(
@@ -293,17 +296,17 @@ public class SubscriptionState {
         }
 
         NotificationMessage notificationMessage = new NotificationMessage(
-                nextSequenceNumber(),
+                uint(nextSequenceNumber()),
                 new DateTime(),
                 notificationData.toArray(new ExtensionObject[notificationData.size()])
         );
 
         subscription.getSentNotifications().put(notificationMessage.getSequenceNumber(), notificationMessage);
 
-        Set<Long> keys = subscription.getSentNotifications().keySet();
-        Long[] available = keys.toArray(new Long[keys.size()]);
+        Set<UInteger> keys = subscription.getSentNotifications().keySet();
+        UInteger[] available = keys.toArray(new UInteger[keys.size()]);
 
-        Long requestHandle = service.getRequest().getRequestHeader().getRequestHandle();
+        UInteger requestHandle = service.getRequest().getRequestHeader().getRequestHandle();
         StatusCode[] results = subscription.getAcknowledgements().get(requestHandle);
 
         ResponseHeader header = service.createResponseHeader();
@@ -326,7 +329,7 @@ public class SubscriptionState {
                 new StatusCode(StatusCodes.Bad_Timeout), null);
 
         NotificationMessage notificationMessage = new NotificationMessage(
-                nextSequenceNumber(),
+                uint(nextSequenceNumber()),
                 new DateTime(),
                 new ExtensionObject[]{new ExtensionObject(statusChange)}
         );
@@ -335,7 +338,7 @@ public class SubscriptionState {
 
         PublishResponse response = new PublishResponse(
                 header, subscription.getSubscriptionId(),
-                new Long[0], false, notificationMessage,
+                new UInteger[0], false, notificationMessage,
                 new StatusCode[0], new DiagnosticInfo[0]);
 
         service.setResponse(response);

@@ -20,6 +20,7 @@ import java.util.Optional;
 
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 
 public interface VariableTypeNode extends Node {
 
@@ -29,7 +30,7 @@ public interface VariableTypeNode extends Node {
 
     int getValueRank();
 
-    Optional<Long[]> getArrayDimensions();
+    Optional<UInteger[]> getArrayDimensions();
 
     boolean isAbstract();
 

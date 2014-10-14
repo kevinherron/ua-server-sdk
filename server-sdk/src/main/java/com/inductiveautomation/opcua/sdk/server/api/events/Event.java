@@ -24,7 +24,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.structured.TimeZoneDataType;
-import com.inductiveautomation.opcua.stack.core.util.annotations.UInt16;
+import com.inductiveautomation.opcua.stack.core.util.annotations.UInt16Primitive;
 
 public interface Event {
 
@@ -102,7 +102,7 @@ public interface Event {
      *
      * @return an indication of the urgency of the Event.
      */
-    @UInt16
+    @UInt16Primitive
     int getSeverity();
 
 }

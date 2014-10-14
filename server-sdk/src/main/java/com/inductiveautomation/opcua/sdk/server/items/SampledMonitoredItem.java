@@ -25,6 +25,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ExtensionObject;
 import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
 import com.inductiveautomation.opcua.stack.core.types.builtin.Variant;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.DataChangeTrigger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.DeadbandType;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.MonitoringMode;
@@ -37,11 +38,13 @@ import com.inductiveautomation.opcua.stack.core.types.structured.MonitoringFilte
 import com.inductiveautomation.opcua.stack.core.types.structured.MonitoringParameters;
 import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
 
+import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
+
 public class SampledMonitoredItem extends BaseMonitoredItem<DataValue> implements SampledItem {
 
     private static final DataChangeFilter DefaultFilter = new DataChangeFilter(
             DataChangeTrigger.StatusValue,
-            (long) DeadbandType.None.getValue(),
+            uint(DeadbandType.None.getValue()),
             0.0
     );
 
@@ -49,7 +52,7 @@ public class SampledMonitoredItem extends BaseMonitoredItem<DataValue> implement
     private volatile DataChangeFilter filter = null;
     private volatile ExtensionObject filterResult = null;
 
-    public SampledMonitoredItem(long id,
+    public SampledMonitoredItem(UInteger id,
                                 ReadValueId readValueId,
                                 MonitoringMode monitoringMode,
                                 TimestampsToReturn timestamps,
@@ -126,10 +129,10 @@ public class SampledMonitoredItem extends BaseMonitoredItem<DataValue> implement
 
     @Override
     protected MonitoredItemNotification wrapQueueValue(DataValue value) {
-        return new MonitoredItemNotification(getClientHandle(), value);
+        return new MonitoredItemNotification(uint(getClientHandle()), value);
     }
 
-    public static SampledMonitoredItem create(long id,
+    public static SampledMonitoredItem create(UInteger id,
                                               ReadValueId readValueId,
                                               MonitoringMode monitoringMode,
                                               TimestampsToReturn timestamps,

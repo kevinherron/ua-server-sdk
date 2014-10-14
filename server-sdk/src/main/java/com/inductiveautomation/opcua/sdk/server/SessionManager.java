@@ -119,6 +119,8 @@ import com.inductiveautomation.opcua.stack.core.types.structured.WriteResponse;
 import com.inductiveautomation.opcua.stack.core.util.NonceUtil;
 import com.inductiveautomation.opcua.stack.core.util.SignatureUtil;
 
+import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
+
 public class SessionManager implements
         AttributeServiceSet,
         MethodServiceSet,
@@ -216,7 +218,7 @@ public class SessionManager implements
                 serverEndpoints,
                 serverSoftwareCertificates,
                 serverSignature,
-                maxRequestMessageSize
+                uint(maxRequestMessageSize)
         );
 
 
