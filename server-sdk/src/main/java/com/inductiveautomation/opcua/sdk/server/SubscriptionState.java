@@ -369,14 +369,14 @@ public class SubscriptionState {
 
             setState(State.Closing);
         } else {
-            long interval = DoubleMath.roundToLong(subscription.getPublishingInterval(), RoundingMode.UP);
+            long interval = firstExecution ?
+                    0 : DoubleMath.roundToLong(subscription.getPublishingInterval(), RoundingMode.UP);
 
-            boolean immediate = firstExecution;
             firstExecution = false;
 
             SharedScheduledExecutor.schedule(
                     () -> executionQueue.submit(this::onPublishingTimer),
-                    immediate ? 0 : interval,
+                    interval,
                     TimeUnit.MILLISECONDS);
         }
     }
