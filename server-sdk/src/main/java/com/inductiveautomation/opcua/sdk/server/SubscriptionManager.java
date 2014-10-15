@@ -52,6 +52,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.ModifyMonitored
 import com.inductiveautomation.opcua.stack.core.types.structured.ModifyMonitoredItemsResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.ModifySubscriptionRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.ModifySubscriptionResponse;
+import com.inductiveautomation.opcua.stack.core.types.structured.NotificationMessage;
 import com.inductiveautomation.opcua.stack.core.types.structured.PublishRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.PublishResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.RepublishRequest;
@@ -76,7 +77,9 @@ public class SubscriptionManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final Queue<ServiceRequest<PublishRequest, PublishResponse>> publishingQueue = new ConcurrentLinkedQueue<>();
+
     private final Map<UInteger, StatusCode[]> acknowledgements = Maps.newConcurrentMap();
+    private final Map<UInteger, NotificationMessage> retransmissionQueue = Maps.newConcurrentMap();
 
     private final Subscriptions subscriptions = new Subscriptions();
 
@@ -220,8 +223,12 @@ public class SubscriptionManager {
 
         sequence(futures).thenAccept(values -> {
             UInteger requestHandle = request.getRequestHeader().getRequestHandle();
+            StatusCode[] results = a(values, StatusCode.class);
 
-            acknowledgements.put(requestHandle, values.toArray(new StatusCode[values.size()]));
+            logger.debug("Acknowledgements processed for requestHandle={} results={}",
+                    requestHandle, Arrays.toString(results));
+            
+            acknowledgements.put(requestHandle, results);
 
             publish(service);
         });

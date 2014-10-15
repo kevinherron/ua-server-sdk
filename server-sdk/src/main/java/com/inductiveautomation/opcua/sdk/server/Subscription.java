@@ -74,6 +74,8 @@ import com.inductiveautomation.opcua.stack.core.types.structured.SetTriggeringRe
 import com.inductiveautomation.opcua.stack.core.types.structured.SetTriggeringResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.SubscriptionAcknowledgement;
 import com.inductiveautomation.opcua.stack.core.util.ExecutionQueue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.inductiveautomation.opcua.sdk.server.util.ConversionUtil.a;
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
@@ -81,6 +83,8 @@ import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Un
 public class Subscription {
 
     private static final double FastestPublishingInterval = 100.0;
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final Map<UInteger, BaseMonitoredItem<?>> itemsById = Maps.newConcurrentMap();
     private final Map<UInteger, TriggeringLinks> linksById = Maps.newConcurrentMap();
@@ -101,6 +105,7 @@ public class Subscription {
 
     private final UInteger subscriptionId;
     private final Queue<ServiceRequest<PublishRequest, PublishResponse>> publishingQueue;
+
     private final Map<UInteger, StatusCode[]> acknowledgements;
 
     public Subscription(UInteger subscriptionId,
@@ -130,8 +135,10 @@ public class Subscription {
                 NotificationMessage notification = sentNotifications.remove(sequenceNumber);
 
                 if (notification != null) {
+                    logger.debug("Acknowledged sequenceNumber={}", sequenceNumber);
                     return StatusCode.Good;
                 } else {
+                    logger.debug("Unknown sequenceNumber={}", sequenceNumber);
                     return new StatusCode(StatusCodes.Bad_SequenceNumberUnknown);
                 }
             }).collect(Collectors.toList());

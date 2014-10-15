@@ -161,6 +161,8 @@ public class SubscriptionState {
     }
 
     private Optional<ServiceRequest<PublishRequest, PublishResponse>> dequeue() {
+        resetLifetimeCounter();
+
         return Optional.ofNullable(subscription.getPublishingQueue().poll());
     }
 
@@ -182,7 +184,7 @@ public class SubscriptionState {
                 uint(currentSequenceNumber()), DateTime.now(), new ExtensionObject[0]);
 
         UInteger requestHandle = serviceRequest.getRequest().getRequestHeader().getRequestHandle();
-        StatusCode[] results = subscription.getAcknowledgements().get(requestHandle);
+        StatusCode[] results = subscription.getAcknowledgements().remove(requestHandle);
 
         PublishResponse response = new PublishResponse(
                 header, subscription.getSubscriptionId(),
@@ -307,7 +309,7 @@ public class SubscriptionState {
         UInteger[] available = keys.toArray(new UInteger[keys.size()]);
 
         UInteger requestHandle = service.getRequest().getRequestHeader().getRequestHandle();
-        StatusCode[] results = subscription.getAcknowledgements().get(requestHandle);
+        StatusCode[] results = subscription.getAcknowledgements().remove(requestHandle);
 
         ResponseHeader header = service.createResponseHeader();
 
@@ -357,22 +359,17 @@ public class SubscriptionState {
         }
     }
 
-    private volatile boolean firstExecution = true;
-
     void startPublishingTimer() {
         if (state == State.Closed) return;
 
         lifetimeCounter--;
 
-        if (lifetimeCounter <= 1) {
+        if (lifetimeCounter < 1) {
             logger.debug("Subscription (id={}) lifetime expired.", subscription.getSubscriptionId());
 
             setState(State.Closing);
         } else {
-            long interval = firstExecution ?
-                    0 : DoubleMath.roundToLong(subscription.getPublishingInterval(), RoundingMode.UP);
-
-            firstExecution = false;
+            long interval = DoubleMath.roundToLong(subscription.getPublishingInterval(), RoundingMode.UP);
 
             SharedScheduledExecutor.schedule(
                     () -> executionQueue.submit(this::onPublishingTimer),
