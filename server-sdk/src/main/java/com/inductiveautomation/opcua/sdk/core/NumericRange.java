@@ -19,20 +19,38 @@ package com.inductiveautomation.opcua.sdk.core;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 
+import com.google.common.base.Objects;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.UaException;
 import com.inductiveautomation.opcua.stack.core.types.builtin.Variant;
 import com.inductiveautomation.opcua.stack.core.util.ArrayUtil;
 
-public class NumericRange {
+public final class NumericRange {
 
+    private final String range;
     private final Bounds[] bounds;
 
-    public NumericRange(Bounds[] bounds) {
+    public NumericRange(String range, Bounds[] bounds) {
+        this.range = range;
         this.bounds = bounds;
     }
 
-    public int[] getDimensionLengths() {
+    public String getRange() {
+        return range;
+    }
+
+    public Bounds[] getBounds() {
+        return bounds;
+    }
+
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(this)
+                .add("range", range)
+                .toString();
+    }
+
+    private int[] getDimensionLengths() {
         int[] dimensionLengths = new int[bounds.length];
         for (int i = 0; i < bounds.length; i++) {
             dimensionLengths[i] = bounds[i].high - bounds[i].low + 1;
@@ -40,11 +58,11 @@ public class NumericRange {
         return dimensionLengths;
     }
 
-    public Bounds getBounds(int dimension) {
+    private Bounds getBounds(int dimension) {
         return bounds[dimension - 1];
     }
 
-    private static class Bounds {
+    public static final class Bounds {
         private final int low;
         private final int high;
 
@@ -67,7 +85,7 @@ public class NumericRange {
                 bounds[i] = new Bounds(low, high);
             }
 
-            return new NumericRange(bounds);
+            return new NumericRange(range, bounds);
         } catch (Throwable ex) {
             throw new UaException(StatusCodes.Bad_IndexRangeInvalid, ex);
         }
