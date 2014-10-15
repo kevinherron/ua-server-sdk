@@ -20,8 +20,12 @@ import java.math.RoundingMode;
 import java.nio.ByteBuffer;
 import java.security.KeyPair;
 import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateParsingException;
+import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -117,6 +121,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.UnregisterNodes
 import com.inductiveautomation.opcua.stack.core.types.structured.UnregisterNodesResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.WriteRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.WriteResponse;
+import com.inductiveautomation.opcua.stack.core.util.CertificateUtil;
 import com.inductiveautomation.opcua.stack.core.util.NonceUtil;
 import com.inductiveautomation.opcua.stack.core.util.SignatureUtil;
 
@@ -198,7 +203,18 @@ public class SessionManager implements
         EndpointDescription[] serverEndpoints = server.getEndpointDescriptions();
 
         ByteString clientNonce = request.getClientNonce();
+        if (clientNonce.isNotNull() && clientNonce.length() < 32) {
+            throw new UaException(StatusCodes.Bad_NonceInvalid);
+        }
+
         ByteString clientCertificate = request.getClientCertificate();
+        if (clientCertificate.isNotNull()) {
+            String applicationUri = request.getClientDescription().getApplicationUri();
+            X509Certificate certificate = CertificateUtil.decode(clientCertificate.bytes());
+
+            // TODO Once the CTT certificates have valid SubjectAltName URIs uncomment this.
+            // validateApplicationUri(applicationUri, certificate);
+        }
 
         SecurityPolicy securityPolicy = secureChannel.getSecurityPolicy();
         SignatureData serverSignature = getServerSignature(
@@ -233,6 +249,38 @@ public class SessionManager implements
 
 
         serviceRequest.setResponse(response);
+    }
+
+    /**
+     * Validate that the application URI matches the SubjectAltName URI in the given certificate.
+     *
+     * @param applicationUri the URI to match.
+     * @param certificate    the certificate to match against.
+     * @throws UaException if the certificate is invalid, does not contain a uri, or contains a uri that does not match.
+     */
+    private void validateApplicationUri(String applicationUri, X509Certificate certificate) throws UaException {
+        try {
+            Collection<List<?>> subjectAltNames = certificate.getSubjectAlternativeNames();
+            if (subjectAltNames == null) subjectAltNames = Collections.emptyList();
+
+            for (List<?> idAndValue : subjectAltNames) {
+                if (idAndValue != null && idAndValue.size() == 2) {
+                    if (idAndValue.get(0).equals(6)) {
+                        String uri = (String) idAndValue.get(1);
+                        if (!applicationUri.equals(uri)) {
+                            throw new UaException(StatusCodes.Bad_CertificateUriInvalid,
+                                    String.format("certificate uri did not match application uri"));
+                        }
+                        return;
+                    }
+                }
+            }
+
+            throw new UaException(StatusCodes.Bad_CertificateUriInvalid,
+                    "certificate subject alt name uri not found");
+        } catch (CertificateParsingException e) {
+            throw new UaException(StatusCodes.Bad_CertificateInvalid);
+        }
     }
 
     @Override
@@ -283,9 +331,9 @@ public class SessionManager implements
     }
 
     private SignatureData getServerSignature(ByteString clientNonce,
-                                                       ByteString clientCertificate,
-                                                       SecurityPolicy securityPolicy,
-                                                       KeyPair keyPair) throws UaException {
+                                             ByteString clientCertificate,
+                                             SecurityPolicy securityPolicy,
+                                             KeyPair keyPair) throws UaException {
 
         if (clientNonce.isNull() || clientCertificate.isNull() || keyPair == null) {
             return new SignatureData(null, null);
