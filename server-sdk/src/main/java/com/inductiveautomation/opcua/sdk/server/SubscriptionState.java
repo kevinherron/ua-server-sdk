@@ -78,7 +78,7 @@ public class SubscriptionState {
     private final List<StateListener> stateListeners = Lists.newCopyOnWriteArrayList();
     private volatile State state = State.Normal;
 
-    private volatile boolean messageSent = true;
+    private volatile boolean messageSent = false;
     private volatile boolean moreNotifications = false;
     private volatile long keepAliveCounter;
     private volatile long lifetimeCounter;
@@ -357,6 +357,8 @@ public class SubscriptionState {
         }
     }
 
+    private volatile boolean firstExecution = true;
+
     void startPublishingTimer() {
         if (state == State.Closed) return;
 
@@ -369,9 +371,12 @@ public class SubscriptionState {
         } else {
             long interval = DoubleMath.roundToLong(subscription.getPublishingInterval(), RoundingMode.UP);
 
+            boolean immediate = firstExecution;
+            firstExecution = false;
+
             SharedScheduledExecutor.schedule(
                     () -> executionQueue.submit(this::onPublishingTimer),
-                    interval,
+                    immediate ? 0 : interval,
                     TimeUnit.MILLISECONDS);
         }
     }
