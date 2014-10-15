@@ -66,17 +66,21 @@ public class SampledMonitoredItem extends BaseMonitoredItem<DataValue> implement
         boolean valuePassesFilter = DataChangeMonitoringFilter.filter(lastValue, value, filter);
 
         if (valuePassesFilter) {
+            lastValue = value;
+
             if (queue.size() < queue.maxSize()) {
                 queue.add(value);
             } else {
+                if (getQueueSize() > 1) {
+                    value = value.withStatus(value.getStatusCode().withOverflow());
+                }
+
                 if (discardOldest) {
                     queue.add(value);
                 } else {
                     queue.set(queue.maxSize() - 1, value);
                 }
             }
-
-            lastValue = value;
         }
     }
 
@@ -98,7 +102,16 @@ public class SampledMonitoredItem extends BaseMonitoredItem<DataValue> implement
 
     @Override
     public boolean isSamplingEnabled() {
-        return monitoringMode != MonitoringMode.Disabled;
+        return getMonitoringMode() != MonitoringMode.Disabled;
+    }
+
+    @Override
+    public void setMonitoringMode(MonitoringMode monitoringMode) {
+        if (monitoringMode == MonitoringMode.Disabled) {
+            lastValue = null;
+        }
+
+        super.setMonitoringMode(monitoringMode);
     }
 
     @Override

@@ -18,6 +18,7 @@ package com.inductiveautomation.opcua.sdk.server;
 
 import java.math.RoundingMode;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -26,7 +27,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
@@ -83,8 +83,7 @@ public class SubscriptionState {
     private volatile long keepAliveCounter;
     private volatile long lifetimeCounter;
 
-    private volatile PeekingIterator<BaseMonitoredItem<?>> lastIterator =
-            Iterators.peekingIterator(Iterators.emptyIterator());
+    private volatile Iterator<BaseMonitoredItem<?>> lastIterator = Iterators.emptyIterator();
 
     private final PublishHandler publishHandler = new PublishHandler();
     private final TimerHandler timerHandler = new TimerHandler();
@@ -196,63 +195,64 @@ public class SubscriptionState {
     }
 
     private void returnNotifications(ServiceRequest<PublishRequest, PublishResponse> service) {
-        PeekingIterator<BaseMonitoredItem<?>> currentIterator = Iterators.peekingIterator(
-                subscription.getItemsById().values().stream()
-                        .filter(BaseMonitoredItem::hasNotifications)
-                        .collect(Collectors.toList())
-                        .iterator()
-        );
+        LinkedHashSet<BaseMonitoredItem<?>> items = new LinkedHashSet<>();
 
-        moreNotifications = gatherAndSend(currentIterator, Optional.of(service));
+        lastIterator.forEachRemaining(items::add);
 
-        lastIterator = lastIterator.hasNext() ? lastIterator :
-                (currentIterator.hasNext() ? currentIterator : Iterators.peekingIterator(Iterators.emptyIterator()));
+        subscription.getItemsById().values().stream()
+                .filter(BaseMonitoredItem::hasNotifications)
+                .forEach(items::add);
+
+        PeekingIterator<BaseMonitoredItem<?>> iterator = Iterators.peekingIterator(items.iterator());
+
+        moreNotifications = gatherAndSend(iterator, Optional.of(service));
+
+        lastIterator = iterator.hasNext() ? iterator : Iterators.emptyIterator();
     }
 
 
     /**
      * Gather {@link MonitoredItemNotification}s and send them using {@code service}, if present.
      *
-     * @param currentIterator an {@link Iterator} of the current {@link MonitoredDataItem}s.
-     * @param service         a {@link ServiceRequest}, if available.
+     * @param iterator a {@link PeekingIterator} over the current {@link MonitoredDataItem}s.
+     * @param service  a {@link ServiceRequest}, if available.
      * @return {@code true} if there are more notifications available for sending.
      */
-    private boolean gatherAndSend(PeekingIterator<BaseMonitoredItem<?>> currentIterator,
+    private boolean gatherAndSend(PeekingIterator<BaseMonitoredItem<?>> iterator,
                                   Optional<ServiceRequest<PublishRequest, PublishResponse>> service) {
 
         if (service.isPresent()) {
             List<UaStructure> notifications = Lists.newArrayList();
 
-            while (notifications.size() < maxNotifications() && (lastIterator.hasNext() || currentIterator.hasNext())) {
-                BaseMonitoredItem<?> item = lastIterator.hasNext() ? lastIterator.peek() : currentIterator.peek();
+            while (notifications.size() < maxNotifications() && iterator.hasNext()) {
+                BaseMonitoredItem<?> item = iterator.peek();
 
-                int remaining = gather(item, notifications);
+                boolean gatheredAllForItem = gather(item, notifications);
 
                 TriggeringLinks link = subscription.getLinksById().get(item.getId());
 
                 if (link != null) {
-                    int triggeredRemaining = link.getTriggeredItems().values().stream()
-                            .collect(Collectors.summingInt(i -> gather(i, notifications)));
-
-                    remaining += triggeredRemaining;
+                    for (BaseMonitoredItem<?> triggeredItem : link.getTriggeredItems().values()) {
+                        gatheredAllForItem |= gather(triggeredItem, notifications);
+                    }
                 }
 
-                if (remaining == 0) {
-                    if (lastIterator.hasNext()) lastIterator.next();
-                    else if (currentIterator.hasNext()) currentIterator.next();
+                if (gatheredAllForItem && iterator.hasNext()) {
+                    iterator.next();
                 }
             }
 
-            boolean more = lastIterator.hasNext() || currentIterator.hasNext();
+            boolean more = iterator.hasNext();
+
             sendPublishResponse(service.get(), notifications, more);
 
-            return more && gatherAndSend(currentIterator, dequeue());
+            return more && gatherAndSend(iterator, dequeue());
         } else {
             return true;
         }
     }
 
-    private int gather(BaseMonitoredItem<?> item, List<UaStructure> notifications) {
+    private boolean gather(BaseMonitoredItem<?> item, List<UaStructure> notifications) {
         int max = maxNotifications() - notifications.size();
 
         return item.getNotifications(notifications, max);

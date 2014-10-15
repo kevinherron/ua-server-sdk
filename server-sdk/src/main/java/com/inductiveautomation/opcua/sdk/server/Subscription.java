@@ -192,6 +192,7 @@ public class Subscription {
 
             this.lifetimeCount = request.getRequestedLifetimeCount().longValue();
             this.maxKeepAliveCount = request.getRequestedMaxKeepAliveCount().longValue();
+            this.maxNotificationsPerPublish = request.getMaxNotificationsPerPublish().longValue();
 
             setPublishingInterval(request.getRequestedPublishingInterval());
 
