@@ -60,6 +60,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.AddNodesRequest
 import com.inductiveautomation.opcua.stack.core.types.structured.AddNodesResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.AddReferencesRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.AddReferencesResponse;
+import com.inductiveautomation.opcua.stack.core.types.structured.AnonymousIdentityToken;
 import com.inductiveautomation.opcua.stack.core.types.structured.BrowseNextRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.BrowseNextResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.BrowseRequest;
@@ -119,6 +120,8 @@ import com.inductiveautomation.opcua.stack.core.types.structured.TranslateBrowse
 import com.inductiveautomation.opcua.stack.core.types.structured.TranslateBrowsePathsToNodeIdsResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.UnregisterNodesRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.UnregisterNodesResponse;
+import com.inductiveautomation.opcua.stack.core.types.structured.UserNameIdentityToken;
+import com.inductiveautomation.opcua.stack.core.types.structured.UserTokenPolicy;
 import com.inductiveautomation.opcua.stack.core.types.structured.WriteRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.WriteResponse;
 import com.inductiveautomation.opcua.stack.core.util.CertificateUtil;
@@ -161,7 +164,7 @@ public class SessionManager implements
         Session session = activeSessions.get(authToken);
 
         if (session == null) {
-            session = createdSessions.get(authToken);
+            session = createdSessions.remove(authToken);
 
             if (session == null) {
                 throw new UaException(StatusCodes.Bad_SessionIdInvalid);
@@ -290,7 +293,7 @@ public class SessionManager implements
         NodeId authToken = request.getRequestHeader().getAuthenticationToken();
         SignedSoftwareCertificate[] clientSoftwareCertificates = request.getClientSoftwareCertificates();
 
-        Session session = createdSessions.remove(authToken);
+        Session session = createdSessions.get(authToken);
 
         if (session == null) {
             ActivateSessionResponse response = new ActivateSessionResponse(
@@ -302,6 +305,25 @@ public class SessionManager implements
 
             serviceRequest.setResponse(response);
         } else {
+            if (request.getUserIdentityToken() == null || request.getUserIdentityToken().getObject() == null) {
+                throw new UaException(StatusCodes.Bad_IdentityTokenInvalid, "identity token not provided");
+            }
+
+            Object tokenObject = request.getUserIdentityToken().getObject();
+
+            if (tokenObject instanceof AnonymousIdentityToken) {
+                AnonymousIdentityToken token = (AnonymousIdentityToken) tokenObject;
+
+                validateAnonymousIdentityToken(token);
+            } else if (tokenObject instanceof UserNameIdentityToken) {
+                UserNameIdentityToken token = (UserNameIdentityToken) tokenObject;
+
+                validateUserNameIdentityToken(token);
+            } else {
+                throw new UaException(StatusCodes.Bad_IdentityTokenInvalid);
+            }
+
+            createdSessions.remove(authToken);
             activeSessions.put(authToken, session);
 
             StatusCode[] results = new StatusCode[clientSoftwareCertificates.length];
@@ -316,6 +338,22 @@ public class SessionManager implements
 
             serviceRequest.setResponse(response);
         }
+    }
+
+    private void validateAnonymousIdentityToken(AnonymousIdentityToken token) throws UaException {
+        String policyId = token.getPolicyId();
+
+        for (UserTokenPolicy policy : server.getUserTokenPolicies()) {
+            if (policyId.equals(policy.getPolicyId())) {
+                return;
+            }
+        }
+
+        throw new UaException(StatusCodes.Bad_IdentityTokenInvalid, "policy not found: " + policyId);
+    }
+
+    private void validateUserNameIdentityToken(UserNameIdentityToken token) throws UaException {
+        throw new UaException(StatusCodes.Bad_IdentityTokenInvalid);
     }
 
     @Override
