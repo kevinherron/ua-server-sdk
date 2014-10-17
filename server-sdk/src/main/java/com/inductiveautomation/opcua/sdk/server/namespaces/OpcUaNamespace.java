@@ -18,11 +18,11 @@ package com.inductiveautomation.opcua.sdk.server.namespaces;
 
 import javax.xml.bind.JAXBException;
 import java.io.InputStream;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -139,7 +139,13 @@ public class OpcUaNamespace implements Namespace {
 
     @Override
     public void write(List<WriteValue> writeValues, CompletableFuture<List<StatusCode>> future) {
-        List<StatusCode> results = Collections.nCopies(writeValues.size(), new StatusCode(StatusCodes.Bad_NotWritable));
+        List<StatusCode> results = writeValues.stream().map(wv -> {
+            if (nodes.containsKey(wv.getNodeId())) {
+                return new StatusCode(StatusCodes.Bad_NotWritable);
+            } else {
+                return new StatusCode(StatusCodes.Bad_NodeIdUnknown);
+            }
+        }).collect(Collectors.toList());
 
         future.complete(results);
     }
