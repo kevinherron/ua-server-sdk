@@ -135,7 +135,7 @@ public class Subscription {
                 NotificationMessage notification = sentNotifications.remove(sequenceNumber);
 
                 if (notification != null) {
-                    logger.debug("Acknowledged sequenceNumber={}", sequenceNumber);
+                    logger.trace("Acknowledged sequenceNumber={}", sequenceNumber);
                     return StatusCode.Good;
                 } else {
                     logger.debug("Unknown sequenceNumber={}", sequenceNumber);
@@ -157,6 +157,10 @@ public class Subscription {
             this.maxKeepAliveCount = request.getRequestedMaxKeepAliveCount().longValue();
             this.maxNotificationsPerPublish = request.getMaxNotificationsPerPublish().longValue();
             this.publishingEnabled = request.getPublishingEnabled();
+
+            logger.debug("Subscription created. lifetimeCount={}, maxKeepAliveCount={}, " +
+                            "maxNotificationsPerPublish={}, publishingEnabled={}, publishingInterval={}",
+                    lifetimeCount, maxKeepAliveCount, maxNotificationsPerPublish, publishingEnabled, publishingInterval);
 
             subscriptionState.set(new SubscriptionState(this, executionQueue));
             subscriptionState.get().startPublishingTimer();

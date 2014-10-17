@@ -111,13 +111,13 @@ public class SubscriptionState {
      * @param service The service request that contains the {@link PublishRequest}.
      */
     void onPublish(ServiceRequest<PublishRequest, PublishResponse> service) {
-        logger.trace("onPublish(), state=" + state);
+        logger.debug("onPublish(), state=" + state);
 
         if (state == State.Normal) publishHandler.whenNormal(service);
         else if (state == State.KeepAlive) publishHandler.whenKeepAlive(service);
         else if (state == State.Late) publishHandler.whenLate(service);
         else if (state == State.Closing) publishHandler.whenClosing(service);
-        else if (state == State.Closed) logger.debug("onPublish(), state=" + state); // No-op.
+        else if (state == State.Closed) publishHandler.whenClosed(service);
         else throw new RuntimeException("Unhandled subscription state: " + state);
     }
 
@@ -127,7 +127,7 @@ public class SubscriptionState {
      * Must be called on the {@link ExecutionQueue}.
      */
     private void onPublishingTimer() {
-        logger.trace("onPublishingTimer(), state=" + state);
+        logger.debug("onPublishingTimer(), state=" + state);
 
         if (state == State.Normal) timerHandler.whenNormal();
         else if (state == State.KeepAlive) timerHandler.whenKeepAlive();
@@ -174,16 +174,18 @@ public class SubscriptionState {
         lifetimeCounter = subscription.getLifetimeCount();
     }
 
-    private void returnKeepAlive(ServiceRequest<PublishRequest, PublishResponse> serviceRequest) {
-        ResponseHeader header = serviceRequest.createResponseHeader();
-
-        Set<UInteger> keys = subscription.getSentNotifications().keySet();
-        UInteger[] available = keys.toArray(new UInteger[keys.size()]);
+    private void returnKeepAlive(ServiceRequest<PublishRequest, PublishResponse> service) {
+        ResponseHeader header = service.createResponseHeader();
 
         NotificationMessage notificationMessage = new NotificationMessage(
                 uint(currentSequenceNumber()), DateTime.now(), new ExtensionObject[0]);
 
-        UInteger requestHandle = serviceRequest.getRequest().getRequestHeader().getRequestHandle();
+        subscription.getSentNotifications().put(notificationMessage.getSequenceNumber(), notificationMessage);
+
+        Set<UInteger> keys = subscription.getSentNotifications().keySet();
+        UInteger[] available = keys.toArray(new UInteger[keys.size()]);
+
+        UInteger requestHandle = service.getRequest().getRequestHeader().getRequestHandle();
         StatusCode[] results = subscription.getAcknowledgements().remove(requestHandle);
 
         PublishResponse response = new PublishResponse(
@@ -191,7 +193,7 @@ public class SubscriptionState {
                 available, moreNotifications, notificationMessage,
                 results, null);
 
-        serviceRequest.setResponse(response);
+        service.setResponse(response);
 
         logger.debug("Sent KeepAlive (sequence={}) PublishResponse.", notificationMessage.getSequenceNumber());
     }
@@ -207,7 +209,7 @@ public class SubscriptionState {
 
         PeekingIterator<BaseMonitoredItem<?>> iterator = Iterators.peekingIterator(items.iterator());
 
-        moreNotifications = gatherAndSend(iterator, Optional.of(service));
+        gatherAndSend(iterator, Optional.of(service));
 
         lastIterator = iterator.hasNext() ? iterator : Iterators.emptyIterator();
     }
@@ -218,24 +220,26 @@ public class SubscriptionState {
      *
      * @param iterator a {@link PeekingIterator} over the current {@link MonitoredDataItem}s.
      * @param service  a {@link ServiceRequest}, if available.
-     * @return {@code true} if there are more notifications available for sending.
      */
-    private boolean gatherAndSend(PeekingIterator<BaseMonitoredItem<?>> iterator,
+    private void gatherAndSend(PeekingIterator<BaseMonitoredItem<?>> iterator,
                                   Optional<ServiceRequest<PublishRequest, PublishResponse>> service) {
 
         if (service.isPresent()) {
+            int iv = subscription.getMaxNotificationsPerPublish().intValue();
+            int maxNotifications = iv <= 0 ? 0xFFFF : iv;
+
             List<UaStructure> notifications = Lists.newArrayList();
 
             while (notifications.size() < maxNotifications() && iterator.hasNext()) {
                 BaseMonitoredItem<?> item = iterator.peek();
 
-                boolean gatheredAllForItem = gather(item, notifications);
+                boolean gatheredAllForItem = gather(item, notifications, maxNotifications);
 
                 TriggeringLinks link = subscription.getLinksById().get(item.getId());
 
                 if (link != null) {
                     for (BaseMonitoredItem<?> triggeredItem : link.getTriggeredItems().values()) {
-                        gatheredAllForItem |= gather(triggeredItem, notifications);
+                        gatheredAllForItem |= gather(triggeredItem, notifications, maxNotifications);
                     }
                 }
 
@@ -244,18 +248,16 @@ public class SubscriptionState {
                 }
             }
 
-            boolean more = iterator.hasNext();
+            moreNotifications = iterator.hasNext();
 
-            sendPublishResponse(service.get(), notifications, more);
+            sendPublishResponse(service.get(), notifications);
 
-            return more && gatherAndSend(iterator, dequeue());
-        } else {
-            return true;
+            if (moreNotifications) gatherAndSend(iterator, dequeue());
         }
     }
 
-    private boolean gather(BaseMonitoredItem<?> item, List<UaStructure> notifications) {
-        int max = maxNotifications() - notifications.size();
+    private boolean gather(BaseMonitoredItem<?> item, List<UaStructure> notifications, int maxNotifications) {
+        int max = maxNotifications - notifications.size();
 
         return item.getNotifications(notifications, max);
     }
@@ -266,8 +268,7 @@ public class SubscriptionState {
     }
 
     private void sendPublishResponse(ServiceRequest<PublishRequest, PublishResponse> service,
-                                     List<UaStructure> notifications,
-                                     boolean more) {
+                                     List<UaStructure> notifications) {
 
         List<MonitoredItemNotification> dataNotifications = Lists.newArrayList();
         List<EventFieldList> eventNotifications = Lists.newArrayList();
@@ -315,7 +316,7 @@ public class SubscriptionState {
 
         PublishResponse response = new PublishResponse(
                 header, subscription.getSubscriptionId(),
-                available, more, notificationMessage,
+                available, moreNotifications, notificationMessage,
                 results, new DiagnosticInfo[0]);
 
         service.setResponse(response);
@@ -380,12 +381,14 @@ public class SubscriptionState {
 
     private class PublishHandler {
         private void whenNormal(ServiceRequest<PublishRequest, PublishResponse> service) {
+            boolean publishingEnabled = publishingEnabled();
+
             /* Subscription State Table Row 4 */
-            if (!publishingEnabled() || (publishingEnabled() && !moreNotifications)) {
+            if (!publishingEnabled || (publishingEnabled && !moreNotifications)) {
                 enqueue(service);
             }
             /* Subscription State Table Row 5 */
-            else if (publishingEnabled() && moreNotifications) {
+            else if (publishingEnabled && moreNotifications) {
                 resetLifetimeCounter();
                 returnNotifications(service);
                 messageSent = true;
@@ -395,20 +398,25 @@ public class SubscriptionState {
         }
 
         private void whenLate(ServiceRequest<PublishRequest, PublishResponse> service) {
+            boolean publishingEnabled = publishingEnabled();
+            boolean notificationsAvailable = notificationsAvailable();
+
             /* Subscription State Table Row 10 */
-            if (publishingEnabled() && (notificationsAvailable() || moreNotifications)) {
+            if (publishingEnabled && (notificationsAvailable || moreNotifications)) {
                 setState(State.Normal);
                 resetLifetimeCounter();
                 returnNotifications(service);
                 messageSent = true;
             }
             /* Subscription State Table Row 11 */
-            else if (!publishingEnabled() ||
-                    (publishingEnabled() && !notificationsAvailable() && !moreNotifications)) {
+            else if (!publishingEnabled ||
+                    (publishingEnabled && !notificationsAvailable && !moreNotifications)) {
                 setState(State.KeepAlive);
                 resetLifetimeCounter();
                 returnKeepAlive(service);
                 messageSent = true;
+            } else {
+                throw new IllegalStateException("unhandled subscription state");
             }
         }
 
@@ -422,49 +430,58 @@ public class SubscriptionState {
 
             setState(State.Closed);
         }
+
+        private void whenClosed(ServiceRequest<PublishRequest, PublishResponse> service) {
+            enqueue(service);
+        }
     }
 
     private class TimerHandler {
         private void whenNormal() {
+            boolean publishRequestQueued = publishRequestQueued();
+            boolean publishingEnabled = publishingEnabled();
+            boolean notificationsAvailable = notificationsAvailable();
+
             /* Subscription State Table Row 6 */
-            if (publishRequestQueued() && publishingEnabled() && notificationsAvailable()) {
+            if (publishRequestQueued && publishingEnabled && notificationsAvailable) {
                 Optional<ServiceRequest<PublishRequest, PublishResponse>> service = dequeue();
 
                 if (service.isPresent()) {
                     resetLifetimeCounter();
-                    startPublishingTimer();
                     returnNotifications(service.get());
                     messageSent = true;
+                    startPublishingTimer();
                 } else {
                     whenNormal();
                 }
             }
             /* Subscription State Table Row 7 */
-            else if (publishRequestQueued() && !messageSent &&
-                    (!publishingEnabled() || (publishingEnabled() && !notificationsAvailable()))) {
+            else if (publishRequestQueued && !messageSent &&
+                    (!publishingEnabled || (publishingEnabled && !notificationsAvailable))) {
                 Optional<ServiceRequest<PublishRequest, PublishResponse>> service = dequeue();
 
                 if (service.isPresent()) {
                     resetLifetimeCounter();
-                    startPublishingTimer();
                     returnKeepAlive(service.get());
                     messageSent = true;
+                    startPublishingTimer();
                 } else {
                     whenNormal();
                 }
             }
             /* Subscription State Table Row 8 */
-            else if (!publishRequestQueued() && (!messageSent || (publishingEnabled() && notificationsAvailable()))) {
+            else if (!publishRequestQueued && (!messageSent || (publishingEnabled && notificationsAvailable))) {
                 setState(State.Late);
                 startPublishingTimer();
             }
             /* Subscription State Table Row 9 */
-            else if (messageSent && (!publishingEnabled() || (publishingEnabled() && !notificationsAvailable()))) {
+            else if (messageSent && (!publishingEnabled || (publishingEnabled && !notificationsAvailable))) {
                 setState(State.KeepAlive);
                 resetKeepAliveCounter();
                 startPublishingTimer();
+            } else {
+                throw new IllegalStateException("unhandled subscription state");
             }
-
         }
 
         private void whenLate() {
@@ -473,45 +490,49 @@ public class SubscriptionState {
         }
 
         private void whenKeepAlive() {
+            boolean publishingEnabled = publishingEnabled();
+            boolean notificationsAvailable = notificationsAvailable();
+            boolean publishRequestQueued = publishRequestQueued();
+
             /* Subscription State Table Row 14 */
-            if (publishingEnabled() && notificationsAvailable() && publishRequestQueued()) {
+            if (publishingEnabled && notificationsAvailable && publishRequestQueued) {
                 Optional<ServiceRequest<PublishRequest, PublishResponse>> service = dequeue();
 
                 if (service.isPresent()) {
                     setState(State.Normal);
                     resetLifetimeCounter();
-                    startPublishingTimer();
                     returnNotifications(service.get());
                     messageSent = true;
+                    startPublishingTimer();
                 } else {
                     whenKeepAlive();
                 }
             }
             /* Subscription State Table Row 15 */
-            else if (publishRequestQueued() && keepAliveCounter == 1 &&
-                    (!publishingEnabled() || (publishingEnabled() && !notificationsAvailable()))) {
+            else if (publishRequestQueued && keepAliveCounter == 1 &&
+                    (!publishingEnabled || (publishingEnabled && !notificationsAvailable))) {
 
                 Optional<ServiceRequest<PublishRequest, PublishResponse>> service = dequeue();
 
                 if (service.isPresent()) {
-                    startPublishingTimer();
                     returnKeepAlive(service.get());
                     resetKeepAliveCounter();
+                    startPublishingTimer();
                 } else {
                     whenKeepAlive();
                 }
             }
             /* Subscription State Table Row 16 */
             else if (keepAliveCounter > 1 &&
-                    (!publishingEnabled() || (publishingEnabled() && !notificationsAvailable()))) {
+                    (!publishingEnabled || (publishingEnabled && !notificationsAvailable))) {
 
-                startPublishingTimer();
                 keepAliveCounter--;
+                startPublishingTimer();
             }
             /* Subscription State Table Row 17 */
-            else if (!publishRequestQueued() &&
+            else if (!publishRequestQueued &&
                     (keepAliveCounter == 1 ||
-                            (keepAliveCounter > 1 && publishingEnabled() && notificationsAvailable()))) {
+                            (keepAliveCounter > 1 && publishingEnabled && notificationsAvailable))) {
 
                 setState(State.Late);
                 startPublishingTimer();

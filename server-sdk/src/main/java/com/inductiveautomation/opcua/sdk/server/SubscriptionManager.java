@@ -225,7 +225,7 @@ public class SubscriptionManager {
             UInteger requestHandle = request.getRequestHeader().getRequestHandle();
             StatusCode[] results = a(values, StatusCode.class);
 
-            logger.debug("Acknowledgements processed for requestHandle={} results={}",
+            logger.trace("Acknowledgements processed for requestHandle={} results={}",
                     requestHandle, Arrays.toString(results));
             
             acknowledgements.put(requestHandle, results);
