@@ -195,7 +195,7 @@ public class SubscriptionState {
 
         service.setResponse(response);
 
-        logger.debug("Sent KeepAlive (sequence={}) PublishResponse.", notificationMessage.getSequenceNumber());
+        logger.debug("Subscription id={} issued keep-alive notification.", subscription.getSubscriptionId());
     }
 
     private void returnNotifications(ServiceRequest<PublishRequest, PublishResponse> service) {
@@ -321,13 +321,11 @@ public class SubscriptionState {
 
         service.setResponse(response);
 
-        logger.trace("Sent NotificationMessage (sequence={}) PublishResponse.",
-                notificationMessage.getSequenceNumber());
+        logger.debug("Subscription id={} issued {} data notifications(s) and {} event change(s).",
+                subscription.getSubscriptionId(), dataNotifications.size(), eventNotifications.size());
     }
 
     private void sendStatusChangeNotification(ServiceRequest<PublishRequest, PublishResponse> service) {
-        logger.debug("Subscription (id={}) issuing StatusChangeNotification.", subscription.getSubscriptionId());
-
         StatusChangeNotification statusChange = new StatusChangeNotification(
                 new StatusCode(StatusCodes.Bad_Timeout), null);
 
@@ -345,6 +343,8 @@ public class SubscriptionState {
                 new StatusCode[0], new DiagnosticInfo[0]);
 
         service.setResponse(response);
+
+        logger.debug("Subscription id={} issued status change notification.", subscription.getSubscriptionId());
     }
 
     State getState() {
@@ -366,7 +366,7 @@ public class SubscriptionState {
         lifetimeCounter--;
 
         if (lifetimeCounter < 1) {
-            logger.debug("Subscription (id={}) lifetime expired.", subscription.getSubscriptionId());
+            logger.debug("Subscription id={} lifetime expired.", subscription.getSubscriptionId());
 
             setState(State.Closing);
         } else {
