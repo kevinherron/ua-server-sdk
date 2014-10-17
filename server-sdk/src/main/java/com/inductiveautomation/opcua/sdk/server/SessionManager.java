@@ -215,8 +215,7 @@ public class SessionManager implements
             String applicationUri = request.getClientDescription().getApplicationUri();
             X509Certificate certificate = CertificateUtil.decode(clientCertificate.bytes());
 
-            // TODO Once the CTT certificates have valid SubjectAltName URIs uncomment this.
-            // validateApplicationUri(applicationUri, certificate);
+            validateApplicationUri(applicationUri, certificate);
         }
 
         SecurityPolicy securityPolicy = secureChannel.getSecurityPolicy();
