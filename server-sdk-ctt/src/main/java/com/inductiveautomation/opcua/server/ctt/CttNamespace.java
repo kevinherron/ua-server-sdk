@@ -26,17 +26,21 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.inductiveautomation.opcua.sdk.core.AccessLevel;
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
+import com.inductiveautomation.opcua.sdk.core.ValueRank;
 import com.inductiveautomation.opcua.sdk.server.OpcUaServer;
+import com.inductiveautomation.opcua.sdk.server.api.MethodInvocationHandler;
 import com.inductiveautomation.opcua.sdk.server.api.MonitoredItem;
 import com.inductiveautomation.opcua.sdk.server.api.Namespace;
 import com.inductiveautomation.opcua.sdk.server.api.Reference;
 import com.inductiveautomation.opcua.sdk.server.api.SampledItem;
 import com.inductiveautomation.opcua.sdk.server.api.nodes.Node;
+import com.inductiveautomation.opcua.sdk.server.api.nodes.UaMethodNode;
 import com.inductiveautomation.opcua.sdk.server.api.nodes.UaNode;
 import com.inductiveautomation.opcua.sdk.server.api.nodes.UaObjectNode;
 import com.inductiveautomation.opcua.sdk.server.api.nodes.UaVariableNode;
 import com.inductiveautomation.opcua.sdk.server.api.nodes.UaVariableNode.UaVariableNodeBuilder;
 import com.inductiveautomation.opcua.sdk.server.util.SubscriptionModel;
+import com.inductiveautomation.opcua.server.ctt.methods.SqrtInvocationHandler;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.UaException;
@@ -49,9 +53,11 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
 import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
 import com.inductiveautomation.opcua.stack.core.types.builtin.Variant;
 import com.inductiveautomation.opcua.stack.core.types.builtin.XmlElement;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UShort;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.TimestampsToReturn;
+import com.inductiveautomation.opcua.stack.core.types.structured.Argument;
 import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
 import com.inductiveautomation.opcua.stack.core.types.structured.WriteValue;
 import org.slf4j.Logger;
@@ -71,7 +77,7 @@ public class CttNamespace implements Namespace {
 
     private final Map<NodeId, UaNode> nodes = Maps.newConcurrentMap();
 
-    private final UaNode folderNode;
+    private final UaNode cttFolder;
     private final SubscriptionModel subscriptionModel;
 
     private final OpcUaServer server;
@@ -79,23 +85,23 @@ public class CttNamespace implements Namespace {
     public CttNamespace(OpcUaServer server) {
         this.server = server;
 
-        NodeId folderNodeId = new NodeId(NamespaceIndex, "CttNodes");
+        NodeId cttNodeId = new NodeId(NamespaceIndex, "/CTT");
 
-        folderNode = UaObjectNode.builder()
-                .setNodeId(folderNodeId)
-                .setBrowseName(new QualifiedName(NamespaceIndex, "CttNodes"))
-                .setDisplayName(LocalizedText.english("CttNodes"))
+        cttFolder = UaObjectNode.builder()
+                .setNodeId(cttNodeId)
+                .setBrowseName(new QualifiedName(NamespaceIndex, "CTT"))
+                .setDisplayName(LocalizedText.english("CTT"))
                 .setTypeDefinition(Identifiers.FolderType)
                 .build();
 
-        nodes.put(folderNodeId, folderNode);
+        nodes.put(cttNodeId, cttFolder);
 
         try {
             server.getUaNamespace().addReference(
                     Identifiers.ObjectsFolder,
                     Identifiers.Organizes,
                     true, server.getServerTable().getUri(0),
-                    folderNodeId.expanded(), NodeClass.Object);
+                    cttNodeId.expanded(), NodeClass.Object);
         } catch (UaException e) {
             logger.error("Error adding reference to Connections folder.", e);
         }
@@ -103,6 +109,7 @@ public class CttNamespace implements Namespace {
         subscriptionModel = new SubscriptionModel(this, server.getExecutorService());
 
         addStaticScalarNodes();
+        addMethodNodes();
     }
 
 
@@ -136,7 +143,7 @@ public class CttNamespace implements Namespace {
             Variant variant = (Variant) os[2];
 
             UaVariableNode node = new UaVariableNodeBuilder()
-                    .setNodeId(new NodeId(NamespaceIndex, name))
+                    .setNodeId(new NodeId(NamespaceIndex, "/CTT/Static/AllProfiles/Scalar/" + name))
                     .setAccessLevel(ubyte(AccessLevel.getMask(AccessLevel.ReadWrite)))
                     .setBrowseName(new QualifiedName(NamespaceIndex, name))
                     .setDisplayName(LocalizedText.english(name))
@@ -147,7 +154,7 @@ public class CttNamespace implements Namespace {
             node.setValue(new DataValue(variant));
 
             Reference reference = new Reference(
-                    folderNode.getNodeId(),
+                    cttFolder.getNodeId(),
                     Identifiers.Organizes,
                     node.getNodeId().expanded(),
                     node.getNodeClass(),
@@ -155,10 +162,63 @@ public class CttNamespace implements Namespace {
             );
 
             nodes.put(node.getNodeId(), node);
-            folderNode.addReference(reference);
+            cttFolder.addReference(reference);
         }
     }
 
+    private void addMethodNodes() {
+        NodeId methodFolderId = new NodeId(NamespaceIndex, "/CTT/Methods");
+
+        UaObjectNode methodFolder = UaObjectNode.builder()
+                .setNodeId(methodFolderId)
+                .setBrowseName(new QualifiedName(NamespaceIndex, "Methods"))
+                .setDisplayName(LocalizedText.english("Methods"))
+                .setTypeDefinition(Identifiers.FolderType)
+                .build();
+
+        cttFolder.addReference(new Reference(
+                methodFolderId,
+                Identifiers.Organizes,
+                methodFolderId.expanded(),
+                methodFolder.getNodeClass(),
+                true
+        ));
+
+        nodes.put(methodFolderId, methodFolder);
+
+        UaMethodNode methodNode = UaMethodNode.builder()
+                .setNodeId(new NodeId(NamespaceIndex, "/CttNodes/Methods/sqrt(x)"))
+                .setBrowseName(new QualifiedName(NamespaceIndex, "sqrt(x)"))
+                .setDisplayName(new LocalizedText(null, "sqrt(x)"))
+                .setDescription(LocalizedText.english("Returns the correctly rounded positive square root of a double value."))
+                .build();
+
+        Argument input = new Argument(
+                "x", Identifiers.Double,
+                ValueRank.Scalar, new UInteger[0],
+                LocalizedText.english("A value."));
+
+        Argument output = new Argument(
+                "x_sqrt", Identifiers.Double,
+                ValueRank.Scalar, new UInteger[0],
+                LocalizedText.english("The positive square root of x. If the argument is NaN or less than zero, the result is NaN."));
+
+        methodNode.setInputArguments(new Argument[]{input}, nodes::put);
+        methodNode.setOutputArguments(new Argument[]{output}, nodes::put);
+        methodNode.setInvocationHandler(new SqrtInvocationHandler());
+
+        nodes.put(methodNode.getNodeId(), methodNode);
+
+        Reference folder2method = new Reference(
+                methodFolder.getNodeId(),
+                Identifiers.HasComponent,
+                methodNode.getNodeId().expanded(),
+                methodNode.getNodeClass(),
+                true
+        );
+
+        methodFolder.addReference(folder2method);
+    }
 
     @Override
     public UShort getNamespaceIndex() {
@@ -262,6 +322,17 @@ public class CttNamespace implements Namespace {
     @Override
     public void onMonitoringModeChanged(List<MonitoredItem> monitoredItems) {
         subscriptionModel.onMonitoringModeChanged(monitoredItems);
+    }
+
+    @Override
+    public Optional<MethodInvocationHandler> getInvocationHandler(NodeId methodId) {
+        UaNode node = nodes.get(methodId);
+
+        if (node instanceof UaMethodNode) {
+            return ((UaMethodNode) node).getHandler();
+        } else {
+            return Optional.empty();
+        }
     }
 
 }
