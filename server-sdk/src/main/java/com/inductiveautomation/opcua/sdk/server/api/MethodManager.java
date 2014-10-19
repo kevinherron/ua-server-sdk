@@ -16,16 +16,17 @@
 
 package com.inductiveautomation.opcua.sdk.server.api;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-import com.inductiveautomation.opcua.stack.core.StatusCodes;
-import com.inductiveautomation.opcua.stack.core.types.builtin.DiagnosticInfo;
-import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
-import com.inductiveautomation.opcua.stack.core.types.builtin.Variant;
+import com.google.common.collect.Lists;
+import com.inductiveautomation.opcua.sdk.server.api.MethodInvocationHandler.NodeIdUnknownHandler;
+import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.structured.CallMethodRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.CallMethodResult;
+
+import static com.inductiveautomation.opcua.sdk.server.util.FutureUtils.sequence;
 
 public interface MethodManager {
 
@@ -36,13 +37,30 @@ public interface MethodManager {
      * @param future   The future to complete with the {@link CallMethodResult}s.
      */
     default void call(List<CallMethodRequest> requests, CompletableFuture<List<CallMethodResult>> future) {
-        CallMethodResult notSupported = new CallMethodResult(
-                new StatusCode(StatusCodes.Bad_NotSupported),
-                new StatusCode[0],
-                new DiagnosticInfo[0],
-                new Variant[0]);
+        List<CompletableFuture<CallMethodResult>> results = Lists.newArrayListWithCapacity(requests.size());
 
-        future.complete(Collections.nCopies(requests.size(), notSupported));
+        for (CallMethodRequest request : requests) {
+            MethodInvocationHandler handler = getInvocationHandler(request.getMethodId())
+                    .orElse(new NodeIdUnknownHandler());
+
+            CompletableFuture<CallMethodResult> result = new CompletableFuture<>();
+
+            handler.invoke(request, result);
+
+            results.add(result);
+        }
+
+        sequence(results).thenAccept(future::complete);
+    }
+
+    /**
+     * Get the {@link MethodInvocationHandler} for the method identified by {@code methodId}, if it exists.
+     *
+     * @param methodId the {@link NodeId} identifying the method.
+     * @return the {@link MethodInvocationHandler} for {@code methodId}, if it exists.
+     */
+    default Optional<MethodInvocationHandler> getInvocationHandler(NodeId methodId) {
+        return Optional.empty();
     }
 
 }

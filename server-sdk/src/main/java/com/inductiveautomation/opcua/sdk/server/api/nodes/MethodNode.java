@@ -18,8 +18,26 @@ package com.inductiveautomation.opcua.sdk.server.api.nodes;
 
 public interface MethodNode extends Node {
 
+    /**
+     * The Executable Attribute indicates whether the Method is executable, not taking user access rights into account.
+     * If the OPC UA Server cannot get the Executable information from the underlying system, it should state that it
+     * is executable.
+     * <p>
+     * See OPC-UA Part 3, Section 5.7.
+     *
+     * @return {@code true} if this method is executable, not taking user access rights into account.
+     */
     boolean isExecutable();
 
+    /**
+     * The UserExecutable Attribute indicates whether the Method is executable, taking user access rights into account.
+     * If the OPC UA Server cannot get any user rights related information from the underlying system, it should use
+     * the same value as used in the Executable Attribute.
+     * <p>
+     * See OPC-UA Part 3, Section 5.7.
+     *
+     * @return {@code true} if this method is executable, taking user access rights into account.
+     */
     boolean isUserExecutable();
 
 }
