@@ -238,27 +238,10 @@ public class CttNamespace implements Namespace {
     }
 
     private void addMethodNodes() {
-        NodeId methodFolderId = new NodeId(NamespaceIndex, "/CTT/Methods");
-
-        UaObjectNode methodFolder = UaObjectNode.builder()
-                .setNodeId(methodFolderId)
-                .setBrowseName(new QualifiedName(NamespaceIndex, "Methods"))
-                .setDisplayName(LocalizedText.english("Methods"))
-                .setTypeDefinition(Identifiers.FolderType)
-                .build();
-
-        cttFolder.addReference(new Reference(
-                methodFolderId,
-                Identifiers.Organizes,
-                methodFolderId.expanded(),
-                methodFolder.getNodeClass(),
-                true
-        ));
-
-        nodes.put(methodFolderId, methodFolder);
+        UaObjectNode folder = addFoldersToRoot(cttFolder, "/Methods");
 
         UaMethodNode methodNode = UaMethodNode.builder()
-                .setNodeId(new NodeId(NamespaceIndex, "/CttNodes/Methods/sqrt(x)"))
+                .setNodeId(new NodeId(NamespaceIndex, "/Methods/sqrt(x)"))
                 .setBrowseName(new QualifiedName(NamespaceIndex, "sqrt(x)"))
                 .setDisplayName(new LocalizedText(null, "sqrt(x)"))
                 .setDescription(LocalizedText.english("Returns the correctly rounded positive square root of a double value."))
@@ -283,15 +266,13 @@ public class CttNamespace implements Namespace {
         nodes.put(outputNode.getNodeId(), outputNode);
         nodes.put(methodNode.getNodeId(), methodNode);
 
-        Reference folder2method = new Reference(
-                methodFolder.getNodeId(),
+        folder.addReference(new Reference(
+                folder.getNodeId(),
                 Identifiers.HasComponent,
                 methodNode.getNodeId().expanded(),
                 methodNode.getNodeClass(),
                 true
-        );
-
-        methodFolder.addReference(folder2method);
+        ));
     }
 
     private UaObjectNode addFoldersToRoot(UaNode root, String path) {
