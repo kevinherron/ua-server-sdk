@@ -63,17 +63,17 @@ public class CttServerConfig implements OpcUaServerConfig {
 
     @Override
     public LocalizedText getApplicationName() {
-        return LocalizedText.english("Compliance Test OPC-UA Server");
+        return LocalizedText.english("Compliance Testing OPC-UA Server");
     }
 
     @Override
     public String getApplicationUri() {
-        return "urn:inductiveautomation:ctt-test-server";
+        return "urn:inductiveautomation:ctt-server";
     }
 
     @Override
     public String getServerName() {
-        return "ctt-test-server";
+        return "ctt-server";
     }
 
     @Override

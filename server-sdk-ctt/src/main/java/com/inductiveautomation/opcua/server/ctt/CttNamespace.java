@@ -16,14 +16,18 @@
 
 package com.inductiveautomation.opcua.server.ctt;
 
+import java.lang.reflect.Array;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.PeekingIterator;
 import com.inductiveautomation.opcua.sdk.core.AccessLevel;
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.ValueRank;
@@ -85,7 +89,7 @@ public class CttNamespace implements Namespace {
     public CttNamespace(OpcUaServer server) {
         this.server = server;
 
-        NodeId cttNodeId = new NodeId(NamespaceIndex, "/CTT");
+        NodeId cttNodeId = new NodeId(NamespaceIndex, "CTT");
 
         cttFolder = UaObjectNode.builder()
                 .setNodeId(cttNodeId)
@@ -109,6 +113,7 @@ public class CttNamespace implements Namespace {
         subscriptionModel = new SubscriptionModel(this, server.getExecutorService());
 
         addStaticScalarNodes();
+        addStaticArrayNodes();
         addMethodNodes();
     }
 
@@ -137,13 +142,15 @@ public class CttNamespace implements Namespace {
     };
 
     private void addStaticScalarNodes() {
+        UaObjectNode folder = addFoldersToRoot(cttFolder, "/Static/AllProfiles/Scalar");
+
         for (Object[] os : StaticScalarNodes) {
             String name = (String) os[0];
             NodeId typeId = (NodeId) os[1];
             Variant variant = (Variant) os[2];
 
             UaVariableNode node = new UaVariableNodeBuilder()
-                    .setNodeId(new NodeId(NamespaceIndex, "/CTT/Static/AllProfiles/Scalar/" + name))
+                    .setNodeId(new NodeId(NamespaceIndex, "/Static/AllProfiles/Scalar/" + name))
                     .setAccessLevel(ubyte(AccessLevel.getMask(AccessLevel.ReadWrite)))
                     .setBrowseName(new QualifiedName(NamespaceIndex, name))
                     .setDisplayName(LocalizedText.english(name))
@@ -153,16 +160,80 @@ public class CttNamespace implements Namespace {
 
             node.setValue(new DataValue(variant));
 
-            Reference reference = new Reference(
-                    cttFolder.getNodeId(),
+            folder.addReference(new Reference(
+                    folder.getNodeId(),
                     Identifiers.Organizes,
                     node.getNodeId().expanded(),
                     node.getNodeClass(),
                     true
-            );
+            ));
+
+            logger.debug("Added reference: {} -> {}", folder.getNodeId(), node.getNodeId());
 
             nodes.put(node.getNodeId(), node);
-            cttFolder.addReference(reference);
+        }
+    }
+
+    private static final Object[][] StaticArrayNodes = new Object[][]{
+            {"Bool", Identifiers.Boolean, false},
+            {"Byte", Identifiers.Byte, ubyte(0)},
+            {"ByteString", Identifiers.ByteString, new ByteString(new byte[]{0x01, 0x02, 0x03, 0x04})},
+            {"DateTime", Identifiers.DateTime, DateTime.now()},
+            {"Double", Identifiers.Double, 3.14d},
+            {"Float", Identifiers.Float, 3.14f},
+            {"Guid", Identifiers.Guid, UUID.randomUUID()},
+            {"Int16", Identifiers.Int16, (short) 16},
+            {"Int32", Identifiers.Int32, 32},
+            {"Int64", Identifiers.Int64, 64L},
+            {"LocalizedText", Identifiers.LocalizedText, LocalizedText.english("localized text")},
+            {"NodeId", Identifiers.NodeId, new NodeId(1234, "abcd")},
+            {"QualifiedName", Identifiers.QualifiedName, new QualifiedName(1234, "defg")},
+            {"SByte", Identifiers.SByte, (byte) 0x00},
+            {"String", Identifiers.String, "string value"},
+            {"UtcTime", Identifiers.UtcTime, DateTime.now()},
+            {"UInt16", Identifiers.UInt16, ushort(16)},
+            {"UInt32", Identifiers.UInt32, uint(32)},
+            {"UInt64", Identifiers.UInt64, ulong(64L)},
+            {"XmlElement", Identifiers.XmlElement, new XmlElement("<a>hello</a>")},
+    };
+
+    private void addStaticArrayNodes() {
+        UaObjectNode folder = addFoldersToRoot(cttFolder, "/Static/AllProfiles/Array");
+
+        for (Object[] os : StaticArrayNodes) {
+            String name = (String) os[0];
+            NodeId typeId = (NodeId) os[1];
+            Object value = os[2];
+            Object array = Array.newInstance(value.getClass(), 16);
+            for (int i = 0; i < 16; i++) {
+                Array.set(array, i, value);
+            }
+            Variant variant = new Variant(array);
+
+            UaVariableNode node = new UaVariableNodeBuilder()
+                    .setNodeId(new NodeId(NamespaceIndex, "/Static/AllProfiles/Array/" + name))
+                    .setAccessLevel(ubyte(AccessLevel.getMask(AccessLevel.ReadWrite)))
+                    .setBrowseName(new QualifiedName(NamespaceIndex, name))
+                    .setDisplayName(LocalizedText.english(name))
+                    .setDataType(typeId)
+                    .setTypeDefinition(Identifiers.BaseDataVariableType)
+                    .setValueRank(ValueRank.OneDimension)
+                    .setArrayDimensions(new UInteger[]{uint(0)})
+                    .build();
+
+            node.setValue(new DataValue(variant));
+
+            folder.addReference(new Reference(
+                    folder.getNodeId(),
+                    Identifiers.Organizes,
+                    node.getNodeId().expanded(),
+                    node.getNodeClass(),
+                    true
+            ));
+
+            logger.debug("Added reference: {} -> {}", folder.getNodeId(), node.getNodeId());
+
+            nodes.put(node.getNodeId(), node);
         }
     }
 
@@ -221,6 +292,96 @@ public class CttNamespace implements Namespace {
         );
 
         methodFolder.addReference(folder2method);
+    }
+
+    private UaObjectNode addFoldersToRoot(UaNode root, String path) {
+        if (path.startsWith("/")) path = path.substring(1, path.length());
+        String[] elements = path.split("/");
+
+        LinkedList<UaObjectNode> folderNodes = processPathElements(
+                Lists.newArrayList(elements),
+                Lists.newArrayList(),
+                Lists.newLinkedList()
+        );
+
+        UaObjectNode firstNode = folderNodes.getFirst();
+
+        if (!nodes.containsKey(firstNode.getNodeId())) {
+            nodes.put(firstNode.getNodeId(), firstNode);
+
+            nodes.get(root.getNodeId()).addReference(new Reference(
+                    root.getNodeId(),
+                    Identifiers.Organizes,
+                    firstNode.getNodeId().expanded(),
+                    firstNode.getNodeClass(),
+                    true
+            ));
+
+            logger.debug("Added reference: {} -> {}", root.getNodeId(), firstNode.getNodeId());
+        }
+
+        PeekingIterator<UaObjectNode> iterator = Iterators.peekingIterator(folderNodes.iterator());
+
+        while (iterator.hasNext()) {
+            UaObjectNode node = iterator.next();
+
+            nodes.putIfAbsent(node.getNodeId(), node);
+
+            if (iterator.hasNext()) {
+                UaObjectNode next = iterator.peek();
+
+                if (!nodes.containsKey(next.getNodeId())) {
+                    nodes.put(next.getNodeId(), next);
+
+                    nodes.get(node.getNodeId()).addReference(new Reference(
+                            node.getNodeId(),
+                            Identifiers.Organizes,
+                            next.getNodeId().expanded(),
+                            next.getNodeClass(),
+                            true
+                    ));
+
+                    logger.debug("Added reference: {} -> {}", node.getNodeId(), next.getNodeId());
+                }
+            }
+        }
+
+        return folderNodes.getLast();
+    }
+
+    private LinkedList<UaObjectNode> processPathElements(List<String> elements, List<String> path, LinkedList<UaObjectNode> nodes) {
+        if (elements.size() == 1) {
+            String name = elements.get(0);
+            String prefix = String.join("/", path) + "/";
+            if (!prefix.startsWith("/")) prefix = "/" + prefix;
+
+            UaObjectNode node = UaObjectNode.builder()
+                    .setNodeId(new NodeId(NamespaceIndex, prefix + name))
+                    .setBrowseName(new QualifiedName(NamespaceIndex, name))
+                    .setDisplayName(LocalizedText.english(name))
+                    .setTypeDefinition(Identifiers.FolderType)
+                    .build();
+
+            nodes.add(node);
+
+            return nodes;
+        } else {
+            String name = elements.get(0);
+            String prefix = String.join("/", path) + "/";
+            if (!prefix.startsWith("/")) prefix = "/" + prefix;
+
+            UaObjectNode node = UaObjectNode.builder()
+                    .setNodeId(new NodeId(NamespaceIndex, prefix + name))
+                    .setBrowseName(new QualifiedName(NamespaceIndex, name))
+                    .setDisplayName(LocalizedText.english(name))
+                    .setTypeDefinition(Identifiers.FolderType)
+                    .build();
+
+            nodes.add(node);
+            path.add(name);
+
+            return processPathElements(elements.subList(1, elements.size()), path, nodes);
+        }
     }
 
     @Override
