@@ -145,12 +145,7 @@ public enum DataType {
     }
 
     public static boolean isBuiltin(ExpandedNodeId typeId) {
-        if (typeId.getNamespaceIndex().intValue() == 0 && typeId.getType() == IdType.Numeric) {
-            Number id = (Number) typeId.getIdentifier();
-            return BackingClassesById.containsKey(id.intValue());
-        }
-
-        return false;
+        return typeId.local().map(BackingClassesByNodeId::containsKey).orElse(false);
     }
 
 }
