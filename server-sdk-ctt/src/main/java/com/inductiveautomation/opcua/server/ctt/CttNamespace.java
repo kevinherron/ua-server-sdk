@@ -203,10 +203,13 @@ public class CttNamespace implements Namespace {
                 ValueRank.Scalar, new UInteger[0],
                 LocalizedText.english("The positive square root of x. If the argument is NaN or less than zero, the result is NaN."));
 
-        methodNode.setInputArguments(new Argument[]{input}, nodes::put);
-        methodNode.setOutputArguments(new Argument[]{output}, nodes::put);
         methodNode.setInvocationHandler(new SqrtInvocationHandler());
 
+        UaVariableNode inputNode = methodNode.setInputArguments(new Argument[]{input});
+        UaVariableNode outputNode = methodNode.setOutputArguments(new Argument[]{output});
+
+        nodes.put(inputNode.getNodeId(), inputNode);
+        nodes.put(outputNode.getNodeId(), outputNode);
         nodes.put(methodNode.getNodeId(), methodNode);
 
         Reference folder2method = new Reference(
@@ -329,7 +332,7 @@ public class CttNamespace implements Namespace {
         UaNode node = nodes.get(methodId);
 
         if (node instanceof UaMethodNode) {
-            return ((UaMethodNode) node).getHandler();
+            return ((UaMethodNode) node).getInvocationHandler();
         } else {
             return Optional.empty();
         }

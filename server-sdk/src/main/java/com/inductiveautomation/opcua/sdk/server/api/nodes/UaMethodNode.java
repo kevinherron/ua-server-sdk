@@ -19,8 +19,6 @@ package com.inductiveautomation.opcua.sdk.server.api.nodes;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 import com.google.common.base.Preconditions;
@@ -49,8 +47,8 @@ public class UaMethodNode extends UaNode implements MethodNode {
     private final ListMultimap<NodeId, Reference> referenceMap =
             Multimaps.synchronizedListMultimap(ArrayListMultimap.create());
 
-    private volatile Optional<Argument[]> inputArguments = Optional.empty();
-    private volatile Optional<Argument[]> outputArguments = Optional.empty();
+    private volatile Optional<UaVariableNode> inputArguments = Optional.empty();
+    private volatile Optional<UaVariableNode> outputArguments = Optional.empty();
     private volatile Optional<MethodInvocationHandler> handler = Optional.empty();
 
     private final AtomicBoolean executable;
@@ -109,15 +107,15 @@ public class UaMethodNode extends UaNode implements MethodNode {
         this.userExecutable.set(userExecutable);
     }
 
-    public void setInputArguments(Argument[] arguments, BiConsumer<NodeId, UaNode> put) {
-        setArguments(arguments, put, true);
+    public UaVariableNode setInputArguments(Argument[] arguments) {
+        return setArguments(arguments, true);
     }
 
-    public void setOutputArguments(Argument[] arguments, BiConsumer<NodeId, UaNode> put) {
-        setArguments(arguments, put, false);
+    public UaVariableNode setOutputArguments(Argument[] arguments) {
+        return setArguments(arguments, false);
     }
 
-    private void setArguments(Argument[] arguments, BiConsumer<NodeId, UaNode> put, boolean input) {
+    private UaVariableNode setArguments(Argument[] arguments, boolean input) {
         String inputOrOutput = input ? "InputArguments" : "OutputArguments";
         String identifier = String.format("%s.%s", getNodeId().getIdentifier().toString(), inputOrOutput);
         NodeId nodeId = new NodeId(getNodeId().getNamespaceIndex(), identifier);
@@ -141,32 +139,32 @@ public class UaMethodNode extends UaNode implements MethodNode {
                 true
         );
 
-        put.accept(nodeId, node);
-
         synchronized (referenceMap) {
             referenceMap.put(reference.getReferenceTypeId(), reference);
 
             if (input) {
-                inputArguments = Optional.of(arguments);
+                inputArguments = Optional.of(node);
             } else {
-                outputArguments = Optional.of(arguments);
+                outputArguments = Optional.of(node);
             }
         }
+
+        return node;
     }
 
     public void setInvocationHandler(MethodInvocationHandler handler) {
         this.handler = Optional.of(handler);
     }
 
-    public Optional<Argument[]> getInputArguments(Function<NodeId, Node> get) {
+    public Optional<UaVariableNode> getInputArguments() {
         return inputArguments;
     }
 
-    public Optional<Argument[]> getOutputArguments() {
+    public Optional<UaVariableNode> getOutputArguments() {
         return outputArguments;
     }
 
-    public Optional<MethodInvocationHandler> getHandler() {
+    public Optional<MethodInvocationHandler> getInvocationHandler() {
         return handler;
     }
 
