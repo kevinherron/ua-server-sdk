@@ -25,6 +25,7 @@ import com.inductiveautomation.opcua.sdk.server.api.MethodInvocationHandler.Node
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.structured.CallMethodRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.CallMethodResult;
+import org.slf4j.LoggerFactory;
 
 import static com.inductiveautomation.opcua.sdk.server.util.FutureUtils.sequence;
 
@@ -45,7 +46,14 @@ public interface MethodManager {
 
             CompletableFuture<CallMethodResult> result = new CompletableFuture<>();
 
-            handler.invoke(request, result);
+            try {
+                handler.invoke(request, result);
+            } catch (Throwable t) {
+                LoggerFactory.getLogger(getClass())
+                        .error("Uncaught Throwable invoking method handler for methodId={}.", request.getMethodId(), t);
+
+                result.completeExceptionally(t);
+            }
 
             results.add(result);
         }
