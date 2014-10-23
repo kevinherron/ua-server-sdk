@@ -35,7 +35,6 @@ import com.inductiveautomation.opcua.stack.core.types.structured.DataChangeFilte
 import com.inductiveautomation.opcua.stack.core.types.structured.EventFilter;
 import com.inductiveautomation.opcua.stack.core.types.structured.MonitoredItemNotification;
 import com.inductiveautomation.opcua.stack.core.types.structured.MonitoringFilter;
-import com.inductiveautomation.opcua.stack.core.types.structured.MonitoringParameters;
 import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
 
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
@@ -56,9 +55,15 @@ public class SampledMonitoredItem extends BaseMonitoredItem<DataValue> implement
                                 ReadValueId readValueId,
                                 MonitoringMode monitoringMode,
                                 TimestampsToReturn timestamps,
-                                MonitoringParameters parameters) {
+                                UInteger clientHandle,
+                                double samplingInterval,
+                                ExtensionObject filter,
+                                UInteger queueSize,
+                                boolean discardOldest) throws UaException {
 
-        super(id, readValueId, monitoringMode, timestamps, parameters);
+        super(id, readValueId, monitoringMode, timestamps, clientHandle, samplingInterval, queueSize, discardOldest);
+
+        installFilter(filter);
     }
 
     @Override
@@ -145,17 +150,6 @@ public class SampledMonitoredItem extends BaseMonitoredItem<DataValue> implement
         value = DataValue.derivedValue(value, timestamps);
 
         return new MonitoredItemNotification(uint(getClientHandle()), value);
-    }
-
-    public static SampledMonitoredItem create(UInteger id,
-                                              ReadValueId readValueId,
-                                              MonitoringMode monitoringMode,
-                                              TimestampsToReturn timestamps,
-                                              MonitoringParameters parameters) throws UaException {
-
-        SampledMonitoredItem item = new SampledMonitoredItem(id, readValueId, monitoringMode, timestamps, parameters);
-        item.installFilter(parameters.getFilter());
-        return item;
     }
 
 }

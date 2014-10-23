@@ -27,12 +27,11 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.ExtensionObject;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.MonitoringMode;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.TimestampsToReturn;
-import com.inductiveautomation.opcua.stack.core.types.structured.MonitoringParameters;
 import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
 
 public abstract class BaseMonitoredItem<ValueType> implements MonitoredItem {
 
-    private static final long MAX_QUEUE_SIZE = 0xFFFF;
+    private static final int MAX_QUEUE_SIZE = 0xFFFF;
 
     protected volatile RingBuffer<ValueType> queue;
 
@@ -50,26 +49,29 @@ public abstract class BaseMonitoredItem<ValueType> implements MonitoredItem {
                                 ReadValueId readValueId,
                                 MonitoringMode monitoringMode,
                                 TimestampsToReturn timestamps,
-                                MonitoringParameters parameters) {
+                                UInteger clientHandle,
+                                double samplingInterval,
+                                UInteger queueSize,
+                                boolean discardOldest) {
 
         this.id = id;
         this.readValueId = readValueId;
         this.monitoringMode = monitoringMode;
         this.timestamps = timestamps;
+        this.clientHandle = clientHandle.longValue();
+        this.samplingInterval = samplingInterval;
+        this.discardOldest = discardOldest;
 
-        clientHandle = parameters.getClientHandle().longValue();
-        samplingInterval = parameters.getSamplingInterval();
-        discardOldest = parameters.getDiscardOldest();
-        queueSize = reasonableQueueSize(parameters);
+        setQueueSize(queueSize);
 
-        queue = new RingBuffer<>(Ints.saturatedCast(queueSize));
+        queue = new RingBuffer<>(this.queueSize);
     }
 
-    protected int reasonableQueueSize(MonitoringParameters parameters) {
-        long qs = parameters.getQueueSize().longValue();
+    protected void setQueueSize(UInteger queueSize) {
+        int qs = Ints.saturatedCast(queueSize.longValue());
         qs = Math.min(qs, MAX_QUEUE_SIZE);
         qs = Math.max(qs, 1);
-        return (int) qs;
+        this.queueSize = qs;
     }
 
     public synchronized boolean getNotifications(List<UaStructure> notifications, int max) {
@@ -87,19 +89,24 @@ public abstract class BaseMonitoredItem<ValueType> implements MonitoredItem {
         return queue.size() > 0 && monitoringMode == MonitoringMode.Reporting;
     }
 
-    public synchronized void modify(MonitoringParameters parameters, TimestampsToReturn ttr) throws UaException {
-        installFilter(parameters.getFilter());
+    public synchronized void modify(TimestampsToReturn timestamps,
+                                    UInteger clientHandle,
+                                    double samplingInterval,
+                                    ExtensionObject filter,
+                                    UInteger queueSize,
+                                    boolean discardOldest) throws UaException {
 
-        timestamps = ttr;
+        installFilter(filter);
 
-        clientHandle = parameters.getClientHandle().longValue();
-        samplingInterval = parameters.getSamplingInterval();
-        discardOldest = parameters.getDiscardOldest();
+        this.timestamps = timestamps;
+        this.clientHandle = clientHandle.longValue();
+        this.samplingInterval = samplingInterval;
+        this.discardOldest = discardOldest;
 
-        if (queueSize != parameters.getQueueSize().intValue()) {
-            queueSize = reasonableQueueSize(parameters);
+        if (queueSize.intValue() != this.queueSize) {
+            setQueueSize(queueSize);
 
-            RingBuffer<ValueType> nq = new RingBuffer<>(queueSize);
+            RingBuffer<ValueType> nq = new RingBuffer<>(this.queueSize);
             while (queue.size() > 0) {
                 nq.add(queue.remove());
             }

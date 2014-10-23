@@ -81,6 +81,9 @@ import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Un
 
 public class SubscriptionManager {
 
+    public static final double MIN_SAMPLING_INTERVAL = 100;
+    public static final double MAX_SAMPLING_INTERVAL = 60 * 60 * 1000;
+
     private static final AtomicLong SUBSCRIPTION_IDS = new AtomicLong(0L);
 
     private static UInteger nextSubscriptionId() {
@@ -298,12 +301,23 @@ public class SubscriptionManager {
                             if (attributeId.intValue() == AttributeIds.EventNotifier) {
                                 throw new UaException(StatusCodes.Bad_AttributeIdInvalid); // TODO Create event item
                             } else {
-                                item = SampledMonitoredItem.create(
+                                MonitoringParameters parameters = createRequest.getRequestedParameters();
+
+                                double samplingInterval = parameters.getSamplingInterval();
+                                if (samplingInterval < 0) samplingInterval = subscription.getPublishingInterval();
+                                if (samplingInterval < MIN_SAMPLING_INTERVAL) samplingInterval = MIN_SAMPLING_INTERVAL;
+                                if (samplingInterval > MAX_SAMPLING_INTERVAL) samplingInterval = MAX_SAMPLING_INTERVAL;
+
+                                item = new SampledMonitoredItem(
                                         uint(subscription.nextItemId()),
                                         createRequest.getItemToMonitor(),
                                         createRequest.getMonitoringMode(),
                                         timestamps,
-                                        createRequest.getRequestedParameters()
+                                        parameters.getClientHandle(),
+                                        samplingInterval,
+                                        parameters.getFilter(),
+                                        parameters.getQueueSize(),
+                                        parameters.getDiscardOldest()
                                 );
                             }
 
@@ -412,7 +426,19 @@ public class SubscriptionManager {
                                 0d, uint(0), null
                         );
                     } else {
-                        item.modify(parameters, timestamps);
+                        double samplingInterval = parameters.getSamplingInterval();
+                        if (samplingInterval < 0) samplingInterval = subscription.getPublishingInterval();
+                        if (samplingInterval < MIN_SAMPLING_INTERVAL) samplingInterval = MIN_SAMPLING_INTERVAL;
+                        if (samplingInterval > MAX_SAMPLING_INTERVAL) samplingInterval = MAX_SAMPLING_INTERVAL;
+
+                        item.modify(
+                                timestamps,
+                                parameters.getClientHandle(),
+                                samplingInterval,
+                                parameters.getFilter(),
+                                parameters.getQueueSize(),
+                                parameters.getDiscardOldest()
+                        );
 
                         modifiedItems.add(item);
 

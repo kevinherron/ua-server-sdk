@@ -26,7 +26,6 @@ import com.inductiveautomation.opcua.stack.core.types.enumerated.MonitoringMode;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import com.inductiveautomation.opcua.stack.core.types.structured.EventFieldList;
 import com.inductiveautomation.opcua.stack.core.types.structured.EventFilter;
-import com.inductiveautomation.opcua.stack.core.types.structured.MonitoringParameters;
 import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
 
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
@@ -39,10 +38,13 @@ public class EventMonitoredItem extends BaseMonitoredItem<Variant[]> implements 
                               ReadValueId readValueId,
                               MonitoringMode monitoringMode,
                               TimestampsToReturn timestamps,
-                              MonitoringParameters parameters,
+                              UInteger clientHandle,
+                              double samplingInterval,
+                              UInteger queueSize,
+                              boolean discardOldest,
                               EventFilter filter) {
 
-        super(id, readValueId, monitoringMode, timestamps, parameters);
+        super(id, readValueId, monitoringMode, timestamps, clientHandle, samplingInterval, queueSize, discardOldest);
 
         this.filter = filter;
     }
