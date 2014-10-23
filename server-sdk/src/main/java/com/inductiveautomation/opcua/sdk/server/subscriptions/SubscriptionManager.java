@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
+import com.inductiveautomation.opcua.sdk.core.NumericRange;
 import com.inductiveautomation.opcua.sdk.server.OpcUaServer;
 import com.inductiveautomation.opcua.sdk.server.Session;
 import com.inductiveautomation.opcua.sdk.server.api.EventItem;
@@ -307,6 +308,11 @@ public class SubscriptionManager {
                                 if (samplingInterval < 0) samplingInterval = subscription.getPublishingInterval();
                                 if (samplingInterval < MIN_SAMPLING_INTERVAL) samplingInterval = MIN_SAMPLING_INTERVAL;
                                 if (samplingInterval > MAX_SAMPLING_INTERVAL) samplingInterval = MAX_SAMPLING_INTERVAL;
+
+                                String indexRange = createRequest.getItemToMonitor().getIndexRange();
+                                if (indexRange != null) {
+                                    NumericRange.parse(indexRange);
+                                }
 
                                 item = new SampledMonitoredItem(
                                         uint(subscription.nextItemId()),
