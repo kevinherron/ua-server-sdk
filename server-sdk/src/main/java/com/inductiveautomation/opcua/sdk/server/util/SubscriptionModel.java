@@ -29,6 +29,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.math.DoubleMath;
+import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.server.api.AttributeManager;
 import com.inductiveautomation.opcua.sdk.server.api.MonitoredItem;
 import com.inductiveautomation.opcua.sdk.server.api.SampledItem;
@@ -36,9 +40,6 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
 import com.inductiveautomation.opcua.stack.core.util.ExecutionQueue;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.math.DoubleMath;
 
 public class SubscriptionModel {
 
@@ -132,7 +133,18 @@ public class SubscriptionModel {
                 Iterator<DataValue> vi = values.iterator();
 
                 while (ii.hasNext() && vi.hasNext()) {
-                    ii.next().setValue(vi.next());
+                    SampledItem item = ii.next();
+                    DataValue value = vi.next();
+
+                    TimestampsToReturn timestamps = item.getTimestampsToReturn();
+
+                    if (timestamps != null) {
+                        value = (item.getReadValueId().getAttributeId().intValue() == AttributeIds.Value) ?
+                                DataValue.derivedValue(value, timestamps) :
+                                DataValue.derivedNonValue(value, timestamps);
+                    }
+
+                    item.setValue(value);
                 }
 
                 if (!cancelled) {

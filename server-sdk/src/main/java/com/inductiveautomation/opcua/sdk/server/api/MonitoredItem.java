@@ -17,6 +17,7 @@
 package com.inductiveautomation.opcua.sdk.server.api;
 
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
+import com.inductiveautomation.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
 
 public interface MonitoredItem {
@@ -30,5 +31,10 @@ public interface MonitoredItem {
      * @return the {@link ReadValueId} being monitored.
      */
     ReadValueId getReadValueId();
+
+    /**
+     * @return the {@link TimestampsToReturn}.
+     */
+    TimestampsToReturn getTimestampsToReturn();
 
 }

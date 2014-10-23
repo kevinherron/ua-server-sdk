@@ -136,6 +136,11 @@ public abstract class BaseMonitoredItem<ValueType> implements MonitoredItem {
         return readValueId;
     }
 
+    @Override
+    public TimestampsToReturn getTimestampsToReturn() {
+        return timestamps;
+    }
+
     public long getClientHandle() {
         return clientHandle;
     }
@@ -154,10 +159,6 @@ public abstract class BaseMonitoredItem<ValueType> implements MonitoredItem {
 
     public MonitoringMode getMonitoringMode() {
         return monitoringMode;
-    }
-
-    public TimestampsToReturn getTimestamps() {
-        return timestamps;
     }
 
     public abstract ExtensionObject getFilterResult();
