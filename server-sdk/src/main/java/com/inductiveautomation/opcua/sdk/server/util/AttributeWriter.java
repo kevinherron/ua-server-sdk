@@ -24,6 +24,7 @@ import java.util.Optional;
 import com.inductiveautomation.opcua.sdk.core.AccessLevel;
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.DataType;
+import com.inductiveautomation.opcua.sdk.core.ValueRank;
 import com.inductiveautomation.opcua.sdk.core.WriteMask;
 import com.inductiveautomation.opcua.sdk.server.NamespaceManager;
 import com.inductiveautomation.opcua.sdk.server.api.Reference;
@@ -32,18 +33,29 @@ import com.inductiveautomation.opcua.sdk.server.api.nodes.VariableNode;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.UaException;
+import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
+import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ExpandedNodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.Variant;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
+import com.inductiveautomation.opcua.stack.core.util.ArrayUtil;
 
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
 public class AttributeWriter {
 
     public static void writeAttribute(int attributeId, DataValue value, Node node, NamespaceManager ns) throws UaException {
-        // Don't allow timestamps to be written.
-        value = new DataValue(value.getValue(), value.getStatusCode());
+        DateTime sourceTime = value.getSourceTime();
+        DateTime serverTime = value.getServerTime();
+
+        value = new DataValue(
+                value.getValue(),
+                value.getStatusCode(),
+                (sourceTime == null || sourceTime.isNull()) ? DateTime.now() : sourceTime,
+                (serverTime == null || serverTime.isNull()) ? DateTime.now() : serverTime
+        );
 
         if (node instanceof VariableNode) {
             writeVariableNode(attributeId, value, (VariableNode) node, ns);
@@ -60,8 +72,9 @@ public class AttributeWriter {
         if (attributeId == AttributeIds.Value) {
             EnumSet<AccessLevel> accessLevels = AccessLevel.fromMask(node.getAccessLevel());
 
-            if (accessLevels.contains(AccessLevel.CurrentRead)) {
-                validateDataType(ns, node.getDataType().expanded(), value);
+            if (accessLevels.contains(AccessLevel.CurrentWrite)) {
+                value = validateDataType(ns, node.getDataType().expanded(), value);
+                validateArrayType(node, value);
 
                 node.setValue(value);
             } else {
@@ -107,21 +120,112 @@ public class AttributeWriter {
         }
     }
 
-    private static void validateDataType(NamespaceManager ns, ExpandedNodeId dataType, DataValue value) throws UaException {
+    private static DataValue validateDataType(NamespaceManager ns, ExpandedNodeId dataType, DataValue value) throws UaException {
         Variant variant = value.getValue();
-        if (variant == null) return;
+        if (variant == null) return value;
 
         Object o = variant.getValue();
-        if (o == null) return;
+        if (o == null) return value;
 
         if (!DataType.isBuiltin(dataType)) {
             dataType = findBuiltinSuperType(ns, dataType);
         }
 
         Class<?> expected = DataType.getBackingClass(dataType);
+        Class<?> actual = o.getClass().isArray() ? o.getClass().getComponentType() : o.getClass();
 
-        if (!expected.isAssignableFrom(o.getClass())) {
-            throw new UaException(StatusCodes.Bad_TypeMismatch);
+        if (!expected.isAssignableFrom(actual)) {
+            /*
+             * Writing a ByteString to a Byte[] is explicitly allowed by the spec.
+             */
+            boolean byteStringToByteArray = (o instanceof ByteString && expected == UByte.class);
+
+            if (byteStringToByteArray) {
+                ByteString byteString = (ByteString) o;
+
+                return new DataValue(
+                        new Variant(byteString.uBytes()),
+                        value.getStatusCode(),
+                        value.getSourceTime(),
+                        value.getServerTime()
+                );
+            } else {
+                throw new UaException(StatusCodes.Bad_TypeMismatch);
+            }
+        }
+
+        return value;
+    }
+
+    private static void validateArrayType(VariableNode node, DataValue value) throws UaException {
+        Variant variant = value.getValue();
+        if (variant == null) return;
+
+        Object o = variant.getValue();
+        if (o == null) return;
+
+        boolean valueIsArray = o.getClass().isArray();
+
+        int valueRank = node.getValueRank();
+
+        switch (valueRank) {
+            case ValueRank.ScalarOrOneDimension:
+                if (valueIsArray) {
+                    int[] valueDimensions = ArrayUtil.getDimensions(o);
+
+                    if (valueDimensions.length > 1) {
+                        throw new UaException(StatusCodes.Bad_TypeMismatch);
+                    }
+                }
+                break;
+
+            case ValueRank.Any:
+                break;
+
+            case ValueRank.Scalar:
+                if (valueIsArray) {
+                    throw new UaException(StatusCodes.Bad_TypeMismatch);
+                }
+                break;
+
+            case ValueRank.OneOrMoreDimensions:
+                if (!valueIsArray) {
+                    throw new UaException(StatusCodes.Bad_TypeMismatch);
+                }
+                break;
+
+            case ValueRank.OneDimension:
+            default:
+                if (!valueIsArray) {
+                    throw new UaException(StatusCodes.Bad_TypeMismatch);
+                }
+
+                int[] valueDimensions = ArrayUtil.getDimensions(o);
+
+                if (valueDimensions.length != valueRank) {
+                    throw new UaException(StatusCodes.Bad_TypeMismatch);
+                }
+
+                int[] nodeDimensions = node.getArrayDimensions().map(uia -> {
+                    int[] arrayDimensions = new int[uia.length];
+                    for (int i = 0; i < uia.length; i++) {
+                        arrayDimensions[i] = uia[i].intValue();
+                    }
+                    return arrayDimensions;
+                }).orElse(new int[0]);
+
+                if (nodeDimensions.length > 0) {
+                    if (nodeDimensions.length != valueDimensions.length) {
+                        throw new UaException(StatusCodes.Bad_TypeMismatch);
+                    }
+
+                    for (int i = 0; i < nodeDimensions.length; i++) {
+                        if (nodeDimensions[i] > 0 && valueDimensions[i] > nodeDimensions[i]) {
+                            throw new UaException(StatusCodes.Bad_TypeMismatch);
+                        }
+                    }
+                }
+                break;
         }
     }
 
