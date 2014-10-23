@@ -20,8 +20,10 @@ import java.lang.reflect.Array;
 import java.util.Arrays;
 
 import com.google.common.base.Objects;
+import com.google.common.primitives.Ints;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.UaException;
+import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
 import com.inductiveautomation.opcua.stack.core.types.builtin.Variant;
 import com.inductiveautomation.opcua.stack.core.util.ArrayUtil;
 
@@ -107,8 +109,29 @@ public final class NumericRange {
 
         Class<?> type = ArrayUtil.getType(array);
 
+        boolean convertedToString = false;
+        boolean convertedToByteString = false;
+
+        if (type == String.class) {
+            array = stringToCharArray(array);
+            convertedToString = true;
+            type = char.class;
+        } else if (type == ByteString.class) {
+            array = byteStringToByteArray(array);
+            convertedToByteString = true;
+            type = byte.class;
+        }
+
         try {
-            return readDimension(array, type, range, range.getDimensionLengths(), 1);
+            Object o = readDimension(array, type, range, range.getDimensionLengths(), 1);
+
+            if (convertedToString) {
+                return charArrayToString(o);
+            } else if (convertedToByteString) {
+                return byteArrayToByteString(o);
+            } else {
+                return o;
+            }
         } catch (Throwable ex) {
             throw new UaException(StatusCodes.Bad_IndexRangeNoData, ex);
         }
@@ -143,6 +166,150 @@ public final class NumericRange {
 
             return a;
         }
+    }
+
+    /*
+     * Warning, wary traveler... here be dragons.
+     */
+
+    private static Object stringToCharArray(Object o) {
+        int[] dimensions = getDimensions(o);
+
+        return stringToCharArray(o, dimensions);
+    }
+
+    private static Object stringToCharArray(Object array, int[] dimensions) {
+        if (dimensions.length == 1) {
+            String s = (String) array;
+            int length = s.length();
+            Object a = Array.newInstance(char.class, length);
+
+            for (int i = 0; i < length; i++) {
+                Array.set(a, i, s.charAt(i));
+            }
+
+            return a;
+        } else {
+            Object a = Array.newInstance(char.class, dimensions);
+            int[] tail = Arrays.copyOfRange(dimensions, 1, dimensions.length);
+
+            for (int i = 0; i < dimensions[0]; i++) {
+                Object na = Array.get(array, i);
+                Object element = stringToCharArray(na, tail);
+                Array.set(a, i, element);
+            }
+
+            return a;
+        }
+    }
+
+    private static Object charArrayToString(Object array) {
+        int[] dimensions = getDimensions(array);
+
+        return charArrayToString(array, dimensions);
+    }
+
+    private static Object charArrayToString(Object array, int[] dimensions) {
+        if (dimensions.length == 1) {
+            char[] cs = (char[]) array;
+            return new String(cs);
+        } else {
+            int[] tail = Arrays.copyOfRange(dimensions, 1, dimensions.length);
+
+            int[] ds = Arrays.copyOfRange(dimensions, 0, dimensions.length - 1);
+            Object a = Array.newInstance(String.class, ds);
+
+            for (int i = 0; i < dimensions[0]; i++) {
+                Object na = Array.get(array, i);
+                Object element = charArrayToString(na, tail);
+                Array.set(a, i, element);
+            }
+
+            return a;
+        }
+    }
+
+
+    private static Object byteStringToByteArray(Object o) {
+        int[] dimensions = getDimensions(o);
+
+        return byteStringToByteArray(o, dimensions);
+    }
+
+    private static Object byteStringToByteArray(Object array, int[] dimensions) {
+        if (dimensions.length == 1) {
+            ByteString bs = (ByteString) array;
+            int length = bs.length();
+            Object a = Array.newInstance(byte.class, length);
+
+            for (int i = 0; i < length; i++) {
+                Array.set(a, i, bs.bytes()[i]);
+            }
+
+            return a;
+        } else {
+            Object a = Array.newInstance(byte.class, dimensions);
+            int[] tail = Arrays.copyOfRange(dimensions, 1, dimensions.length);
+
+            for (int i = 0; i < dimensions[0]; i++) {
+                Object na = Array.get(array, i);
+                Object element = byteStringToByteArray(na, tail);
+                Array.set(a, i, element);
+            }
+
+            return a;
+        }
+    }
+
+    private static Object byteArrayToByteString(Object array) {
+        int[] dimensions = getDimensions(array);
+
+        return byteArrayToByteString(array, dimensions);
+    }
+
+    private static Object byteArrayToByteString(Object array, int[] dimensions) {
+        if (dimensions.length == 1) {
+            byte[] bs = (byte[]) array;
+            return new ByteString(bs);
+        } else {
+            int[] tail = Arrays.copyOfRange(dimensions, 1, dimensions.length);
+
+            int[] ds = Arrays.copyOfRange(dimensions, 0, dimensions.length - 1);
+            Object a = Array.newInstance(ByteString.class, ds);
+
+            for (int i = 0; i < dimensions[0]; i++) {
+                Object na = Array.get(array, i);
+                Object element = byteArrayToByteString(na, tail);
+                Array.set(a, i, element);
+            }
+
+            return a;
+        }
+    }
+
+    public static int[] getDimensions(Object array) {
+        int[] dimensions = new int[0];
+        Class<?> type = array.getClass();
+
+        while (type.isArray()) {
+            int length = array != null ? Array.getLength(array) : 0;
+            dimensions = Ints.concat(dimensions, new int[]{length});
+
+            array = length > 0 ? Array.get(array, 0) : null;
+            type = type.getComponentType();
+        }
+
+        if (type == String.class) {
+            String s = (String) array;
+            int length = s != null ? s.length() : 0;
+            dimensions = Ints.concat(dimensions, new int[]{length});
+        } else if (type == ByteString.class) {
+            ByteString bs = (ByteString) array;
+            int length = bs != null ? bs.length() : 0;
+            dimensions = Ints.concat(dimensions, new int[]{length});
+        }
+
+        return dimensions;
     }
 
     public static Object writeToValueAtRange(Variant write, Variant value, NumericRange range) {

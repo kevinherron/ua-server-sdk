@@ -19,10 +19,12 @@ package com.inductiveautomation.opcua.sdk.core;
 import java.util.Arrays;
 
 import com.inductiveautomation.opcua.stack.core.UaException;
+import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
 import com.inductiveautomation.opcua.stack.core.types.builtin.Variant;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 public class NumericRangeTest {
@@ -58,6 +60,77 @@ public class NumericRangeTest {
 
         assertTrue(result instanceof int[][][]);
         assertTrue(Arrays.deepEquals(expected, (int[][][]) result));
+    }
+
+    @Test
+    public void testString1d() throws UaException {
+        NumericRange nr = NumericRange.parse("1:2");
+        Variant value = new Variant("abcdef");
+
+        Object result = NumericRange.readFromValueAtRange(value, nr);
+
+        assertTrue(result instanceof String);
+        assertTrue("bc".equals(result));
+    }
+
+    @Test
+    public void testString2d_1() throws UaException {
+        NumericRange nr = NumericRange.parse("0:1,3:4");
+        Variant value = new Variant(new String[]{
+                "abcdef",
+                "ghijkl"
+        });
+
+        Object result = NumericRange.readFromValueAtRange(value, nr);
+
+        assertTrue(result instanceof String[]);
+        assertTrue(Arrays.deepEquals(new String[]{"de", "jk"}, (String[]) result));
+    }
+
+    @Test
+    public void testString2d_2() throws UaException {
+        NumericRange nr = NumericRange.parse("0:2,0:2");
+        Variant value = new Variant(new String[]{
+                "abcdef",
+                "ghijkl",
+                "mnopqr"
+        });
+
+        Object result = NumericRange.readFromValueAtRange(value, nr);
+
+        assertTrue(result instanceof String[]);
+        assertTrue(Arrays.deepEquals(new String[]{"abc", "ghi", "mno"}, (String[]) result));
+    }
+
+    @Test
+    public void testByteString1d() throws UaException {
+        NumericRange nr = NumericRange.parse("1:2");
+        Variant value = new Variant(new ByteString(new byte[]{1, 2, 3, 4}));
+
+        Object result = NumericRange.readFromValueAtRange(value, nr);
+
+        assertTrue(result instanceof ByteString);
+        assertEquals(result, new ByteString(new byte[]{2, 3}));
+    }
+
+    @Test
+    public void testByteString2d() throws UaException {
+        NumericRange nr = NumericRange.parse("0:1,1:2");
+        Variant value = new Variant(new ByteString[]{
+                new ByteString(new byte[]{1, 2, 3, 4}),
+                new ByteString(new byte[]{5, 6, 7, 8})
+        });
+
+        Object result = NumericRange.readFromValueAtRange(value, nr);
+
+        assertTrue(result instanceof ByteString[]);
+
+        ByteString[] expected = {
+                new ByteString(new byte[]{2, 3}),
+                new ByteString(new byte[]{6, 7})
+        };
+
+        assertTrue(Arrays.deepEquals((ByteString[]) result, expected));
     }
 
     private static final int[] array1d = new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
