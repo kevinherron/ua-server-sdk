@@ -415,6 +415,9 @@ public class CttNamespace implements Namespace {
                     DataValue.derivedValue(value, timestamps) :
                     DataValue.derivedNonValue(value, timestamps);
 
+            logger.trace("Read value={} from attributeId={} of {}",
+                    value.getValue().getValue(), id.getAttributeId(), id.getNodeId());
+
             results.add(value);
         }
 
@@ -431,6 +434,9 @@ public class CttNamespace implements Namespace {
                         .orElseThrow(() -> new UaException(StatusCodes.Bad_NodeIdUnknown));
 
                 node.writeAttribute(writeValue.getAttributeId(), writeValue.getValue(), server.getNamespaceManager());
+
+                logger.trace("Wrote value={} to attributeId={} of {}",
+                        writeValue.getValue().getValue().getValue(), writeValue.getAttributeId(), writeValue.getNodeId());
 
                 results.add(StatusCode.Good);
             } catch (UaException e) {
