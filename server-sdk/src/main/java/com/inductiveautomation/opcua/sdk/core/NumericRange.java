@@ -69,7 +69,7 @@ public final class NumericRange {
         private final int high;
 
         private Bounds(int low, int high) throws UaException {
-            if (low > high) throw new UaException(StatusCodes.Bad_IndexRangeInvalid);
+            if (low < 0 || high < 0 || low >= high) throw new UaException(StatusCodes.Bad_IndexRangeInvalid);
 
             this.low = low;
             this.high = high;
