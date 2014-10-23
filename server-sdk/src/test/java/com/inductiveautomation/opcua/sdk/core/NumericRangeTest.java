@@ -133,6 +133,24 @@ public class NumericRangeTest {
         assertTrue(Arrays.deepEquals((ByteString[]) result, expected));
     }
 
+    @Test(dataProvider = "getInvalidRanges", expectedExceptions = UaException.class)
+    public void testInvalidRange(String indexRange) throws UaException {
+        NumericRange.parse(indexRange);
+    }
+
+    @DataProvider
+    private static Object[][] getInvalidRanges() {
+        return new Object[][]{
+                {"0:0"},
+                {"1:1"},
+                {"-4:0"},
+                {"0:-4"},
+                {"3:1"},
+                {"abc,def"},
+                {"1:2,3:1"},
+        };
+    }
+
     private static final int[] array1d = new int[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
 
     @DataProvider
@@ -142,10 +160,8 @@ public class NumericRangeTest {
                 {"4:9", new int[]{4, 5, 6, 7, 8, 9}},
                 {"1:4", new int[]{1, 2, 3, 4}},
                 {"5:8", new int[]{5, 6, 7, 8}},
-                {"0:0", new int[]{0}},
-                {"5:5", new int[]{5}},
+                {"0", new int[]{0}},
                 {"5", new int[]{5}},
-                {"9:9", new int[]{9}},
                 {"9", new int[]{9}}
         };
     }
@@ -163,7 +179,6 @@ public class NumericRangeTest {
         return new Object[][]{
                 {"0:1,0:1", new int[][]{{0, 1}, {4, 5}}},
                 {"1:2,1:3", new int[][]{{5, 6, 7}, {9, 10, 11}}},
-                {"3:3,3:3", new int[][]{{15}}},
                 {"3,3", new int[][]{{15}}}
         };
     }
@@ -185,9 +200,6 @@ public class NumericRangeTest {
                 {"1:2,1:2,0:1", new int[][][]{
                         {{8, 9}, {10, 11}},
                         {{14, 15}, {16, 17}}}
-                },
-                {"3:3,2:2,0:0,", new int[][][]{
-                        {{24}}}
                 },
                 {"3,2,0", new int[][][]{
                         {{24}}}
