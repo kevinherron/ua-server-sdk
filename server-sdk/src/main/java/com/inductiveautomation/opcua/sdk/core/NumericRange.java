@@ -66,7 +66,9 @@ public final class NumericRange {
         private final int low;
         private final int high;
 
-        private Bounds(int low, int high) {
+        private Bounds(int low, int high) throws UaException {
+            if (low > high) throw new UaException(StatusCodes.Bad_IndexRangeInvalid);
+
             this.low = low;
             this.high = high;
         }
@@ -80,9 +82,17 @@ public final class NumericRange {
             for (int i = 0; i < ss.length; i++) {
                 String s = ss[i];
                 String[] bs = s.split(":");
-                int low = Integer.parseInt(bs[0]);
-                int high = Integer.parseInt(bs[1]);
-                bounds[i] = new Bounds(low, high);
+
+                if (bs.length == 1) {
+                    int index = Integer.parseInt(bs[0]);
+                    bounds[i] = new Bounds(index, index);
+                } else if (bs.length == 2) {
+                    int low = Integer.parseInt(bs[0]);
+                    int high = Integer.parseInt(bs[1]);
+                    bounds[i] = new Bounds(low, high);
+                } else {
+                    throw new UaException(StatusCodes.Bad_IndexRangeInvalid);
+                }
             }
 
             return new NumericRange(range, bounds);
