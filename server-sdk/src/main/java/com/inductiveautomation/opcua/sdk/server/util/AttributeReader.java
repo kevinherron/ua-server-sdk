@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Inductive Automation
+ * Copyright 2014
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,11 @@
 
 package com.inductiveautomation.opcua.sdk.server.util;
 
+import javax.annotation.Nullable;
+import java.util.function.Supplier;
+
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
+import com.inductiveautomation.opcua.sdk.core.NumericRange;
 import com.inductiveautomation.opcua.sdk.server.api.nodes.DataTypeNode;
 import com.inductiveautomation.opcua.sdk.server.api.nodes.MethodNode;
 import com.inductiveautomation.opcua.sdk.server.api.nodes.Node;
@@ -25,123 +29,222 @@ import com.inductiveautomation.opcua.sdk.server.api.nodes.ObjectTypeNode;
 import com.inductiveautomation.opcua.sdk.server.api.nodes.ReferenceTypeNode;
 import com.inductiveautomation.opcua.sdk.server.api.nodes.VariableNode;
 import com.inductiveautomation.opcua.sdk.server.api.nodes.VariableTypeNode;
-import com.inductiveautomation.opcua.sdk.server.api.nodes.ViewNode;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
+import com.inductiveautomation.opcua.stack.core.UaException;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
 import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
 import com.inductiveautomation.opcua.stack.core.types.builtin.Variant;
+import com.inductiveautomation.opcua.stack.core.types.enumerated.TimestampsToReturn;
 
 public class AttributeReader {
 
-    private static final StatusCode AttributeIdInvalidStatus = new StatusCode(StatusCodes.Bad_AttributeIdInvalid);
-    private static final DataValue AttributeIdInvalidValue = new DataValue(AttributeIdInvalidStatus);
+    private static final Supplier<UaException> ATTRIBUTE_ID_INVALID_EXCEPTION =
+            () -> new UaException(StatusCodes.Bad_AttributeIdInvalid);
 
-    private AttributeReader() {
-    }
+    public static DataValue readAttribute(Node node, int attribute,
+                                          @Nullable TimestampsToReturn timestamps,
+                                          @Nullable String indexRange) {
+        try {
+            DataValue value = readAttribute(node, attribute);
 
-    public static DataValue readAttribute(int attribute, Node node) {
-        if (node instanceof DataTypeNode) return readDataTypeAttribute(attribute, (DataTypeNode) node);
-        if (node instanceof MethodNode) return readMethodAttribute(attribute, (MethodNode) node);
-        if (node instanceof ObjectNode) return readObjectAttribute(attribute, (ObjectNode) node);
-        if (node instanceof ObjectTypeNode) return readObjectTypeAttribute(attribute, (ObjectTypeNode) node);
-        if (node instanceof ReferenceTypeNode) return readReferenceTypeAttribute(attribute, (ReferenceTypeNode) node);
-        if (node instanceof VariableNode) return readVariableNodeAttribute(attribute, (VariableNode) node);
-        if (node instanceof VariableTypeNode) return readVariableTypeNodeAttribute(attribute, (VariableTypeNode) node);
-        if (node instanceof ViewNode) return readViewNodeAttribute(attribute, (ViewNode) node);
+            if (indexRange != null) {
+                NumericRange range = NumericRange.parse(indexRange);
 
-        return AttributeIdInvalidValue;
-    }
+                Object valueAtRange = NumericRange.readFromValueAtRange(value.getValue(), range);
 
-    private static DataValue readNodeAttribute(int attribute, Node node) {
-        if (attribute == AttributeIds.NodeId) return dv(node.getNodeId());
-        if (attribute == AttributeIds.NodeClass) return dv(node.getNodeClass());
-        if (attribute == AttributeIds.BrowseName) return dv(node.getBrowseName());
-        if (attribute == AttributeIds.DisplayName) return dv(node.getDisplayName());
-        if (attribute == AttributeIds.Description) {
-            return node.getDescription().map(AttributeReader::dv).orElse(AttributeIdInvalidValue);
+                value = new DataValue(
+                        new Variant(valueAtRange),
+                        value.getStatusCode(),
+                        value.getSourceTime(),
+                        value.getServerTime()
+                );
+            }
+
+            if (timestamps != null) {
+                value = (attribute == AttributeIds.Value) ?
+                        DataValue.derivedValue(value, timestamps) :
+                        DataValue.derivedNonValue(value, timestamps);
+            }
+
+            return value;
+        } catch (UaException e) {
+            return new DataValue(e.getStatusCode());
         }
-        if (attribute == AttributeIds.WriteMask) {
-            return node.getWriteMask().map(AttributeReader::dv).orElse(AttributeIdInvalidValue);
-        }
-        if (attribute == AttributeIds.UserWriteMask) {
-            return node.getUserWriteMask().map(AttributeReader::dv).orElse(AttributeIdInvalidValue);
-        }
-
-        return new DataValue(new StatusCode(StatusCodes.Bad_AttributeIdInvalid));
     }
 
-    private static DataValue readDataTypeAttribute(int attribute, DataTypeNode node) {
-        if (attribute == AttributeIds.IsAbstract) return dv(node.isAbstract());
+    private static DataValue readAttribute(Node node, int attribute) throws UaException {
+        switch (node.getNodeClass()) {
+            case DataType:
+                return readDataTypeAttribute((DataTypeNode) node, attribute);
 
-        return readNodeAttribute(attribute, node);
-    }
+            case Method:
+                return readMethodAttribute((MethodNode) node, attribute);
 
-    private static DataValue readMethodAttribute(int attribute, MethodNode node) {
-        if (attribute == AttributeIds.Executable) return dv(node.isExecutable());
-        if (attribute == AttributeIds.UserExecutable) return dv(node.isUserExecutable());
+            case Object:
+                return readObjectAttribute((ObjectNode) node, attribute);
 
-        return readNodeAttribute(attribute, node);
-    }
+            case ObjectType:
+                return readObjectTypeAttribute((ObjectTypeNode) node, attribute);
 
-    private static DataValue readObjectAttribute(int attribute, ObjectNode node) {
-        if (attribute == AttributeIds.EventNotifier) return dv(node.getEventNotifier());
+            case ReferenceType:
+                return readReferenceTypeAttribute((ReferenceTypeNode) node, attribute);
 
-        return readNodeAttribute(attribute, node);
-    }
+            case Variable:
+                return readVariableAttribute((VariableNode) node, attribute);
 
-    private static DataValue readObjectTypeAttribute(int attribute, ObjectTypeNode node) {
-        if (attribute == AttributeIds.IsAbstract) return dv(node.isAbstract());
+            case VariableType:
+                return readVariableTypeAttribute((VariableTypeNode) node, attribute);
 
-        return readNodeAttribute(attribute, node);
-    }
-
-    private static DataValue readReferenceTypeAttribute(int attribute, ReferenceTypeNode node) {
-        if (attribute == AttributeIds.IsAbstract) return dv(node.isAbstract());
-        if (attribute == AttributeIds.Symmetric) return dv(node.isSymmetric());
-        if (attribute == AttributeIds.InverseName) {
-            return node.getInverseName().map(AttributeReader::dv).orElse(AttributeIdInvalidValue);
+            default:
+                throw new UaException(StatusCodes.Bad_NodeClassInvalid);
         }
 
-        return readNodeAttribute(attribute, node);
     }
 
-    private static DataValue readVariableNodeAttribute(int attribute, VariableNode node) {
-        if (attribute == AttributeIds.Value) return node.getValue();
-        if (attribute == AttributeIds.DataType) return dv(node.getDataType());
-        if (attribute == AttributeIds.ValueRank) return dv(node.getValueRank());
-        if (attribute == AttributeIds.ArrayDimensions) {
-            return node.getArrayDimensions().map(AttributeReader::dv).orElse(AttributeIdInvalidValue);
-        }
-        if (attribute == AttributeIds.AccessLevel) return dv(node.getAccessLevel());
-        if (attribute == AttributeIds.UserAccessLevel) return dv(node.getUserAccessLevel());
-        if (attribute == AttributeIds.MinimumSamplingInterval) {
-            return node.getMinimumSamplingInterval().map(AttributeReader::dv).orElse(AttributeIdInvalidValue);
-        }
-        if (attribute == AttributeIds.Historizing) return dv(node.isHistorizing());
+    private static DataValue readNodeAttribute(Node node, int attribute) throws UaException {
+        switch (attribute) {
+            case AttributeIds.NodeId:
+                return dv(node.getNodeId());
 
-        return readNodeAttribute(attribute, node);
+            case AttributeIds.NodeClass:
+                return dv(node.getNodeClass());
+
+            case AttributeIds.BrowseName:
+                return dv(node.getBrowseName());
+
+            case AttributeIds.DisplayName:
+                return dv(node.getDisplayName());
+
+            case AttributeIds.Description:
+                return dv(node.getDescription());
+
+            case AttributeIds.WriteMask:
+                return node.getWriteMask().map(AttributeReader::dv)
+                        .orElseThrow(ATTRIBUTE_ID_INVALID_EXCEPTION);
+
+            case AttributeIds.UserWriteMask:
+                return node.getUserWriteMask().map(AttributeReader::dv)
+                        .orElseThrow(ATTRIBUTE_ID_INVALID_EXCEPTION);
+
+            default:
+                throw ATTRIBUTE_ID_INVALID_EXCEPTION.get();
+        }
     }
 
-    private static DataValue readVariableTypeNodeAttribute(int attribute, VariableTypeNode node) {
-        if (attribute == AttributeIds.Value) {
-            return node.getValue().orElse(AttributeIdInvalidValue);
-        }
-        if (attribute == AttributeIds.DataType) return dv(node.getDataType());
-        if (attribute == AttributeIds.ValueRank) return dv(node.getValueRank());
-        if (attribute == AttributeIds.ArrayDimensions) {
-            return node.getArrayDimensions().map(AttributeReader::dv).orElse(AttributeIdInvalidValue);
-        }
-        if (attribute == AttributeIds.IsAbstract) return dv(node.isAbstract());
+    private static DataValue readDataTypeAttribute(DataTypeNode node, int attribute) throws UaException {
+        switch (attribute) {
+            case AttributeIds.IsAbstract:
+                return dv(node.isAbstract());
 
-        return readNodeAttribute(attribute, node);
+            default:
+                return readNodeAttribute(node, attribute);
+        }
     }
 
-    private static DataValue readViewNodeAttribute(int attribute, ViewNode node) {
-        if (attribute == AttributeIds.ContainsNoLoops) return dv(node.containsNoLoops());
-        if (attribute == AttributeIds.EventNotifier) return dv(node.getEventNotifier());
+    private static DataValue readMethodAttribute(MethodNode node, int attribute) throws UaException {
+        switch (attribute) {
+            case AttributeIds.Executable:
+                return dv(node.isExecutable());
 
-        return readNodeAttribute(attribute, node);
+            case AttributeIds.UserExecutable:
+                return dv(node.isUserExecutable());
+
+            default:
+                return readNodeAttribute(node, attribute);
+        }
+    }
+
+    private static DataValue readObjectAttribute(ObjectNode node, int attribute) throws UaException {
+        switch (attribute) {
+            case AttributeIds.EventNotifier:
+                return dv(node.getEventNotifier());
+
+            default:
+                return readNodeAttribute(node, attribute);
+        }
+    }
+
+    private static DataValue readObjectTypeAttribute(ObjectTypeNode node, int attribute) throws UaException {
+        switch (attribute) {
+            case AttributeIds.IsAbstract:
+                return dv(node.isAbstract());
+
+            default:
+                return readNodeAttribute(node, attribute);
+        }
+    }
+
+    private static DataValue readReferenceTypeAttribute(ReferenceTypeNode node, int attribute) throws UaException {
+        switch (attribute) {
+            case AttributeIds.IsAbstract:
+                return dv(node.isAbstract());
+
+            case AttributeIds.Symmetric:
+                return dv(node.isSymmetric());
+
+            case AttributeIds.InverseName:
+                return dv(node.getInverseName());
+
+            default:
+                return readNodeAttribute(node, attribute);
+        }
+    }
+
+    private static DataValue readVariableAttribute(VariableNode node, int attribute) throws UaException {
+        switch (attribute) {
+            case AttributeIds.Value:
+                return node.getValue();
+
+            case AttributeIds.DataType:
+                return dv(node.getDataType());
+
+            case AttributeIds.ValueRank:
+                return dv(node.getValueRank());
+
+            case AttributeIds.ArrayDimensions:
+                return node.getArrayDimensions().map(AttributeReader::dv)
+                        .orElseThrow(ATTRIBUTE_ID_INVALID_EXCEPTION);
+
+            case AttributeIds.AccessLevel:
+                return dv(node.getAccessLevel());
+
+            case AttributeIds.UserAccessLevel:
+                return dv(node.getUserAccessLevel());
+
+            case AttributeIds.MinimumSamplingInterval:
+                return node.getMinimumSamplingInterval().map(AttributeReader::dv)
+                        .orElseThrow(ATTRIBUTE_ID_INVALID_EXCEPTION);
+
+            case AttributeIds.Historizing:
+                return dv(node.isHistorizing());
+
+            default:
+                return readNodeAttribute(node, attribute);
+        }
+    }
+
+    private static DataValue readVariableTypeAttribute(VariableTypeNode node, int attribute) throws UaException {
+        switch (attribute) {
+            case AttributeIds.Value:
+                return node.getValue().orElseThrow(ATTRIBUTE_ID_INVALID_EXCEPTION);
+
+            case AttributeIds.DataType:
+                return dv(node.getDataType());
+
+            case AttributeIds.ValueRank:
+                return dv(node.getValueRank());
+
+            case AttributeIds.ArrayDimensions:
+                return node.getArrayDimensions().map(AttributeReader::dv)
+                        .orElseThrow(ATTRIBUTE_ID_INVALID_EXCEPTION);
+
+            case AttributeIds.IsAbstract:
+                return dv(node.isAbstract());
+
+            default:
+                return readNodeAttribute(node, attribute);
+        }
     }
 
     /** DataValue for a non-value attribute; no source timestamp included. */

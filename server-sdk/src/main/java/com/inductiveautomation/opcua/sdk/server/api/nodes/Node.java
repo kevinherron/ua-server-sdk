@@ -16,8 +16,10 @@
 
 package com.inductiveautomation.opcua.sdk.server.api.nodes;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 
+import com.inductiveautomation.opcua.sdk.core.NumericRange;
 import com.inductiveautomation.opcua.sdk.server.NamespaceManager;
 import com.inductiveautomation.opcua.sdk.server.util.AttributeReader;
 import com.inductiveautomation.opcua.sdk.server.util.AttributeWriter;
@@ -29,6 +31,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
+import com.inductiveautomation.opcua.stack.core.types.enumerated.TimestampsToReturn;
 
 public interface Node {
 
@@ -174,12 +177,11 @@ public interface Node {
      * will be returned.
      *
      * @param attribute the id of the attribute to read.
-     * @return The value of the specified attribute.
+     * @return the value of the specified attribute.
      */
-    default DataValue readAttribute(int attribute) {
-        return AttributeReader.readAttribute(attribute, this);
+    default DataValue readAttribute(UInteger attribute) {
+        return readAttribute(attribute.intValue());
     }
-
 
     /**
      * Read the specified attribute.
@@ -188,10 +190,25 @@ public interface Node {
      * will be returned.
      *
      * @param attribute the id of the attribute to read.
-     * @return The value of the specified attribute.
+     * @return the value of the specified attribute.
      */
-    default DataValue readAttribute(UInteger attribute) {
-        return readAttribute(attribute.intValue());
+    default DataValue readAttribute(int attribute) {
+        return readAttribute(attribute, null, null);
+    }
+
+    /**
+     * Read the specified attribute, applying {@code timestamps} and {@code indexRange} if specified.
+     * <p>
+     * If the attribute is not specified on this node, a value with status {@link StatusCodes#Bad_AttributeIdInvalid}
+     * will be returned.
+     *
+     * @param attribute  the id of the attribute to read.
+     * @param timestamps the {@link TimestampsToReturn}.
+     * @param indexRange the index range to read. Must be a parseable by {@link NumericRange}.
+     * @return the value of the specified attribute.
+     */
+    default DataValue readAttribute(int attribute, @Nullable TimestampsToReturn timestamps, @Nullable String indexRange) {
+        return AttributeReader.readAttribute(this, attribute, timestamps, indexRange);
     }
 
     /**

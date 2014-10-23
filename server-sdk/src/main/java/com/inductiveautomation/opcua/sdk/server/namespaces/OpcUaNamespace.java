@@ -124,11 +124,15 @@ public class OpcUaNamespace implements Namespace {
             } else {
                 UaNode node = nodes.get(id.getNodeId());
 
-                value = (node != null) ?
-                        node.readAttribute(id.getAttributeId().intValue()) :
-                        new DataValue(StatusCodes.Bad_NodeIdUnknown);
-
-                value = DataValue.derivedNonValue(value, timestamps);
+                if (node != null) {
+                    value = node.readAttribute(
+                            id.getAttributeId().intValue(),
+                            timestamps,
+                            id.getIndexRange()
+                    );
+                } else {
+                    value = new DataValue(new StatusCode(StatusCodes.Bad_NodeIdUnknown));
+                }
             }
 
             results.add(value);

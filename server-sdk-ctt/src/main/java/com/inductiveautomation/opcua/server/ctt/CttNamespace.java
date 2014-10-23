@@ -29,7 +29,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.PeekingIterator;
 import com.inductiveautomation.opcua.sdk.core.AccessLevel;
-import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.ValueRank;
 import com.inductiveautomation.opcua.sdk.server.OpcUaServer;
 import com.inductiveautomation.opcua.sdk.server.api.MethodInvocationHandler;
@@ -407,22 +406,24 @@ public class CttNamespace implements Namespace {
         for (ReadValueId id : readValueIds) {
             UaNode node = nodes.get(id.getNodeId());
 
-            DataValue value = (node != null) ?
-                    node.readAttribute(id.getAttributeId()) :
-                    new DataValue(StatusCodes.Bad_NodeIdUnknown);
+            if (node != null) {
+                DataValue value = node.readAttribute(
+                        id.getAttributeId().intValue(),
+                        timestamps,
+                        id.getIndexRange()
+                );
 
-            value = id.getAttributeId().intValue() == AttributeIds.Value ?
-                    DataValue.derivedValue(value, timestamps) :
-                    DataValue.derivedNonValue(value, timestamps);
+                if (logger.isTraceEnabled()) {
+                    Variant variant = value.getValue();
+                    Object o = variant != null ? variant.getValue() : null;
+                    logger.trace("Read value={} from attributeId={} of {}",
+                            o, id.getAttributeId(), id.getNodeId());
+                }
 
-            if (logger.isTraceEnabled()) {
-                Variant variant = value.getValue();
-                Object o = variant != null ? variant.getValue() : null;
-                logger.trace("Read value={} from attributeId={} of {}",
-                        o, id.getAttributeId(), id.getNodeId());
+                results.add(value);
+            } else {
+                results.add(new DataValue(new StatusCode(StatusCodes.Bad_NodeIdInvalid)));
             }
-
-            results.add(value);
         }
 
         future.complete(results);
