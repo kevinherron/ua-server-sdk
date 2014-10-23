@@ -17,7 +17,7 @@
 package com.inductiveautomation.opcua.sdk.server.services;
 
 import com.inductiveautomation.opcua.sdk.server.OpcUaServer;
-import com.inductiveautomation.opcua.sdk.server.SubscriptionManager;
+import com.inductiveautomation.opcua.sdk.server.subscriptions.SubscriptionManager;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.application.services.ServiceRequest;
 import com.inductiveautomation.opcua.stack.core.application.services.SubscriptionServiceSet;

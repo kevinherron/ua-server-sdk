@@ -31,6 +31,7 @@ import com.inductiveautomation.opcua.sdk.server.services.NodeManagementServices;
 import com.inductiveautomation.opcua.sdk.server.services.QueryServices;
 import com.inductiveautomation.opcua.sdk.server.services.SubscriptionServices;
 import com.inductiveautomation.opcua.sdk.server.services.ViewServices;
+import com.inductiveautomation.opcua.sdk.server.subscriptions.SubscriptionManager;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.UaException;
 import com.inductiveautomation.opcua.stack.core.application.services.NodeManagementServiceSet;
@@ -60,7 +61,7 @@ public class Session implements SessionServiceSet {
 
     private final List<LifecycleListener> listeners = Lists.newCopyOnWriteArrayList();
 
-    private final SubscriptionManager subscriptionManager = new SubscriptionManager();
+    private final SubscriptionManager subscriptionManager;
 
     private volatile long lastActivity = System.nanoTime();
     private volatile ScheduledFuture<?> checkTimeoutFuture;
@@ -80,12 +81,14 @@ public class Session implements SessionServiceSet {
         this.sessionId = sessionId;
         this.sessionTimeout = sessionTimeout;
 
+        subscriptionManager = new SubscriptionManager(this, server);
+
         attributeServices = new AttributeServices();
         methodServices = new MethodServices();
-        monitoredItemServices = new MonitoredItemServices(this.subscriptionManager);
+        monitoredItemServices = new MonitoredItemServices(subscriptionManager);
         nodeManagementServices = new NodeManagementServices();
         queryServices = new QueryServices();
-        subscriptionServices = new SubscriptionServices(this.subscriptionManager);
+        subscriptionServices = new SubscriptionServices(subscriptionManager);
         viewServices = new ViewServices();
 
         checkTimeoutFuture = ScheduledExecutor.schedule(

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.inductiveautomation.opcua.sdk.server;
+package com.inductiveautomation.opcua.sdk.server.subscriptions;
 
 import java.util.Map;
 

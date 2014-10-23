@@ -16,7 +16,7 @@
 
 package com.inductiveautomation.opcua.sdk.server.services;
 
-import com.inductiveautomation.opcua.sdk.server.SubscriptionManager;
+import com.inductiveautomation.opcua.sdk.server.subscriptions.SubscriptionManager;
 import com.inductiveautomation.opcua.stack.core.UaException;
 import com.inductiveautomation.opcua.stack.core.application.services.MonitoredItemServiceSet;
 import com.inductiveautomation.opcua.stack.core.application.services.ServiceRequest;
