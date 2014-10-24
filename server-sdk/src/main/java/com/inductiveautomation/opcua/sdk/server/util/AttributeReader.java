@@ -117,7 +117,8 @@ public class AttributeReader {
                 return dv(node.getDisplayName());
 
             case AttributeIds.Description:
-                return dv(node.getDescription());
+                return node.getDescription().map(AttributeReader::dv)
+                        .orElseThrow(ATTRIBUTE_ID_INVALID_EXCEPTION);
 
             case AttributeIds.WriteMask:
                 return node.getWriteMask().map(AttributeReader::dv)
@@ -184,7 +185,8 @@ public class AttributeReader {
                 return dv(node.isSymmetric());
 
             case AttributeIds.InverseName:
-                return dv(node.getInverseName());
+                return node.getInverseName().map(AttributeReader::dv)
+                        .orElseThrow(ATTRIBUTE_ID_INVALID_EXCEPTION);
 
             default:
                 return readNodeAttribute(node, attribute);
