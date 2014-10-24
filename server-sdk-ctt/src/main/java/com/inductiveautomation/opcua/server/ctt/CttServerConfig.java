@@ -72,6 +72,11 @@ public class CttServerConfig implements OpcUaServerConfig {
     }
 
     @Override
+    public String getProductUri() {
+        return "http://www.inductiveautomation.com/opc-ua/stack";
+    }
+
+    @Override
     public String getServerName() {
         return "ctt-server";
     }
