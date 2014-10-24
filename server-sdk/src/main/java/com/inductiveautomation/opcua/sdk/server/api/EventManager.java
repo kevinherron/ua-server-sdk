@@ -18,6 +18,8 @@ package com.inductiveautomation.opcua.sdk.server.api;
 
 import java.util.List;
 
+import com.inductiveautomation.opcua.sdk.server.items.MonitoredEventItem;
+
 public interface EventManager {
 
     /**

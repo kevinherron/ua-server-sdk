@@ -35,7 +35,6 @@ import com.google.common.collect.PeekingIterator;
 import com.google.common.math.DoubleMath;
 import com.google.common.primitives.Ints;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.inductiveautomation.opcua.sdk.server.api.MonitoredDataItem;
 import com.inductiveautomation.opcua.sdk.server.items.BaseMonitoredItem;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.application.services.ServiceRequest;
@@ -379,7 +378,7 @@ public class Subscription {
     /**
      * Gather {@link MonitoredItemNotification}s and send them using {@code service}, if present.
      *
-     * @param iterator a {@link PeekingIterator} over the current {@link MonitoredDataItem}s.
+     * @param iterator a {@link PeekingIterator} over the current {@link BaseMonitoredItem}s.
      * @param service  a {@link ServiceRequest}, if available.
      */
     private void gatherAndSend(PeekingIterator<BaseMonitoredItem<?>> iterator,
