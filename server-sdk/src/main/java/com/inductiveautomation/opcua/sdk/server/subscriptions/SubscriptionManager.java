@@ -27,13 +27,13 @@ import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.NumericRange;
 import com.inductiveautomation.opcua.sdk.server.OpcUaServer;
 import com.inductiveautomation.opcua.sdk.server.Session;
+import com.inductiveautomation.opcua.sdk.server.api.DataItem;
 import com.inductiveautomation.opcua.sdk.server.api.EventItem;
 import com.inductiveautomation.opcua.sdk.server.api.MonitoredItem;
-import com.inductiveautomation.opcua.sdk.server.api.SampledItem;
 import com.inductiveautomation.opcua.sdk.server.api.nodes.Node;
 import com.inductiveautomation.opcua.sdk.server.items.BaseMonitoredItem;
-import com.inductiveautomation.opcua.sdk.server.items.EventMonitoredItem;
-import com.inductiveautomation.opcua.sdk.server.items.SampledMonitoredItem;
+import com.inductiveautomation.opcua.sdk.server.items.MonitoredEventItem;
+import com.inductiveautomation.opcua.sdk.server.items.MonitoredDataItem;
 import com.inductiveautomation.opcua.sdk.server.subscriptions.Subscription.State;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.UaException;
@@ -202,20 +202,20 @@ public class SubscriptionManager {
                     UShort namespaceIndex = entry.getKey();
 
                     List<BaseMonitoredItem<?>> items = entry.getValue();
-                    List<SampledItem> sampledItems = Lists.newArrayList();
+                    List<DataItem> dataItems = Lists.newArrayList();
                     List<EventItem> eventItems = Lists.newArrayList();
 
 
                     for (BaseMonitoredItem<?> item : items) {
-                        if (item instanceof SampledMonitoredItem) {
-                            sampledItems.add((SampledItem) item);
-                        } else if (item instanceof EventMonitoredItem) {
+                        if (item instanceof MonitoredDataItem) {
+                            dataItems.add((DataItem) item);
+                        } else if (item instanceof MonitoredEventItem) {
                             eventItems.add((EventItem) item);
                         }
                     }
 
-                    if (!sampledItems.isEmpty()) {
-                        server.getNamespaceManager().getNamespace(namespaceIndex).onSampledItemsDeleted(sampledItems);
+                    if (!dataItems.isEmpty()) {
+                        server.getNamespaceManager().getNamespace(namespaceIndex).onDataItemsDeleted(dataItems);
                     }
                     if (!eventItems.isEmpty()) {
                         server.getNamespaceManager().getNamespace(namespaceIndex).onEventItemsDeleted(eventItems);
@@ -314,7 +314,7 @@ public class SubscriptionManager {
                                     NumericRange.parse(indexRange);
                                 }
 
-                                item = new SampledMonitoredItem(
+                                item = new MonitoredDataItem(
                                         uint(subscription.nextItemId()),
                                         createRequest.getItemToMonitor(),
                                         createRequest.getMonitoringMode(),
@@ -358,20 +358,20 @@ public class SubscriptionManager {
                 UShort namespaceIndex = entry.getKey();
 
                 List<BaseMonitoredItem<?>> items = entry.getValue();
-                List<SampledItem> sampledItems = Lists.newArrayList();
+                List<DataItem> dataItems = Lists.newArrayList();
                 List<EventItem> eventItems = Lists.newArrayList();
 
 
                 for (BaseMonitoredItem<?> item : items) {
-                    if (item instanceof SampledMonitoredItem) {
-                        sampledItems.add((SampledItem) item);
-                    } else if (item instanceof EventMonitoredItem) {
+                    if (item instanceof MonitoredDataItem) {
+                        dataItems.add((DataItem) item);
+                    } else if (item instanceof MonitoredEventItem) {
                         eventItems.add((EventItem) item);
                     }
                 }
 
-                if (!sampledItems.isEmpty()) {
-                    server.getNamespaceManager().getNamespace(namespaceIndex).onSampledItemsCreated(sampledItems);
+                if (!dataItems.isEmpty()) {
+                    server.getNamespaceManager().getNamespace(namespaceIndex).onDataItemsCreated(dataItems);
                 }
                 if (!eventItems.isEmpty()) {
                     server.getNamespaceManager().getNamespace(namespaceIndex).onEventItemsCreated(eventItems);
@@ -471,20 +471,20 @@ public class SubscriptionManager {
                 UShort namespaceIndex = entry.getKey();
 
                 List<BaseMonitoredItem<?>> items = entry.getValue();
-                List<SampledItem> sampledItems = Lists.newArrayList();
+                List<DataItem> dataItems = Lists.newArrayList();
                 List<EventItem> eventItems = Lists.newArrayList();
 
 
                 for (BaseMonitoredItem<?> item : items) {
-                    if (item instanceof SampledMonitoredItem) {
-                        sampledItems.add((SampledItem) item);
-                    } else if (item instanceof EventMonitoredItem) {
+                    if (item instanceof MonitoredDataItem) {
+                        dataItems.add((DataItem) item);
+                    } else if (item instanceof MonitoredEventItem) {
                         eventItems.add((EventItem) item);
                     }
                 }
 
-                if (!sampledItems.isEmpty()) {
-                    server.getNamespaceManager().getNamespace(namespaceIndex).onSampledItemsModified(sampledItems);
+                if (!dataItems.isEmpty()) {
+                    server.getNamespaceManager().getNamespace(namespaceIndex).onDataItemsModified(dataItems);
                 }
                 if (!eventItems.isEmpty()) {
                     server.getNamespaceManager().getNamespace(namespaceIndex).onEventItemsModified(eventItems);
@@ -551,19 +551,19 @@ public class SubscriptionManager {
                 UShort namespaceIndex = entry.getKey();
 
                 List<BaseMonitoredItem<?>> items = entry.getValue();
-                List<SampledItem> sampledItems = Lists.newArrayList();
+                List<DataItem> dataItems = Lists.newArrayList();
                 List<EventItem> eventItems = Lists.newArrayList();
 
                 for (BaseMonitoredItem<?> item : items) {
-                    if (item instanceof SampledMonitoredItem) {
-                        sampledItems.add((SampledItem) item);
-                    } else if (item instanceof EventMonitoredItem) {
+                    if (item instanceof MonitoredDataItem) {
+                        dataItems.add((DataItem) item);
+                    } else if (item instanceof MonitoredEventItem) {
                         eventItems.add((EventItem) item);
                     }
                 }
 
-                if (!sampledItems.isEmpty()) {
-                    server.getNamespaceManager().getNamespace(namespaceIndex).onSampledItemsDeleted(sampledItems);
+                if (!dataItems.isEmpty()) {
+                    server.getNamespaceManager().getNamespace(namespaceIndex).onDataItemsDeleted(dataItems);
                 }
                 if (!eventItems.isEmpty()) {
                     server.getNamespaceManager().getNamespace(namespaceIndex).onEventItemsDeleted(eventItems);

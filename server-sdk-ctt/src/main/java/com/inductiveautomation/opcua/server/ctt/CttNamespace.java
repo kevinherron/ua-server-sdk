@@ -31,11 +31,11 @@ import com.google.common.collect.PeekingIterator;
 import com.inductiveautomation.opcua.sdk.core.AccessLevel;
 import com.inductiveautomation.opcua.sdk.core.ValueRank;
 import com.inductiveautomation.opcua.sdk.server.OpcUaServer;
+import com.inductiveautomation.opcua.sdk.server.api.DataItem;
 import com.inductiveautomation.opcua.sdk.server.api.MethodInvocationHandler;
 import com.inductiveautomation.opcua.sdk.server.api.MonitoredItem;
 import com.inductiveautomation.opcua.sdk.server.api.Namespace;
 import com.inductiveautomation.opcua.sdk.server.api.Reference;
-import com.inductiveautomation.opcua.sdk.server.api.SampledItem;
 import com.inductiveautomation.opcua.sdk.server.api.nodes.Node;
 import com.inductiveautomation.opcua.sdk.server.api.nodes.UaMethodNode;
 import com.inductiveautomation.opcua.sdk.server.api.nodes.UaNode;
@@ -462,26 +462,26 @@ public class CttNamespace implements Namespace {
     }
 
     @Override
-    public void onSampledItemsCreated(List<SampledItem> sampledItems) {
-        sampledItems.stream().forEach(item -> {
+    public void onDataItemsCreated(List<DataItem> dataItems) {
+        dataItems.stream().forEach(item -> {
             if (item.getSamplingInterval() < 100) item.setSamplingInterval(100.0);
         });
 
-        subscriptionModel.onSampledItemsCreated(sampledItems);
+        subscriptionModel.onDataItemsCreated(dataItems);
     }
 
     @Override
-    public void onSampledItemsModified(List<SampledItem> sampledItems) {
-        sampledItems.stream().forEach(item -> {
+    public void onDataItemsModified(List<DataItem> dataItems) {
+        dataItems.stream().forEach(item -> {
             if (item.getSamplingInterval() < 100) item.setSamplingInterval(100.0);
         });
 
-        subscriptionModel.onSampledItemsModified(sampledItems);
+        subscriptionModel.onDataItemsModified(dataItems);
     }
 
     @Override
-    public void onSampledItemsDeleted(List<SampledItem> sampledItems) {
-        subscriptionModel.onSampledItemsDeleted(sampledItems);
+    public void onDataItemsDeleted(List<DataItem> dataItems) {
+        subscriptionModel.onDataItemsDeleted(dataItems);
     }
 
     @Override

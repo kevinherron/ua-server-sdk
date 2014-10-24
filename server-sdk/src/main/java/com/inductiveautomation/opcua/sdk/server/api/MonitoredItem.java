@@ -23,7 +23,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
 public interface MonitoredItem {
 
     /**
-     * @return the server-side id of this {@link MonitoredDataItem}.
+     * @return the server-side id of this item.
      */
     UInteger getId();
 

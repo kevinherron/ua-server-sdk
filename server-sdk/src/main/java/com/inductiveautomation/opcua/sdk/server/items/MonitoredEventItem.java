@@ -30,11 +30,11 @@ import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
 
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
-public class EventMonitoredItem extends BaseMonitoredItem<Variant[]> implements EventItem {
+public class MonitoredEventItem extends BaseMonitoredItem<Variant[]> implements EventItem {
 
     private volatile EventFilter filter;
 
-    public EventMonitoredItem(UInteger id,
+    public MonitoredEventItem(UInteger id,
                               ReadValueId readValueId,
                               MonitoringMode monitoringMode,
                               TimestampsToReturn timestamps,

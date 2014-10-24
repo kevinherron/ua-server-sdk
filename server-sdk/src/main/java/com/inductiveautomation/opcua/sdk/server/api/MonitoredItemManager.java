@@ -23,33 +23,33 @@ import com.inductiveautomation.opcua.stack.core.types.enumerated.MonitoringMode;
 public interface MonitoredItemManager {
 
     /**
-     * {@link SampledItem}s have been created for nodes belonging to this {@link NodeManager}.
+     * {@link DataItem}s have been created for nodes belonging to this {@link NodeManager}.
      * <p>
      * If sampling is enabled for this item, it is expected that a best-effort will be made to update the item's value
      * at the sampling rate.
      *
-     * @param sampledItems the {@link SampledItem}s that were created.
+     * @param dataItems the {@link DataItem}s that were created.
      */
-    void onSampledItemsCreated(List<SampledItem> sampledItems);
+    void onDataItemsCreated(List<DataItem> dataItems);
 
     /**
-     * {@link SampledItem}s have been modified for nodes belonging to this {@link NodeManager}.
+     * {@link DataItem}s have been modified for nodes belonging to this {@link NodeManager}.
      * <p>
      * Check to see if the sampling rate has changed or if sampling has been enabled or disabled. Result have not been
      * returned to the client yet, so if the requested sampling rate cannot be supported now is the time to revise it.
      *
-     * @param sampledItems the {@link SampledItem}s that were modified.
+     * @param dataItems the {@link DataItem}s that were modified.
      */
-    void onSampledItemsModified(List<SampledItem> sampledItems);
+    void onDataItemsModified(List<DataItem> dataItems);
 
     /**
-     * {@link SampledItem}s have been deleted for nodes belonging to this {@link NodeManager}.
+     * {@link DataItem}s have been deleted for nodes belonging to this {@link NodeManager}.
      * <p>
      * Updates to this item should cease and any references to it should be removed.
      *
-     * @param sampledItems the {@link SampledItem}s that were deleted.
+     * @param dataItems the {@link DataItem}s that were deleted.
      */
-    void onSampledItemsDeleted(List<SampledItem> sampledItems);
+    void onDataItemsDeleted(List<DataItem> dataItems);
 
     /**
      * {@link EventItem}s have been created for nodes belonging to this {@link NodeManager}.

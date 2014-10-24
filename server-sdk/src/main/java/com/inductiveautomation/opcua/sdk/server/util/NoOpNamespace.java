@@ -25,7 +25,7 @@ import com.inductiveautomation.opcua.sdk.server.api.EventItem;
 import com.inductiveautomation.opcua.sdk.server.api.MonitoredItem;
 import com.inductiveautomation.opcua.sdk.server.api.Namespace;
 import com.inductiveautomation.opcua.sdk.server.api.Reference;
-import com.inductiveautomation.opcua.sdk.server.api.SampledItem;
+import com.inductiveautomation.opcua.sdk.server.api.DataItem;
 import com.inductiveautomation.opcua.sdk.server.api.nodes.Node;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
@@ -86,17 +86,17 @@ public class NoOpNamespace implements Namespace {
     }
 
     @Override
-    public void onSampledItemsCreated(List<SampledItem> sampledItems) {
+    public void onDataItemsCreated(List<DataItem> dataItems) {
 
     }
 
     @Override
-    public void onSampledItemsModified(List<SampledItem> sampledItems) {
+    public void onDataItemsModified(List<DataItem> dataItems) {
 
     }
 
     @Override
-    public void onSampledItemsDeleted(List<SampledItem> sampledItems) {
+    public void onDataItemsDeleted(List<DataItem> dataItems) {
 
     }
 

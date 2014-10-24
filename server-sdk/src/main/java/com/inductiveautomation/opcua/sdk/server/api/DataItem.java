@@ -21,7 +21,7 @@ import java.util.List;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
 
-public interface MonitoredDataItem extends MonitoredItem {
+public interface DataItem extends MonitoredItem {
 
     /**
      * Set the latest sampled value.
@@ -31,31 +31,29 @@ public interface MonitoredDataItem extends MonitoredItem {
     void setValue(DataValue value);
 
     /**
-     * Apply a quality to the last value that passed the filter and then attempt to set the derived value.
+     * Apply a new {@link StatusCode} to the last value that passed the filter and then attempt to set the derived value.
      *
-     * @param quality the quality to apply.
+     * @param quality the {@link StatusCode} to apply.
      */
     void setQuality(StatusCode quality);
 
     /**
-     * @return the rate to sample this item at. Only valid for the duration of a call to
-     * {@link MonitoredItemManager#onSampledItemsCreated(List)} or
-     * {@link MonitoredItemManager#onSampledItemsModified(List)}.
+     * Set the sampling interval.
+     * <p>
+     * Only has any effect during a {@link MonitoredItemManager#onDataItemsCreated(List)} or
+     * {@link MonitoredItemManager#onDataItemsModified(List)} call.
+     *
+     * @param samplingInterval the revised sampling interval.
+     */
+    void setSamplingInterval(double samplingInterval);
+
+    /**
+     * @return the rate to sample this item at.
      */
     double getSamplingInterval();
 
     /**
-     * Revise the sampling interval.
-     * <p>
-     * Only applicable for the duration of a call to {@link MonitoredItemManager#onSampledItemsCreated(List)} or
-     * {@link MonitoredItemManager#onSampledItemsModified(List)}.
-     *
-     * @param samplingInterval the revised sampling interval.
-     */
-    void setSamplingInterval(Double samplingInterval);
-
-    /**
-     * @return <code>true</code> if this item should be sampled.
+     * @return {@code true} if this item should be sampled.
      */
     boolean isSamplingEnabled();
 

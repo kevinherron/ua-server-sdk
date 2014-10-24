@@ -34,8 +34,8 @@ import com.google.common.collect.Maps;
 import com.google.common.math.DoubleMath;
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.server.api.AttributeManager;
+import com.inductiveautomation.opcua.sdk.server.api.DataItem;
 import com.inductiveautomation.opcua.sdk.server.api.MonitoredItem;
-import com.inductiveautomation.opcua.sdk.server.api.SampledItem;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
@@ -45,7 +45,7 @@ public class SubscriptionModel {
 
     private static final ScheduledExecutorService SharedScheduler = Executors.newSingleThreadScheduledExecutor();
 
-    private final Set<SampledItem> itemSet = Collections.newSetFromMap(Maps.newConcurrentMap());
+    private final Set<DataItem> itemSet = Collections.newSetFromMap(Maps.newConcurrentMap());
 
     private final List<ScheduledUpdate> schedule = Lists.newCopyOnWriteArrayList();
 
@@ -61,18 +61,18 @@ public class SubscriptionModel {
         executionQueue = new ExecutionQueue<>(ExecutionQueue.RUNNABLE_EXECUTOR, executorService);
     }
 
-    public void onSampledItemsCreated(List<SampledItem> items) {
+    public void onDataItemsCreated(List<DataItem> items) {
         executionQueue.submit(() -> {
             itemSet.addAll(items);
             reschedule();
         });
     }
 
-    public void onSampledItemsModified(List<SampledItem> items) {
+    public void onDataItemsModified(List<DataItem> items) {
         executionQueue.submit(this::reschedule);
     }
 
-    public void onSampledItemsDeleted(List<SampledItem> items) {
+    public void onDataItemsDeleted(List<DataItem> items) {
         executionQueue.submit(() -> {
             itemSet.removeAll(items);
             reschedule();
@@ -84,12 +84,12 @@ public class SubscriptionModel {
     }
 
     private void reschedule() {
-        Map<Double, List<SampledItem>> bySamplingInterval = itemSet.stream()
-                .filter(SampledItem::isSamplingEnabled)
-                .collect(Collectors.groupingBy(SampledItem::getSamplingInterval));
+        Map<Double, List<DataItem>> bySamplingInterval = itemSet.stream()
+                .filter(DataItem::isSamplingEnabled)
+                .collect(Collectors.groupingBy(DataItem::getSamplingInterval));
 
         List<ScheduledUpdate> updates = bySamplingInterval.keySet().stream().map(samplingInterval -> {
-            List<SampledItem> items = bySamplingInterval.get(samplingInterval);
+            List<DataItem> items = bySamplingInterval.get(samplingInterval);
 
             return new ScheduledUpdate(samplingInterval, items);
         }).collect(Collectors.toList());
@@ -105,9 +105,9 @@ public class SubscriptionModel {
         private volatile boolean cancelled = false;
 
         private final long samplingInterval;
-        private final List<SampledItem> items;
+        private final List<DataItem> items;
 
-        private ScheduledUpdate(double samplingInterval, List<SampledItem> items) {
+        private ScheduledUpdate(double samplingInterval, List<DataItem> items) {
             this.samplingInterval = DoubleMath.roundToLong(samplingInterval, RoundingMode.UP);
             this.items = items;
         }
@@ -129,11 +129,11 @@ public class SubscriptionModel {
             CompletableFuture<List<DataValue>> future = Pending.callback(pending);
 
             future.thenAcceptAsync(values -> {
-                Iterator<SampledItem> ii = items.iterator();
+                Iterator<DataItem> ii = items.iterator();
                 Iterator<DataValue> vi = values.iterator();
 
                 while (ii.hasNext() && vi.hasNext()) {
-                    SampledItem item = ii.next();
+                    DataItem item = ii.next();
                     DataValue value = vi.next();
 
                     TimestampsToReturn timestamps = item.getTimestampsToReturn();

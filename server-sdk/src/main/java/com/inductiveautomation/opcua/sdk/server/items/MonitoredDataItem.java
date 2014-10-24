@@ -16,7 +16,7 @@
 
 package com.inductiveautomation.opcua.sdk.server.items;
 
-import com.inductiveautomation.opcua.sdk.server.api.SampledItem;
+import com.inductiveautomation.opcua.sdk.server.api.DataItem;
 import com.inductiveautomation.opcua.sdk.server.util.DataChangeMonitoringFilter;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.UaException;
@@ -39,7 +39,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
 
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
-public class SampledMonitoredItem extends BaseMonitoredItem<DataValue> implements SampledItem {
+public class MonitoredDataItem extends BaseMonitoredItem<DataValue> implements DataItem {
 
     private static final DataChangeFilter DefaultFilter = new DataChangeFilter(
             DataChangeTrigger.StatusValue,
@@ -51,15 +51,15 @@ public class SampledMonitoredItem extends BaseMonitoredItem<DataValue> implement
     private volatile DataChangeFilter filter = null;
     private volatile ExtensionObject filterResult = null;
 
-    public SampledMonitoredItem(UInteger id,
-                                ReadValueId readValueId,
-                                MonitoringMode monitoringMode,
-                                TimestampsToReturn timestamps,
-                                UInteger clientHandle,
-                                double samplingInterval,
-                                ExtensionObject filter,
-                                UInteger queueSize,
-                                boolean discardOldest) throws UaException {
+    public MonitoredDataItem(UInteger id,
+                             ReadValueId readValueId,
+                             MonitoringMode monitoringMode,
+                             TimestampsToReturn timestamps,
+                             UInteger clientHandle,
+                             double samplingInterval,
+                             ExtensionObject filter,
+                             UInteger queueSize,
+                             boolean discardOldest) throws UaException {
 
         super(id, readValueId, monitoringMode, timestamps, clientHandle, samplingInterval, queueSize, discardOldest);
 
