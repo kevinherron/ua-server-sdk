@@ -138,6 +138,46 @@ public class NumericRangeTest {
         NumericRange.parse(indexRange);
     }
 
+
+    @Test
+    public void testWrite1d() throws UaException {
+        Variant current = new Variant(new int[]{0, 1, 2, 3});
+        Variant update = new Variant(new int[]{2, 4});
+        NumericRange range = NumericRange.parse("1:2");
+
+        Object updated = NumericRange.writeToValueAtRange(current, update, range);
+
+        assertTrue(updated instanceof int[]);
+        assertTrue(Arrays.equals(
+                (int[]) updated,
+                new int[]{0, 2, 4, 3}
+        ));
+    }
+
+    @Test
+    public void testWriteString() throws UaException {
+        Variant current = new Variant("abcdefg");
+        Variant update = new Variant("ZzZzZ");
+        NumericRange range = NumericRange.parse("1:5");
+
+        Object updated = NumericRange.writeToValueAtRange(current, update, range);
+
+        assertTrue(updated instanceof String);
+        assertEquals(updated, "aZzZzZg");
+    }
+
+    @Test
+    public void testWriteByteString() throws UaException {
+        Variant current = new Variant(new ByteString(new byte[]{0, 1, 2, 3}));
+        Variant update = new Variant(new ByteString(new byte[]{2, 4}));
+        NumericRange range = NumericRange.parse("1:2");
+
+        Object updated = NumericRange.writeToValueAtRange(current, update, range);
+
+        assertTrue(updated instanceof ByteString);
+        assertEquals(updated, new ByteString(new byte[]{0, 2, 4, 3}));
+    }
+
     @DataProvider
     private static Object[][] getInvalidRanges() {
         return new Object[][]{

@@ -153,8 +153,112 @@ public final class NumericRange {
         }
     }
 
-    public static Object writeToValueAtRange(Variant write, Variant value, NumericRange range) {
-        return null; // TODO
+    public static Object writeToValueAtRange(Variant currentVariant, Variant updateVariant, NumericRange range) throws UaException {
+        Object current = currentVariant.getValue();
+        Object update = updateVariant.getValue();
+
+        if (current == null || update == null) {
+            throw new UaException(StatusCodes.Bad_IndexRangeNoData);
+        }
+
+        try {
+            return writeToValueAtRange(current, update, range, 1);
+        } catch (Throwable ex) {
+            throw new UaException(StatusCodes.Bad_IndexRangeNoData, ex);
+        }
     }
+
+    private static Object writeToValueAtRange(Object current, Object update, NumericRange range, int dimension) throws UaException {
+        int dimensionCount = range.getDimensionCount();
+        Bounds bounds = range.getBounds(dimension);
+        int low = bounds.low, high = bounds.high;
+
+        if (dimension == dimensionCount) {
+            if (current.getClass().isArray()) {
+                Class<?> type = current.getClass().getComponentType();
+                int length = Array.getLength(current);
+                Object copy = Array.newInstance(type, length);
+
+                if (low >= length || high >= length) {
+                    throw new UaException(StatusCodes.Bad_IndexRangeNoData);
+                }
+
+                for (int i = 0; i < length; i++) {
+                    if (i < low || i > high) {
+                        Object element = Array.get(current, i);
+                        Array.set(copy, i, element);
+                    } else {
+                        Object element = Array.get(update, i - low);
+                        Array.set(copy, i, element);
+                    }
+                }
+
+                return copy;
+            } else if (current instanceof String) {
+                String cs = (String) current;
+                String us = (String) update;
+                int length = cs.length();
+                StringBuilder copy = new StringBuilder();
+
+                if (low >= length || high >= length) {
+                    throw new UaException(StatusCodes.Bad_IndexRangeNoData);
+                }
+
+                for (int i = 0; i < length; i++) {
+                    if (i < low || i > high) {
+                        copy.append(cs.charAt(i));
+                    } else {
+                        copy.append(us.charAt(i - low));
+                    }
+                }
+
+                return copy.toString();
+            } else if (current instanceof ByteString) {
+                ByteString bs = (ByteString) current;
+                ByteString us = (ByteString) update;
+                int length = bs.length();
+                byte[] copy = new byte[length];
+
+                if (low >= length || high >= length) {
+                    throw new UaException(StatusCodes.Bad_IndexRangeNoData);
+                }
+
+                for (int i = 0; i < length; i++) {
+                    if (i < low || i > high) {
+                        copy[i] = bs.byteAt(i);
+                    } else {
+                        copy[i] = us.byteAt(i - low);
+                    }
+                }
+
+                return new ByteString(copy);
+            } else {
+                throw new UaException(StatusCodes.Bad_IndexRangeNoData);
+            }
+        } else {
+            Class<?> type = current.getClass().getComponentType();
+            int length = Array.getLength(current);
+            Object copy = Array.newInstance(type, length);
+
+            if (low >= length || high >= length) {
+                throw new UaException(StatusCodes.Bad_IndexRangeNoData);
+            }
+
+            for (int i = 0; i < length; i++) {
+                if (i < low || i > high) {
+                    Object element = Array.get(current, i);
+                    Array.set(copy, i, element);
+                } else {
+                    Object c = Array.get(current, i);
+                    Object u = Array.get(update, i - low);
+                    Object element = writeToValueAtRange(c, u, range, dimension + 1);
+                    Array.set(copy, i, element);
+                }
+            }
+
+            return copy;
+        }
+    }
+
 
 }
