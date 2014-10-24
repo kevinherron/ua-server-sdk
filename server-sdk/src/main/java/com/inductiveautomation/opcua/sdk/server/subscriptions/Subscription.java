@@ -137,10 +137,11 @@ public class Subscription {
         this.publishingEnabled = publishingEnabled;
         this.priority = priority;
 
-        keepAliveCounter = maxKeepAliveCount;
-        lifetimeCounter = lifetimeCount;
+        resetKeepAliveCounter();
+        resetLifetimeCounter();
 
-        logger.debug("[id={}] subscription created.", subscriptionId);
+        logger.debug("[id={}] subscription created, interval={}, keep-alive={}, lifetime={}",
+                subscriptionId, publishingInterval, maxKeepAliveCount, lifetimeCount);
     }
 
     public synchronized void modifySubscription(ModifySubscriptionRequest request) {
@@ -153,7 +154,8 @@ public class Subscription {
 
         resetLifetimeCounter();
 
-        logger.debug("[id={}] subscription modified.", subscriptionId);
+        logger.debug("[id={}] subscription modified, interval={}, keep-alive={}, lifetime={}",
+                subscriptionId, publishingInterval, maxKeepAliveCount, lifetimeCount);
     }
 
     public synchronized List<BaseMonitoredItem<?>> deleteSubscription() {
@@ -177,6 +179,8 @@ public class Subscription {
             itemsById.put(item.getId(), item);
         }
 
+        resetLifetimeCounter();
+
         logger.debug("[id={}] created {} MonitoredItems.", subscriptionId, createdItems.size());
     }
 
@@ -184,6 +188,8 @@ public class Subscription {
         for (BaseMonitoredItem<?> item : deletedItems) {
             itemsById.remove(item.getId(), item);
         }
+
+        resetLifetimeCounter();
 
         logger.debug("[id={}] deleted {} MonitoredItems.", subscriptionId, deletedItems.size());
     }
@@ -299,12 +305,16 @@ public class Subscription {
         return sequenceNumber.getAndIncrement();
     }
 
-    private void resetLifetimeCounter() {
+    void resetLifetimeCounter() {
         lifetimeCounter = lifetimeCount;
+
+        logger.debug("[id={}] lifetime counter reset to {}", subscriptionId, lifetimeCounter);
     }
 
     private void resetKeepAliveCounter() {
         keepAliveCounter = maxKeepAliveCount;
+
+        logger.debug("[id={}] keep-alive counter reset to {}", subscriptionId, maxKeepAliveCount);
     }
 
     private void returnKeepAlive(ServiceRequest<PublishRequest, PublishResponse> service) {
@@ -533,7 +543,8 @@ public class Subscription {
     synchronized void onPublish(ServiceRequest<PublishRequest, PublishResponse> service) {
         State state = this.state.get();
 
-        logger.debug("[id={}] onPublish(), state={}", subscriptionId, state);
+        logger.debug("[id={}] onPublish(), state={}, keep-alive={}, lifetime={}",
+                subscriptionId, state, keepAliveCounter, lifetimeCounter);
 
         if (state == State.Normal) publishHandler.whenNormal(service);
         else if (state == State.KeepAlive) publishHandler.whenKeepAlive(service);
@@ -551,7 +562,8 @@ public class Subscription {
     synchronized void onPublishingTimer() {
         State state = this.state.get();
 
-        logger.debug("[id={}] onPublishingTimer(), state={}", subscriptionId, state);
+        logger.debug("[id={}] onPublishingTimer(), state={}, keep-alive={}, lifetime={}",
+                subscriptionId, state, keepAliveCounter, lifetimeCounter);
 
         if (state == State.Normal) timerHandler.whenNormal();
         else if (state == State.KeepAlive) timerHandler.whenKeepAlive();

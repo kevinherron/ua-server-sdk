@@ -456,6 +456,8 @@ public class SubscriptionManager {
                         );
                     }
                 }
+
+                subscription.resetLifetimeCounter();
             }
 
             /*
@@ -524,7 +526,7 @@ public class SubscriptionManager {
             synchronized (subscription) {
                 for (int i = 0; i < itemsToDelete.length; i++) {
                     UInteger itemId = itemsToDelete[i];
-                    BaseMonitoredItem<?> item = subscription.getMonitoredItems().remove(itemId);
+                    BaseMonitoredItem<?> item = subscription.getMonitoredItems().get(itemId);
 
                     if (item == null) {
                         deleteResults[i] = new StatusCode(StatusCodes.Bad_MonitoredItemIdInvalid);
@@ -534,6 +536,8 @@ public class SubscriptionManager {
                         deleteResults[i] = StatusCode.Good;
                     }
                 }
+
+                subscription.removeMonitoredItems(deletedItems);
             }
 
             /*
