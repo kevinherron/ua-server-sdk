@@ -214,23 +214,27 @@ public interface Node {
     /**
      * Write to the specified attribute.
      *
-     * @param attribute the attribute to write to.
-     * @param value     the {@link DataValue} write.
-     * @throws UaException if the attribute is not present or not writable.
+     * @param ns         the {@link NamespaceManager}.
+     * @param attribute  the id of the attribute to write.
+     * @param value      the {@link DataValue} write.
+     * @param indexRange the index range to write. Must be a parseable by {@link NumericRange}.
+     * @throws UaException
      */
-    default void writeAttribute(UInteger attribute, DataValue value, NamespaceManager ns) throws UaException {
-        writeAttribute(attribute.intValue(), value, ns);
+    default void writeAttribute(NamespaceManager ns, UInteger attribute, DataValue value, String indexRange) throws UaException {
+        writeAttribute(ns, attribute.intValue(), value, indexRange);
     }
 
     /**
      * Write to the specified attribute.
      *
-     * @param attribute the attribute to write to.
-     * @param value     the {@link DataValue} write.
-     * @throws UaException if the attribute is not present or not writable.
+     * @param ns         the {@link NamespaceManager}.
+     * @param attribute  the id of the attribute to write.
+     * @param value      the {@link DataValue} write.
+     * @param indexRange the index range to write. Must be a parseable by {@link NumericRange}.
+     * @throws UaException
      */
-    default void writeAttribute(int attribute, DataValue value, NamespaceManager ns) throws UaException {
-        AttributeWriter.writeAttribute(attribute, value, this, ns);
+    default void writeAttribute(NamespaceManager ns, int attribute, DataValue value, String indexRange) throws UaException {
+        AttributeWriter.writeAttribute(ns, this, attribute, value, indexRange);
     }
 
 }

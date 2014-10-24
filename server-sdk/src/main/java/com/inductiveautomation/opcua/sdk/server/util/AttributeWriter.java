@@ -16,6 +16,7 @@
 
 package com.inductiveautomation.opcua.sdk.server.util;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
@@ -24,12 +25,19 @@ import java.util.Optional;
 import com.inductiveautomation.opcua.sdk.core.AccessLevel;
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.DataType;
+import com.inductiveautomation.opcua.sdk.core.NumericRange;
 import com.inductiveautomation.opcua.sdk.core.ValueRank;
 import com.inductiveautomation.opcua.sdk.core.WriteMask;
 import com.inductiveautomation.opcua.sdk.server.NamespaceManager;
 import com.inductiveautomation.opcua.sdk.server.api.Reference;
+import com.inductiveautomation.opcua.sdk.server.api.nodes.DataTypeNode;
+import com.inductiveautomation.opcua.sdk.server.api.nodes.MethodNode;
 import com.inductiveautomation.opcua.sdk.server.api.nodes.Node;
+import com.inductiveautomation.opcua.sdk.server.api.nodes.ObjectNode;
+import com.inductiveautomation.opcua.sdk.server.api.nodes.ObjectTypeNode;
+import com.inductiveautomation.opcua.sdk.server.api.nodes.ReferenceTypeNode;
 import com.inductiveautomation.opcua.sdk.server.api.nodes.VariableNode;
+import com.inductiveautomation.opcua.sdk.server.api.nodes.VariableTypeNode;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.UaException;
@@ -46,63 +54,268 @@ import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Un
 
 public class AttributeWriter {
 
-    public static void writeAttribute(int attributeId, DataValue value, Node node, NamespaceManager ns) throws UaException {
+    public static void writeAttribute(NamespaceManager ns, Node node,
+                                      int attribute, DataValue value,
+                                      @Nullable String indexRange) throws UaException {
+
+        Variant updateVariant = value.getValue();
+
+        if (indexRange != null) {
+            NumericRange range = NumericRange.parse(indexRange);
+
+            DataValue current = node.readAttribute(attribute);
+            Variant currentVariant = current.getValue();
+
+            Object valueAtRange = NumericRange.writeToValueAtRange(
+                    currentVariant,
+                    updateVariant,
+                    range
+            );
+
+            updateVariant = new Variant(valueAtRange);
+        }
+
         DateTime sourceTime = value.getSourceTime();
         DateTime serverTime = value.getServerTime();
 
         value = new DataValue(
-                value.getValue(),
+                updateVariant,
                 value.getStatusCode(),
                 (sourceTime == null || sourceTime.isNull()) ? DateTime.now() : sourceTime,
                 (serverTime == null || serverTime.isNull()) ? DateTime.now() : serverTime
         );
 
-        if (node instanceof VariableNode) {
-            writeVariableNode(attributeId, value, (VariableNode) node, ns);
-        } else {
-            throw new UaException(StatusCodes.Bad_NotWritable);
+        writeNode(ns, node, attribute, value);
+    }
+
+    private static void writeNode(NamespaceManager ns, Node node, int attribute, DataValue value) throws UaException {
+        switch (node.getNodeClass()) {
+            case DataType:
+                writeDataTypeAttribute(ns, (DataTypeNode) node, attribute, value);
+                break;
+
+            case Method:
+                writeMethodAttribute(ns, (MethodNode) node, attribute, value);
+                break;
+
+            case Object:
+                writeObjectAttribute(ns, (ObjectNode) node, attribute, value);
+                break;
+
+            case ObjectType:
+                writeObjectTypeAttribute(ns, (ObjectTypeNode) node, attribute, value);
+                break;
+
+            case ReferenceType:
+                writeReferenceTypeAttribute(ns, (ReferenceTypeNode) node, attribute, value);
+                break;
+
+            case Variable:
+                writeVariableAttribute(ns, (VariableNode) node, attribute, value);
+                break;
+
+            case VariableType:
+                writeVariableTypeAttribute(ns, (VariableTypeNode) node, attribute, value);
+                break;
+
+            default:
+                throw new UaException(StatusCodes.Bad_NodeClassInvalid);
         }
     }
 
-    private static void writeNode(int attributeId, DataValue value, VariableNode node) throws UaException {
-        throw new UaException(StatusCodes.Bad_AttributeIdInvalid);
+    private static void writeNodeAttribute(NamespaceManager ns, Node node, int attribute, DataValue value) throws UaException {
+        UInteger writeMask = node.getWriteMask().orElse(uint(0));
+        EnumSet<WriteMask> writeMasks = WriteMask.fromMask(writeMask);
+
+        switch (attribute) {
+            case AttributeIds.NodeId:
+                if (writeMasks.contains(WriteMask.NodeId)) {
+                    node.setNodeId(extract(value));
+                } else {
+                    throw new UaException(StatusCodes.Bad_NotWritable);
+                }
+                break;
+
+            case AttributeIds.NodeClass:
+                if (writeMasks.contains(WriteMask.NodeClass)) {
+                    node.setNodeClass(extract(value));
+                } else {
+                    throw new UaException(StatusCodes.Bad_NotWritable);
+                }
+                break;
+
+            case AttributeIds.BrowseName:
+                if (writeMasks.contains(WriteMask.BrowseName)) {
+                    node.setBrowseName(extract(value));
+                } else {
+                    throw new UaException(StatusCodes.Bad_NotWritable);
+                }
+                break;
+
+            case AttributeIds.DisplayName:
+                if (writeMasks.contains(WriteMask.DisplayName)) {
+                    node.setDisplayName(extract(value));
+                } else {
+                    throw new UaException(StatusCodes.Bad_NotWritable);
+                }
+                break;
+
+            case AttributeIds.Description:
+                if (writeMasks.contains(WriteMask.Description)) {
+                    node.setDescription(extract(value));
+                } else {
+                    throw new UaException(StatusCodes.Bad_NotWritable);
+                }
+                break;
+
+            case AttributeIds.WriteMask:
+                if (writeMasks.contains(WriteMask.WriteMask)) {
+                    node.setWriteMask(Optional.of(extract(value)));
+                } else {
+                    throw new UaException(StatusCodes.Bad_NotWritable);
+                }
+                break;
+
+            case AttributeIds.UserWriteMask:
+                if (writeMasks.contains(WriteMask.UserWriteMask)) {
+                    node.setUserWriteMask(Optional.of(extract(value)));
+                } else {
+                    throw new UaException(StatusCodes.Bad_NotWritable);
+                }
+                break;
+
+            default:
+                throw new UaException(StatusCodes.Bad_AttributeIdInvalid);
+        }
     }
 
-    private static void writeVariableNode(int attributeId, DataValue value, VariableNode node, NamespaceManager ns) throws UaException {
-        if (attributeId == AttributeIds.Value) {
-            EnumSet<AccessLevel> accessLevels = AccessLevel.fromMask(node.getAccessLevel());
+    private static void writeDataTypeAttribute(NamespaceManager ns, DataTypeNode node, int attribute, DataValue value) throws UaException {
+        UInteger writeMask = node.getWriteMask().orElse(uint(0));
+        EnumSet<WriteMask> writeMasks = WriteMask.fromMask(writeMask);
 
-            if (accessLevels.contains(AccessLevel.CurrentWrite)) {
-                value = validateDataType(ns, node.getDataType().expanded(), value);
-                validateArrayType(node, value);
-
-                node.setValue(value);
-            } else {
-                throw new UaException(StatusCodes.Bad_NotWritable);
-            }
-        } else {
-            UInteger writeMask = node.getWriteMask().orElse(uint(0));
-            EnumSet<WriteMask> writeMasks = WriteMask.fromMask(writeMask);
-
-            if (attributeId == AttributeIds.DataType) {
-                if (!writeMasks.contains(WriteMask.DataType)) {
+        switch (attribute) {
+            case AttributeIds.IsAbstract:
+                if (writeMasks.contains(WriteMask.IsAbstract)) {
+                    // TODO
+                } else {
                     throw new UaException(StatusCodes.Bad_NotWritable);
                 }
-                node.setDataType(extract(value));
-            } else if (attributeId == AttributeIds.ValueRank) {
-                if (!writeMasks.contains(WriteMask.ValueRank)) {
-                    throw new UaException(StatusCodes.Bad_NotWritable);
-                }
-                node.setValueRank(extract(value));
-            } else if (attributeId == AttributeIds.ArrayDimensions) {
-                if (!writeMasks.contains(WriteMask.ArrayDimensions)) {
-                    throw new UaException(StatusCodes.Bad_NotWritable);
-                }
-                node.setArrayDimensions(Optional.of(extract(value)));
-            } else {
-                writeNode(attributeId, value, node);
-            }
+                break;
+
+            default:
+                writeNodeAttribute(ns, node, attribute, value);
         }
+    }
+
+    private static void writeMethodAttribute(NamespaceManager ns, MethodNode node, int attribute, DataValue value) throws UaException {
+        switch (attribute) {
+            default:
+                writeNodeAttribute(ns, node, attribute, value);
+        }
+    }
+
+    private static void writeObjectAttribute(NamespaceManager ns, ObjectNode node, int attribute, DataValue value) throws UaException {
+        switch (attribute) {
+            default:
+                writeNodeAttribute(ns, node, attribute, value);
+        }
+    }
+
+    private static void writeObjectTypeAttribute(NamespaceManager ns, ObjectTypeNode node, int attribute, DataValue value) throws UaException {
+        switch (attribute) {
+            default:
+                writeNodeAttribute(ns, node, attribute, value);
+        }
+    }
+
+    private static void writeReferenceTypeAttribute(NamespaceManager ns, ReferenceTypeNode node, int attribute, DataValue value) throws UaException {
+        switch (attribute) {
+            default:
+                writeNodeAttribute(ns, node, attribute, value);
+        }
+    }
+
+    private static void writeVariableAttribute(NamespaceManager ns, VariableNode node, int attribute, DataValue value) throws UaException {
+        EnumSet<AccessLevel> accessLevels = AccessLevel.fromMask(node.getAccessLevel());
+
+        UInteger writeMask = node.getWriteMask().orElse(uint(0));
+        EnumSet<WriteMask> writeMasks = WriteMask.fromMask(writeMask);
+
+        switch (attribute) {
+            case AttributeIds.Value:
+                if (accessLevels.contains(AccessLevel.CurrentWrite)) {
+                    value = validateDataType(ns, node.getDataType().expanded(), value);
+                    validateArrayType(node, value);
+
+                    node.setValue(value);
+                } else {
+                    throw new UaException(StatusCodes.Bad_NotWritable);
+                }
+                break;
+
+            case AttributeIds.DataType:
+                if (writeMasks.contains(WriteMask.DataType)) {
+                    node.setDataType(extract(value));
+                } else {
+                    throw new UaException(StatusCodes.Bad_NotWritable);
+                }
+                break;
+
+            case AttributeIds.ValueRank:
+                if (writeMasks.contains(WriteMask.ValueRank)) {
+                    node.setValueRank(extract(value));
+                } else {
+                    throw new UaException(StatusCodes.Bad_NotWritable);
+                }
+                break;
+
+            case AttributeIds.ArrayDimensions:
+                if (writeMasks.contains(WriteMask.ArrayDimensions)) {
+                    node.setArrayDimensions(Optional.of(extract(value)));
+                } else {
+                    throw new UaException(StatusCodes.Bad_NotWritable);
+                }
+                break;
+
+            case AttributeIds.AccessLevel:
+                if (writeMasks.contains(WriteMask.AccessLevel)) {
+                    node.setAccessLevel(extract(value));
+                } else {
+                    throw new UaException(StatusCodes.Bad_NotWritable);
+                }
+                break;
+
+            case AttributeIds.UserAccessLevel:
+                if (writeMasks.contains(WriteMask.UserAccessLevel)) {
+                    node.setUserAccessLevel(extract(value));
+                } else {
+                    throw new UaException(StatusCodes.Bad_NotWritable);
+                }
+                break;
+
+            case AttributeIds.MinimumSamplingInterval:
+                if (writeMasks.contains(WriteMask.MinimumSamplingInterval)) {
+                    node.setMinimumSamplingInterval(Optional.of(extract(value)));
+                } else {
+                    throw new UaException(StatusCodes.Bad_NotWritable);
+                }
+                break;
+
+            case AttributeIds.Historizing:
+                if (writeMasks.contains(WriteMask.Historizing)) {
+                    node.setHistorizing(extract(value));
+                } else {
+                    throw new UaException(StatusCodes.Bad_NotWritable);
+                }
+                break;
+
+            default:
+                writeNodeAttribute(ns, node, attribute, value);
+        }
+    }
+
+    private static void writeVariableTypeAttribute(NamespaceManager ns, VariableTypeNode node, int attribute, DataValue value) {
+
     }
 
     @SuppressWarnings("unchecked")

@@ -438,7 +438,12 @@ public class CttNamespace implements Namespace {
                 UaNode node = Optional.ofNullable(nodes.get(writeValue.getNodeId()))
                         .orElseThrow(() -> new UaException(StatusCodes.Bad_NodeIdUnknown));
 
-                node.writeAttribute(writeValue.getAttributeId(), writeValue.getValue(), server.getNamespaceManager());
+                node.writeAttribute(
+                        server.getNamespaceManager(),
+                        writeValue.getAttributeId().intValue(),
+                        writeValue.getValue(),
+                        writeValue.getIndexRange()
+                );
 
                 if (logger.isTraceEnabled()) {
                     Variant variant = writeValue.getValue().getValue();
