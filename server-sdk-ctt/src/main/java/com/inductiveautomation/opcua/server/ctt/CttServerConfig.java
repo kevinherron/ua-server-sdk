@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 
 public class CttServerConfig implements OpcUaServerConfig {
 
-    private static final String SERVER_ALIAS = "ctt-server-certificate2";
+    private static final String SERVER_ALIAS = "ctt-server-certificate3";
     private static final char[] PASSWORD = "test".toCharArray();
 
     private volatile Certificate certificate;
