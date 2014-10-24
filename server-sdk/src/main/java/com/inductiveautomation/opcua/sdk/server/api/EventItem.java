@@ -16,10 +16,10 @@
 
 package com.inductiveautomation.opcua.sdk.server.api;
 
-import com.inductiveautomation.opcua.sdk.server.api.events.Event;
+import com.inductiveautomation.opcua.sdk.core.events.BaseEventType;
 
 public interface EventItem extends MonitoredItem {
 
-    void setEvent(Event event);
+    void setEvent(BaseEventType event);
 
 }

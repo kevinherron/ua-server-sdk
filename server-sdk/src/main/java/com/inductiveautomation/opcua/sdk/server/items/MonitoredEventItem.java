@@ -17,7 +17,7 @@
 package com.inductiveautomation.opcua.sdk.server.items;
 
 import com.inductiveautomation.opcua.sdk.server.api.EventItem;
-import com.inductiveautomation.opcua.sdk.server.api.events.Event;
+import com.inductiveautomation.opcua.sdk.core.events.BaseEventType;
 import com.inductiveautomation.opcua.stack.core.UaException;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ExtensionObject;
 import com.inductiveautomation.opcua.stack.core.types.builtin.Variant;
@@ -50,7 +50,7 @@ public class MonitoredEventItem extends BaseMonitoredItem<Variant[]> implements 
     }
 
     @Override
-    public void setEvent(Event event) {
+    public void setEvent(BaseEventType event) {
 
     }
 

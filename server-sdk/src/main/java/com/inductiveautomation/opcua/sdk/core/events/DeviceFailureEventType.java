@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-package com.inductiveautomation.opcua.sdk.server.api.events;
+package com.inductiveautomation.opcua.sdk.core.events;
 
-public abstract class DeviceFailureEvent extends SystemEvent {
+public interface DeviceFailureEventType extends SystemEventType {
 
 }

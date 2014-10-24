@@ -14,7 +14,18 @@
  * limitations under the License.
  */
 
-package com.inductiveautomation.opcua.sdk.server.api.events;
+package com.inductiveautomation.opcua.sdk.core.events;
 
-public abstract class SystemStatusChangeEventType extends SystemEvent {
+import com.inductiveautomation.opcua.stack.core.types.enumerated.ServerState;
+
+public interface SystemStatusChangeEventType extends SystemEventType {
+
+    /**
+     * The SystemState specifies the current state of the system. Changes to the ServerState of the system shall
+     * trigger a SystemStatusChangeEvent, when the event is supported by the system.
+     *
+     * @return this system's current {@link ServerState}.
+     */
+    ServerState getSystemState();
+
 }
