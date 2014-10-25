@@ -14,14 +14,24 @@
  * limitations under the License.
  */
 
-package com.inductiveautomation.opcua.sdk.server.api.nodes;
+package com.inductiveautomation.opcua.sdk.core.nodes;
 
+import com.inductiveautomation.opcua.stack.core.StatusCodes;
+import com.inductiveautomation.opcua.stack.core.UaException;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UByte;
 
 public interface ViewNode extends Node {
 
-    boolean containsNoLoops();
+    Boolean getContainsNoLoops();
 
     UByte getEventNotifier();
+
+    default void setContainsNoLoops(boolean containsNoLoops) throws UaException {
+        throw new UaException(StatusCodes.Bad_NotWritable);
+    }
+
+    default void setEventNotifier(UByte eventNotifier) throws UaException {
+        throw new UaException(StatusCodes.Bad_NotWritable);
+    }
 
 }

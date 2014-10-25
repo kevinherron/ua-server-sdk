@@ -18,11 +18,13 @@ package com.inductiveautomation.opcua.sdk.core.events;
 
 import java.util.Optional;
 
-import com.inductiveautomation.opcua.sdk.server.api.nodes.Node;
+import com.inductiveautomation.opcua.sdk.core.nodes.Node;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
+import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
+import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UShort;
 import com.inductiveautomation.opcua.stack.core.types.structured.TimeZoneDataType;
 
@@ -103,5 +105,13 @@ public interface BaseEventType {
      * @return an indication of the urgency of the Event.
      */
     UShort getSeverity();
+
+    /**
+     * Get the value of a property by name.
+     *
+     * @param propertyName the {@link QualifiedName} of the property.
+     * @return the {@link DataValue} of the property indicated by {@code propertyName}.
+     */
+    DataValue getProperty(QualifiedName propertyName);
 
 }

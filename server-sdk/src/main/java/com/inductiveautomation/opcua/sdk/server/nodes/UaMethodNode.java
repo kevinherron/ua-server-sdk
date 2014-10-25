@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.inductiveautomation.opcua.sdk.server.api.nodes;
+package com.inductiveautomation.opcua.sdk.server.nodes;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,8 +28,9 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimaps;
 import com.inductiveautomation.opcua.sdk.core.ValueRank;
+import com.inductiveautomation.opcua.sdk.core.nodes.MethodNode;
 import com.inductiveautomation.opcua.sdk.server.api.MethodInvocationHandler;
-import com.inductiveautomation.opcua.sdk.server.api.Reference;
+import com.inductiveautomation.opcua.sdk.core.Reference;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
@@ -90,12 +91,12 @@ public class UaMethodNode extends UaNode implements MethodNode {
     }
 
     @Override
-    public boolean isExecutable() {
+    public Boolean isExecutable() {
         return executable.get();
     }
 
     @Override
-    public boolean isUserExecutable() {
+    public Boolean isUserExecutable() {
         return userExecutable.get();
     }
 

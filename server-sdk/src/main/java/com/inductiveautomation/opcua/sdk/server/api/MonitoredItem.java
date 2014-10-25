@@ -37,4 +37,9 @@ public interface MonitoredItem {
      */
     TimestampsToReturn getTimestampsToReturn();
 
+    /**
+     * @return {@code true} if this item should be sampled.
+     */
+    boolean isSamplingEnabled();
+
 }

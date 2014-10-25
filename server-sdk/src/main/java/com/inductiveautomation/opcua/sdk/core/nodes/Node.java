@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.inductiveautomation.opcua.sdk.server.api.nodes;
+package com.inductiveautomation.opcua.sdk.core.nodes;
 
 import javax.annotation.Nullable;
 import java.util.Optional;

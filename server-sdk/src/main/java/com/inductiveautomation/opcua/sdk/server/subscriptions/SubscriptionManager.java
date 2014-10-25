@@ -30,7 +30,8 @@ import com.inductiveautomation.opcua.sdk.server.Session;
 import com.inductiveautomation.opcua.sdk.server.api.DataItem;
 import com.inductiveautomation.opcua.sdk.server.api.EventItem;
 import com.inductiveautomation.opcua.sdk.server.api.MonitoredItem;
-import com.inductiveautomation.opcua.sdk.server.api.nodes.Node;
+import com.inductiveautomation.opcua.sdk.core.nodes.Node;
+import com.inductiveautomation.opcua.sdk.core.nodes.ObjectNode;
 import com.inductiveautomation.opcua.sdk.server.items.BaseMonitoredItem;
 import com.inductiveautomation.opcua.sdk.server.items.MonitoredEventItem;
 import com.inductiveautomation.opcua.sdk.server.items.MonitoredDataItem;
@@ -41,6 +42,7 @@ import com.inductiveautomation.opcua.stack.core.application.services.ServiceRequ
 import com.inductiveautomation.opcua.stack.core.types.builtin.DiagnosticInfo;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UShort;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.MonitoringMode;
@@ -297,13 +299,29 @@ public class SubscriptionManager {
                                 .orElseThrow(() -> new UaException(StatusCodes.Bad_NodeIdUnknown));
 
                         if (node.hasAttribute(attributeId)) {
+                            MonitoringParameters parameters = createRequest.getRequestedParameters();
+
                             BaseMonitoredItem<?> item;
 
                             if (attributeId.intValue() == AttributeIds.EventNotifier) {
-                                throw new UaException(StatusCodes.Bad_AttributeIdInvalid); // TODO Create event item
-                            } else {
-                                MonitoringParameters parameters = createRequest.getRequestedParameters();
+                                UByte eventNotifier = ((ObjectNode) node).getEventNotifier();
 
+                                if ((eventNotifier.intValue() & 1) == 1) {
+                                    item = new MonitoredEventItem(
+                                            uint(subscription.nextItemId()),
+                                            createRequest.getItemToMonitor(),
+                                            createRequest.getMonitoringMode(),
+                                            timestamps,
+                                            parameters.getClientHandle(),
+                                            0.0,
+                                            parameters.getQueueSize(),
+                                            parameters.getDiscardOldest(),
+                                            parameters.getFilter()
+                                    );
+                                } else {
+                                    throw new UaException(StatusCodes.Bad_AttributeIdInvalid);
+                                }
+                            } else {
                                 double samplingInterval = parameters.getSamplingInterval();
                                 if (samplingInterval < 0) samplingInterval = subscription.getPublishingInterval();
                                 if (samplingInterval < MIN_SAMPLING_INTERVAL) samplingInterval = MIN_SAMPLING_INTERVAL;

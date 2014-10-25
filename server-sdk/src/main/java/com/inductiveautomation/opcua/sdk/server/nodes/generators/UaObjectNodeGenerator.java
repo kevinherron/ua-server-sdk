@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.inductiveautomation.opcua.sdk.server.api.nodes.generators;
+package com.inductiveautomation.opcua.sdk.server.nodes.generators;
 
 
 import java.beans.BeanDescriptor;
@@ -35,10 +35,10 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.Lists;
 import com.inductiveautomation.opcua.sdk.core.AccessLevel;
-import com.inductiveautomation.opcua.sdk.server.api.Reference;
-import com.inductiveautomation.opcua.sdk.server.api.nodes.UaNode;
-import com.inductiveautomation.opcua.sdk.server.api.nodes.UaObjectNode;
-import com.inductiveautomation.opcua.sdk.server.api.nodes.UaVariableNode;
+import com.inductiveautomation.opcua.sdk.core.Reference;
+import com.inductiveautomation.opcua.sdk.server.nodes.UaNode;
+import com.inductiveautomation.opcua.sdk.server.nodes.UaObjectNode;
+import com.inductiveautomation.opcua.sdk.server.nodes.UaVariableNode;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;

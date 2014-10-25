@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 
+import com.google.common.eventbus.AsyncEventBus;
+import com.google.common.eventbus.EventBus;
 import com.inductiveautomation.opcua.sdk.core.ServerTable;
 import com.inductiveautomation.opcua.sdk.server.api.OpcUaServerConfig;
 import com.inductiveautomation.opcua.sdk.server.namespaces.OpcUaNamespace;
@@ -58,6 +60,7 @@ public class OpcUaServer {
     private final ServerTable serverTable = new ServerTable();
 
     private final UaServer server;
+    private final EventBus eventBus;
 
     private final OpcUaNamespace uaNamespace;
     private final OpcUaServerConfig config;
@@ -93,6 +96,8 @@ public class OpcUaServer {
                 server.addEndpoint(endpointUrl, address, securityPolicy, messageSecurityMode);
             }
         }
+
+        eventBus = new AsyncEventBus("server", server.getExecutorService());
     }
 
     public void startup() {
@@ -160,6 +165,10 @@ public class OpcUaServer {
         return serverTable;
     }
 
+    public EventBus getEventBus() {
+        return eventBus;
+    }
+
     public Optional<KeyPair> getKeyPair(ByteString thumbprint) {
         return server.getKeyPair(thumbprint);
     }
@@ -204,5 +213,6 @@ public class OpcUaServer {
     public UaServer getServer() {
         return server;
     }
+
 
 }

@@ -20,9 +20,11 @@ import java.util.Optional;
 
 import com.inductiveautomation.opcua.sdk.core.events.BaseEventType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
+import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
+import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UShort;
 import com.inductiveautomation.opcua.stack.core.types.structured.TimeZoneDataType;
 
@@ -107,6 +109,11 @@ public class BaseEvent implements BaseEventType {
     @Override
     public UShort getSeverity() {
         return severity;
+    }
+
+    @Override
+    public DataValue getProperty(QualifiedName propertyName) {
+        return null; // TODO reflectively get property?
     }
 
     public static class BaseEventBuilder {

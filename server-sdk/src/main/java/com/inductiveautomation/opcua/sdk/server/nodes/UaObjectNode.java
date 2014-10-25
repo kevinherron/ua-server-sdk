@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.inductiveautomation.opcua.sdk.server.api.nodes;
+package com.inductiveautomation.opcua.sdk.server.nodes;
 
 import java.util.List;
 import java.util.Objects;
@@ -28,7 +28,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimaps;
-import com.inductiveautomation.opcua.sdk.server.api.Reference;
+import com.inductiveautomation.opcua.sdk.core.nodes.ObjectNode;
+import com.inductiveautomation.opcua.sdk.core.Reference;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ExpandedNodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;

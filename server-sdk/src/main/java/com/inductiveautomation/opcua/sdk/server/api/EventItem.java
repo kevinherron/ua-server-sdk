@@ -16,10 +16,12 @@
 
 package com.inductiveautomation.opcua.sdk.server.api;
 
+import com.google.common.eventbus.Subscribe;
 import com.inductiveautomation.opcua.sdk.core.events.BaseEventType;
 
 public interface EventItem extends MonitoredItem {
 
+    @Subscribe
     void setEvent(BaseEventType event);
 
 }

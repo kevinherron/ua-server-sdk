@@ -14,12 +14,30 @@
  * limitations under the License.
  */
 
-package com.inductiveautomation.opcua.sdk.server.api.nodes;
+package com.inductiveautomation.opcua.sdk.core.nodes;
 
+import com.inductiveautomation.opcua.stack.core.StatusCodes;
+import com.inductiveautomation.opcua.stack.core.UaException;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UByte;
 
 public interface ObjectNode extends Node {
 
+    /**
+     * The EventNotifier attribute identifies whether the Object can be used to subscribe to Events or to read and
+     * write the history of the Events.
+     *
+     * @return the EventNotifier attribute of this Object.
+     */
     UByte getEventNotifier();
+
+    /**
+     * Set the EventNotifier attribute of this Object.
+     *
+     * @param eventNotifier the EventNotifier attribute to set.
+     * @throws UaException if the attribute cannot be set.
+     */
+    default void setEventNotifier(UByte eventNotifier) throws UaException {
+        throw new UaException(StatusCodes.Bad_NotWritable);
+    }
 
 }

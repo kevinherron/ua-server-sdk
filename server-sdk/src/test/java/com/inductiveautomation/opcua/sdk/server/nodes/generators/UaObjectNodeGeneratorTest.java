@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.inductiveautomation.opcua.sdk.server.api.nodes.generators;
+package com.inductiveautomation.opcua.sdk.server.nodes.generators;
 
 import java.beans.IntrospectionException;
 

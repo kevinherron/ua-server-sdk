@@ -14,18 +14,32 @@
  * limitations under the License.
  */
 
-package com.inductiveautomation.opcua.sdk.server.api.nodes;
+package com.inductiveautomation.opcua.sdk.core.nodes;
 
 import java.util.Optional;
 
+import com.inductiveautomation.opcua.stack.core.StatusCodes;
+import com.inductiveautomation.opcua.stack.core.UaException;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 
 public interface ReferenceTypeNode extends Node {
 
-    boolean isAbstract();
+    Boolean getIsAbstract();
 
-    boolean isSymmetric();
+    Boolean getIsSymmetric();
 
     Optional<LocalizedText> getInverseName();
+
+    default void setIsAbstract(boolean isAbstract) throws UaException {
+        throw new UaException(StatusCodes.Bad_NotWritable);
+    }
+
+    default void setIsSymmetric(boolean isSymmetric) throws UaException {
+        throw new UaException(StatusCodes.Bad_NotWritable);
+    }
+
+    default void setInverseName(Optional<LocalizedText> inverseName) throws UaException {
+        throw new UaException(StatusCodes.Bad_NotWritable);
+    }
 
 }

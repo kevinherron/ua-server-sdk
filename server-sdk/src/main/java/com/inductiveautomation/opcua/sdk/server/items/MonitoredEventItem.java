@@ -16,8 +16,8 @@
 
 package com.inductiveautomation.opcua.sdk.server.items;
 
-import com.inductiveautomation.opcua.sdk.server.api.EventItem;
 import com.inductiveautomation.opcua.sdk.core.events.BaseEventType;
+import com.inductiveautomation.opcua.sdk.server.api.EventItem;
 import com.inductiveautomation.opcua.stack.core.UaException;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ExtensionObject;
 import com.inductiveautomation.opcua.stack.core.types.builtin.Variant;
@@ -42,11 +42,11 @@ public class MonitoredEventItem extends BaseMonitoredItem<Variant[]> implements 
                               double samplingInterval,
                               UInteger queueSize,
                               boolean discardOldest,
-                              EventFilter filter) {
+                              ExtensionObject filter) throws UaException {
 
         super(id, readValueId, monitoringMode, timestamps, clientHandle, samplingInterval, queueSize, discardOldest);
 
-        this.filter = filter;
+        installFilter(filter);
     }
 
     @Override
@@ -67,6 +67,11 @@ public class MonitoredEventItem extends BaseMonitoredItem<Variant[]> implements 
     @Override
     protected EventFieldList wrapQueueValue(Variant[] value) {
         return new EventFieldList(uint(getClientHandle()), value);
+    }
+
+    @Override
+    public boolean isSamplingEnabled() {
+        return getMonitoringMode() != MonitoringMode.Disabled;
     }
 
     public static BaseMonitoredItem<?> create() {

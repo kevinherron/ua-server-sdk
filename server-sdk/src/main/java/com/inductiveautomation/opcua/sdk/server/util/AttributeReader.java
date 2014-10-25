@@ -21,14 +21,14 @@ import java.util.function.Supplier;
 
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.NumericRange;
-import com.inductiveautomation.opcua.sdk.server.api.nodes.DataTypeNode;
-import com.inductiveautomation.opcua.sdk.server.api.nodes.MethodNode;
-import com.inductiveautomation.opcua.sdk.server.api.nodes.Node;
-import com.inductiveautomation.opcua.sdk.server.api.nodes.ObjectNode;
-import com.inductiveautomation.opcua.sdk.server.api.nodes.ObjectTypeNode;
-import com.inductiveautomation.opcua.sdk.server.api.nodes.ReferenceTypeNode;
-import com.inductiveautomation.opcua.sdk.server.api.nodes.VariableNode;
-import com.inductiveautomation.opcua.sdk.server.api.nodes.VariableTypeNode;
+import com.inductiveautomation.opcua.sdk.core.nodes.DataTypeNode;
+import com.inductiveautomation.opcua.sdk.core.nodes.MethodNode;
+import com.inductiveautomation.opcua.sdk.core.nodes.Node;
+import com.inductiveautomation.opcua.sdk.core.nodes.ObjectNode;
+import com.inductiveautomation.opcua.sdk.core.nodes.ObjectTypeNode;
+import com.inductiveautomation.opcua.sdk.core.nodes.ReferenceTypeNode;
+import com.inductiveautomation.opcua.sdk.core.nodes.VariableNode;
+import com.inductiveautomation.opcua.sdk.core.nodes.VariableTypeNode;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.UaException;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
@@ -136,7 +136,7 @@ public class AttributeReader {
     private static DataValue readDataTypeAttribute(DataTypeNode node, int attribute) throws UaException {
         switch (attribute) {
             case AttributeIds.IsAbstract:
-                return dv(node.isAbstract());
+                return dv(node.getIsAbstract());
 
             default:
                 return readNodeAttribute(node, attribute);
@@ -169,7 +169,7 @@ public class AttributeReader {
     private static DataValue readObjectTypeAttribute(ObjectTypeNode node, int attribute) throws UaException {
         switch (attribute) {
             case AttributeIds.IsAbstract:
-                return dv(node.isAbstract());
+                return dv(node.getIsAbstract());
 
             default:
                 return readNodeAttribute(node, attribute);
@@ -179,10 +179,10 @@ public class AttributeReader {
     private static DataValue readReferenceTypeAttribute(ReferenceTypeNode node, int attribute) throws UaException {
         switch (attribute) {
             case AttributeIds.IsAbstract:
-                return dv(node.isAbstract());
+                return dv(node.getIsAbstract());
 
             case AttributeIds.Symmetric:
-                return dv(node.isSymmetric());
+                return dv(node.getIsSymmetric());
 
             case AttributeIds.InverseName:
                 return node.getInverseName().map(AttributeReader::dv)
@@ -242,7 +242,7 @@ public class AttributeReader {
                         .orElseThrow(ATTRIBUTE_ID_INVALID_EXCEPTION);
 
             case AttributeIds.IsAbstract:
-                return dv(node.isAbstract());
+                return dv(node.getIsAbstract());
 
             default:
                 return readNodeAttribute(node, attribute);

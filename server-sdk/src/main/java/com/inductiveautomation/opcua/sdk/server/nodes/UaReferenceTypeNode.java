@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.inductiveautomation.opcua.sdk.server.api.nodes;
+package com.inductiveautomation.opcua.sdk.server.nodes;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,7 +27,8 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
-import com.inductiveautomation.opcua.sdk.server.api.Reference;
+import com.inductiveautomation.opcua.sdk.core.nodes.ReferenceTypeNode;
+import com.inductiveautomation.opcua.sdk.core.Reference;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ExpandedNodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
@@ -120,12 +121,12 @@ public class UaReferenceTypeNode extends UaNode implements ReferenceTypeNode {
     }
 
     @Override
-    public boolean isAbstract() {
+    public Boolean getIsAbstract() {
         return attributes.get().isAbstract();
     }
 
     @Override
-    public boolean isSymmetric() {
+    public Boolean getIsSymmetric() {
         return attributes.get().isSymmetric();
     }
 

@@ -19,7 +19,8 @@ package com.inductiveautomation.opcua.sdk.server.api;
 import java.util.List;
 import java.util.Optional;
 
-import com.inductiveautomation.opcua.sdk.server.api.nodes.Node;
+import com.inductiveautomation.opcua.sdk.core.Reference;
+import com.inductiveautomation.opcua.sdk.core.nodes.Node;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.UaException;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ExpandedNodeId;

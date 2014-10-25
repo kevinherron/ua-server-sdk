@@ -14,55 +14,49 @@
  * limitations under the License.
  */
 
-package com.inductiveautomation.opcua.sdk.server.api.nodes;
+package com.inductiveautomation.opcua.sdk.server.nodes;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
-import com.inductiveautomation.opcua.sdk.server.api.Reference;
+import com.inductiveautomation.opcua.sdk.core.nodes.ObjectTypeNode;
+import com.inductiveautomation.opcua.sdk.core.Reference;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
-import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
 
-public class UaViewNode extends UaNode implements ViewNode {
+public class UaObjectTypeNode extends UaNode implements ObjectTypeNode {
 
     private final ListMultimap<NodeId, Reference> referenceMap =
             Multimaps.synchronizedListMultimap(ArrayListMultimap.create());
 
-    private final AtomicBoolean containsNoLoops;
-    private final AtomicReference<UByte> eventNotifier;
+    private final AtomicBoolean isAbstract;
 
-    public UaViewNode(NodeId nodeId,
-                      NodeClass nodeClass,
-                      QualifiedName browseName,
-                      LocalizedText displayName,
-                      Optional<LocalizedText> description,
-                      Optional<UInteger> writeMask,
-                      Optional<UInteger> userWriteMask,
-                      boolean containsNoLoops,
-                      UByte eventNotifier,
-                      List<Reference> references) {
+    public UaObjectTypeNode(NodeId nodeId,
+                            NodeClass nodeClass,
+                            QualifiedName browseName,
+                            LocalizedText displayName,
+                            Optional<LocalizedText> description,
+                            Optional<UInteger> writeMask,
+                            Optional<UInteger> userWriteMask,
+                            boolean isAbstract,
+                            List<Reference> references) {
 
         super(nodeId, nodeClass, browseName, displayName, description, writeMask, userWriteMask);
 
-        Preconditions.checkArgument(nodeClass == NodeClass.View);
+        Preconditions.checkArgument(nodeClass == NodeClass.ObjectType);
 
-        this.containsNoLoops = new AtomicBoolean(containsNoLoops);
-        this.eventNotifier = new AtomicReference<>(eventNotifier);
+        this.isAbstract = new AtomicBoolean(isAbstract);
 
-        references.stream().forEach(reference -> {
-            referenceMap.put(reference.getReferenceTypeId(), reference);
-        });
+        references.stream().forEach(reference -> referenceMap.put(reference.getReferenceTypeId(), reference));
     }
 
     @Override
@@ -78,21 +72,12 @@ public class UaViewNode extends UaNode implements ViewNode {
     }
 
     @Override
-    public boolean containsNoLoops() {
-        return containsNoLoops.get();
+    public Boolean getIsAbstract() {
+        return isAbstract.get();
     }
 
-    @Override
-    public UByte getEventNotifier() {
-        return eventNotifier.get();
-    }
-
-    public void setContainsNoLoops(boolean containsNoLoops) {
-        this.containsNoLoops.set(containsNoLoops);
-    }
-
-    public void setEventNotifier(UByte eventNotifier) {
-        this.eventNotifier.set(eventNotifier);
+    public void setIsAbstract(boolean isAbstract) {
+        this.isAbstract.set(isAbstract);
     }
 
 }

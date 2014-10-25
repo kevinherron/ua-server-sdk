@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.server.OpcUaServer;
-import com.inductiveautomation.opcua.sdk.server.api.nodes.UaNode;
+import com.inductiveautomation.opcua.sdk.server.nodes.UaNode;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;

@@ -27,16 +27,16 @@ import com.inductiveautomation.opcua.nodeset.attributes.ReferenceTypeNodeAttribu
 import com.inductiveautomation.opcua.nodeset.attributes.VariableNodeAttributes;
 import com.inductiveautomation.opcua.nodeset.attributes.VariableTypeNodeAttributes;
 import com.inductiveautomation.opcua.nodeset.attributes.ViewNodeAttributes;
-import com.inductiveautomation.opcua.sdk.server.api.Reference;
-import com.inductiveautomation.opcua.sdk.server.api.nodes.UaDataTypeNode;
-import com.inductiveautomation.opcua.sdk.server.api.nodes.UaMethodNode;
-import com.inductiveautomation.opcua.sdk.server.api.nodes.UaNode;
-import com.inductiveautomation.opcua.sdk.server.api.nodes.UaObjectNode;
-import com.inductiveautomation.opcua.sdk.server.api.nodes.UaObjectTypeNode;
-import com.inductiveautomation.opcua.sdk.server.api.nodes.UaReferenceTypeNode;
-import com.inductiveautomation.opcua.sdk.server.api.nodes.UaVariableNode;
-import com.inductiveautomation.opcua.sdk.server.api.nodes.UaVariableTypeNode;
-import com.inductiveautomation.opcua.sdk.server.api.nodes.UaViewNode;
+import com.inductiveautomation.opcua.sdk.core.Reference;
+import com.inductiveautomation.opcua.sdk.server.nodes.UaDataTypeNode;
+import com.inductiveautomation.opcua.sdk.server.nodes.UaMethodNode;
+import com.inductiveautomation.opcua.sdk.server.nodes.UaNode;
+import com.inductiveautomation.opcua.sdk.server.nodes.UaObjectNode;
+import com.inductiveautomation.opcua.sdk.server.nodes.UaObjectTypeNode;
+import com.inductiveautomation.opcua.sdk.server.nodes.UaReferenceTypeNode;
+import com.inductiveautomation.opcua.sdk.server.nodes.UaVariableNode;
+import com.inductiveautomation.opcua.sdk.server.nodes.UaVariableTypeNode;
+import com.inductiveautomation.opcua.sdk.server.nodes.UaViewNode;
 
 public class UaNodeBuilder implements NodeBuilder<UaNode, Reference> {
 

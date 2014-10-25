@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.inductiveautomation.opcua.sdk.server.api.nodes;
+package com.inductiveautomation.opcua.sdk.server.nodes;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,7 +27,8 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
-import com.inductiveautomation.opcua.sdk.server.api.Reference;
+import com.inductiveautomation.opcua.sdk.core.nodes.VariableTypeNode;
+import com.inductiveautomation.opcua.sdk.core.Reference;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
@@ -91,7 +92,7 @@ public class UaVariableTypeNode extends UaNode implements VariableTypeNode {
     }
 
     @Override
-    public int getValueRank() {
+    public Integer getValueRank() {
         return attributes.get().getValueRank();
     }
 
@@ -101,7 +102,7 @@ public class UaVariableTypeNode extends UaNode implements VariableTypeNode {
     }
 
     @Override
-    public boolean isAbstract() {
+    public Boolean getIsAbstract() {
         return attributes.get().isAbstract();
     }
 

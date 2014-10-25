@@ -32,11 +32,12 @@ import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.NamespaceTable;
 import com.inductiveautomation.opcua.sdk.server.OpcUaServer;
 import com.inductiveautomation.opcua.sdk.server.api.DataItem;
+import com.inductiveautomation.opcua.sdk.server.api.EventItem;
 import com.inductiveautomation.opcua.sdk.server.api.MonitoredItem;
 import com.inductiveautomation.opcua.sdk.server.api.Namespace;
-import com.inductiveautomation.opcua.sdk.server.api.Reference;
-import com.inductiveautomation.opcua.sdk.server.api.nodes.Node;
-import com.inductiveautomation.opcua.sdk.server.api.nodes.UaNode;
+import com.inductiveautomation.opcua.sdk.core.Reference;
+import com.inductiveautomation.opcua.sdk.core.nodes.Node;
+import com.inductiveautomation.opcua.sdk.server.nodes.UaNode;
 import com.inductiveautomation.opcua.sdk.server.util.SubscriptionModel;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.UaException;
@@ -64,7 +65,11 @@ public class OpcUaNamespace implements Namespace {
 
     private final SubscriptionModel subscriptionModel;
 
+    private final OpcUaServer server;
+
     public OpcUaNamespace(OpcUaServer server) {
+        this.server = server;
+
         try {
             parseNodes();
         } catch (Throwable t) {
@@ -180,6 +185,29 @@ public class OpcUaNamespace implements Namespace {
     @Override
     public void onMonitoringModeChanged(List<MonitoredItem> monitoredItems) {
         subscriptionModel.onMonitoringModeChanged(monitoredItems);
+    }
+
+    @Override
+    public void onEventItemsCreated(List<EventItem> eventItems) {
+        eventItems.stream()
+                .filter(MonitoredItem::isSamplingEnabled)
+                .forEach(item -> server.getEventBus().register(item));
+    }
+
+    @Override
+    public void onEventItemsModified(List<EventItem> eventItems) {
+        for (EventItem item : eventItems) {
+            if (item.isSamplingEnabled()) {
+                server.getEventBus().register(item);
+            } else {
+                server.getEventBus().unregister(item);
+            }
+        }
+    }
+
+    @Override
+    public void onEventItemsDeleted(List<EventItem> eventItems) {
+        eventItems.forEach(item -> server.getEventBus().unregister(item));
     }
 
     @Override

@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 import com.google.common.collect.Lists;
 import com.inductiveautomation.opcua.sdk.server.NamespaceManager;
 import com.inductiveautomation.opcua.sdk.server.OpcUaServer;
-import com.inductiveautomation.opcua.sdk.server.api.Reference;
+import com.inductiveautomation.opcua.sdk.core.Reference;
 import com.inductiveautomation.opcua.sdk.server.services.ServiceAttributes;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.UaException;

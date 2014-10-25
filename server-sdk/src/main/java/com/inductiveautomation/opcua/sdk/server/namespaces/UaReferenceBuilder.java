@@ -17,7 +17,7 @@
 package com.inductiveautomation.opcua.sdk.server.namespaces;
 
 import com.inductiveautomation.opcua.nodeset.ReferenceBuilder;
-import com.inductiveautomation.opcua.sdk.server.api.Reference;
+import com.inductiveautomation.opcua.sdk.core.Reference;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ExpandedNodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
