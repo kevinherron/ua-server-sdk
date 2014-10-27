@@ -28,10 +28,6 @@ public interface ServerConfigurationType extends BaseObjectType {
 
     void setMulticastDnsEnabled(Boolean multicastDnsEnabled);
 
-    void setTrustList(TrustListType trustList);
-
-    void setHttpsTrustList(TrustListType httpsTrustList);
-
     void atomicSet(Runnable runnable);
 
 }

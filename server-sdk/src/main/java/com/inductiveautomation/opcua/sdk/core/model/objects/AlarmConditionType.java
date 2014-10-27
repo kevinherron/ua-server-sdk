@@ -1,6 +1,6 @@
 package com.inductiveautomation.opcua.sdk.core.model.objects;
 
-import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
+import com.inductiveautomation.opcua.sdk.core.model.variables.TwoStateVariableType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 
 public interface AlarmConditionType extends AcknowledgeableConditionType {
@@ -11,11 +11,11 @@ public interface AlarmConditionType extends AcknowledgeableConditionType {
 
     Double getMaxTimeShelved();
 
-    LocalizedText getEnabledState();
+    TwoStateVariableType getEnabledState();
 
-    LocalizedText getActiveState();
+    TwoStateVariableType getActiveState();
 
-    LocalizedText getSuppressedState();
+    TwoStateVariableType getSuppressedState();
 
     ShelvedStateMachineType getShelvingState();
 
@@ -24,14 +24,6 @@ public interface AlarmConditionType extends AcknowledgeableConditionType {
     void setSuppressedOrShelved(Boolean suppressedOrShelved);
 
     void setMaxTimeShelved(Double maxTimeShelved);
-
-    void setEnabledState(LocalizedText enabledState);
-
-    void setActiveState(LocalizedText activeState);
-
-    void setSuppressedState(LocalizedText suppressedState);
-
-    void setShelvingState(ShelvedStateMachineType shelvingState);
 
     void atomicSet(Runnable runnable);
 

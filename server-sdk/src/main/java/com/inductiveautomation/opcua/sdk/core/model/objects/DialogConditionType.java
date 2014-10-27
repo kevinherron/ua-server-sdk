@@ -1,5 +1,6 @@
 package com.inductiveautomation.opcua.sdk.core.model.objects;
 
+import com.inductiveautomation.opcua.sdk.core.model.variables.TwoStateVariableType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 
 public interface DialogConditionType extends ConditionType {
@@ -16,9 +17,9 @@ public interface DialogConditionType extends ConditionType {
 
     Integer getLastResponse();
 
-    LocalizedText getEnabledState();
+    TwoStateVariableType getEnabledState();
 
-    LocalizedText getDialogState();
+    TwoStateVariableType getDialogState();
 
     void setPrompt(LocalizedText prompt);
 
@@ -31,10 +32,6 @@ public interface DialogConditionType extends ConditionType {
     void setCancelResponse(Integer cancelResponse);
 
     void setLastResponse(Integer lastResponse);
-
-    void setEnabledState(LocalizedText enabledState);
-
-    void setDialogState(LocalizedText dialogState);
 
     void atomicSet(Runnable runnable);
 

@@ -1,22 +1,17 @@
 package com.inductiveautomation.opcua.sdk.core.model.objects;
 
-import com.inductiveautomation.opcua.stack.core.types.structured.SessionDiagnosticsDataType;
-import com.inductiveautomation.opcua.stack.core.types.structured.SessionSecurityDiagnosticsDataType;
-import com.inductiveautomation.opcua.stack.core.types.structured.SubscriptionDiagnosticsDataType;
+import com.inductiveautomation.opcua.sdk.core.model.variables.SessionDiagnosticsVariableType;
+import com.inductiveautomation.opcua.sdk.core.model.variables.SessionSecurityDiagnosticsType;
+import com.inductiveautomation.opcua.sdk.core.model.variables.SubscriptionDiagnosticsArrayType;
 
 public interface SessionDiagnosticsObjectType extends BaseObjectType {
 
-    SessionDiagnosticsDataType getSessionDiagnostics();
+    SessionDiagnosticsVariableType getSessionDiagnostics();
 
-    SessionSecurityDiagnosticsDataType getSessionSecurityDiagnostics();
+    SessionSecurityDiagnosticsType getSessionSecurityDiagnostics();
 
-    SubscriptionDiagnosticsDataType[] getSubscriptionDiagnosticsArray();
+    SubscriptionDiagnosticsArrayType getSubscriptionDiagnosticsArray();
 
-    void setSessionDiagnostics(SessionDiagnosticsDataType sessionDiagnostics);
-
-    void setSessionSecurityDiagnostics(SessionSecurityDiagnosticsDataType sessionSecurityDiagnostics);
-
-    void setSubscriptionDiagnosticsArray(SubscriptionDiagnosticsDataType[] subscriptionDiagnosticsArray);
 
     void atomicSet(Runnable runnable);
 

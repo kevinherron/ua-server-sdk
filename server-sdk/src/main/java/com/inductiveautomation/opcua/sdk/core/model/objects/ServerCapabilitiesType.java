@@ -1,5 +1,6 @@
 package com.inductiveautomation.opcua.sdk.core.model.objects;
 
+import com.inductiveautomation.opcua.sdk.core.model.variables.ServerVendorCapabilityType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UShort;
 import com.inductiveautomation.opcua.stack.core.types.structured.SignedSoftwareCertificate;
@@ -30,7 +31,7 @@ public interface ServerCapabilitiesType extends BaseObjectType {
 
     FolderType getAggregateFunctions();
 
-    Object getVendorCapability();
+    ServerVendorCapabilityType getVendorCapability();
 
     void setServerProfileArray(String[] serverProfileArray);
 
@@ -49,14 +50,6 @@ public interface ServerCapabilitiesType extends BaseObjectType {
     void setMaxArrayLength(UInteger maxArrayLength);
 
     void setMaxStringLength(UInteger maxStringLength);
-
-    void setOperationLimits(OperationLimitsType operationLimits);
-
-    void setModellingRules(FolderType modellingRules);
-
-    void setAggregateFunctions(FolderType aggregateFunctions);
-
-    void setVendorCapability(Object vendorCapability);
 
     void atomicSet(Runnable runnable);
 

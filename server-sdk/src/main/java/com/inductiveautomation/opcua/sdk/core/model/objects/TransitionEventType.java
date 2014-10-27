@@ -1,20 +1,16 @@
 package com.inductiveautomation.opcua.sdk.core.model.objects;
 
-import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
+import com.inductiveautomation.opcua.sdk.core.model.variables.StateVariableType;
+import com.inductiveautomation.opcua.sdk.core.model.variables.TransitionVariableType;
 
 public interface TransitionEventType extends BaseEventType {
 
-    LocalizedText getTransition();
+    TransitionVariableType getTransition();
 
-    LocalizedText getFromState();
+    StateVariableType getFromState();
 
-    LocalizedText getToState();
+    StateVariableType getToState();
 
-    void setTransition(LocalizedText transition);
-
-    void setFromState(LocalizedText fromState);
-
-    void setToState(LocalizedText toState);
 
     void atomicSet(Runnable runnable);
 

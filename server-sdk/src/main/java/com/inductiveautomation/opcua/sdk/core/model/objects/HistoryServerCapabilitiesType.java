@@ -62,8 +62,6 @@ public interface HistoryServerCapabilitiesType extends BaseObjectType {
 
     void setInsertAnnotationCapability(Boolean insertAnnotationCapability);
 
-    void setAggregateFunctions(FolderType aggregateFunctions);
-
     void atomicSet(Runnable runnable);
 
 }

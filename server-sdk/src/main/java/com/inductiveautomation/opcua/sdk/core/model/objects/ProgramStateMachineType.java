@@ -1,8 +1,9 @@
 package com.inductiveautomation.opcua.sdk.core.model.objects;
 
-import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
+import com.inductiveautomation.opcua.sdk.core.model.variables.FiniteStateVariableType;
+import com.inductiveautomation.opcua.sdk.core.model.variables.FiniteTransitionVariableType;
+import com.inductiveautomation.opcua.sdk.core.model.variables.ProgramDiagnosticType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
-import com.inductiveautomation.opcua.stack.core.types.structured.ProgramDiagnosticDataType;
 
 public interface ProgramStateMachineType extends FiniteStateMachineType {
 
@@ -20,11 +21,11 @@ public interface ProgramStateMachineType extends FiniteStateMachineType {
 
     UInteger getMaxRecycleCount();
 
-    LocalizedText getCurrentState();
+    FiniteStateVariableType getCurrentState();
 
-    LocalizedText getLastTransition();
+    FiniteTransitionVariableType getLastTransition();
 
-    ProgramDiagnosticDataType getProgramDiagnostics();
+    ProgramDiagnosticType getProgramDiagnostics();
 
     BaseObjectType getFinalResultData();
 
@@ -67,40 +68,6 @@ public interface ProgramStateMachineType extends FiniteStateMachineType {
     void setMaxInstanceCount(UInteger maxInstanceCount);
 
     void setMaxRecycleCount(UInteger maxRecycleCount);
-
-    void setCurrentState(LocalizedText currentState);
-
-    void setLastTransition(LocalizedText lastTransition);
-
-    void setProgramDiagnostics(ProgramDiagnosticDataType programDiagnostics);
-
-    void setFinalResultData(BaseObjectType finalResultData);
-
-    void setReady(StateType ready);
-
-    void setRunning(StateType running);
-
-    void setSuspended(StateType suspended);
-
-    void setHalted(StateType halted);
-
-    void setHaltedToReady(TransitionType haltedToReady);
-
-    void setReadyToRunning(TransitionType readyToRunning);
-
-    void setRunningToHalted(TransitionType runningToHalted);
-
-    void setRunningToReady(TransitionType runningToReady);
-
-    void setRunningToSuspended(TransitionType runningToSuspended);
-
-    void setSuspendedToRunning(TransitionType suspendedToRunning);
-
-    void setSuspendedToHalted(TransitionType suspendedToHalted);
-
-    void setSuspendedToReady(TransitionType suspendedToReady);
-
-    void setReadyToHalted(TransitionType readyToHalted);
 
     void atomicSet(Runnable runnable);
 

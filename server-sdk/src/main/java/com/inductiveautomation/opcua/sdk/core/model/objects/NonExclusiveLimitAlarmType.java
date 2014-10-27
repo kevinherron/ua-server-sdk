@@ -1,28 +1,19 @@
 package com.inductiveautomation.opcua.sdk.core.model.objects;
 
-import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
+import com.inductiveautomation.opcua.sdk.core.model.variables.TwoStateVariableType;
 
 public interface NonExclusiveLimitAlarmType extends LimitAlarmType {
 
-    LocalizedText getActiveState();
+    TwoStateVariableType getActiveState();
 
-    LocalizedText getHighHighState();
+    TwoStateVariableType getHighHighState();
 
-    LocalizedText getHighState();
+    TwoStateVariableType getHighState();
 
-    LocalizedText getLowState();
+    TwoStateVariableType getLowState();
 
-    LocalizedText getLowLowState();
+    TwoStateVariableType getLowLowState();
 
-    void setActiveState(LocalizedText activeState);
-
-    void setHighHighState(LocalizedText highHighState);
-
-    void setHighState(LocalizedText highState);
-
-    void setLowState(LocalizedText lowState);
-
-    void setLowLowState(LocalizedText lowLowState);
 
     void atomicSet(Runnable runnable);
 

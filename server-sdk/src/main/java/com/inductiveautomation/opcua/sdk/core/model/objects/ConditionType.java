@@ -1,9 +1,9 @@
 package com.inductiveautomation.opcua.sdk.core.model.objects;
 
+import com.inductiveautomation.opcua.sdk.core.model.variables.ConditionVariableType;
+import com.inductiveautomation.opcua.sdk.core.model.variables.TwoStateVariableType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
-import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
-import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UShort;
 
 public interface ConditionType extends BaseEventType {
 
@@ -19,13 +19,13 @@ public interface ConditionType extends BaseEventType {
 
     String getClientUserId();
 
-    LocalizedText getEnabledState();
+    TwoStateVariableType getEnabledState();
 
-    StatusCode getQuality();
+    ConditionVariableType getQuality();
 
-    UShort getLastSeverity();
+    ConditionVariableType getLastSeverity();
 
-    LocalizedText getComment();
+    ConditionVariableType getComment();
 
     void setConditionClassId(NodeId conditionClassId);
 
@@ -38,14 +38,6 @@ public interface ConditionType extends BaseEventType {
     void setRetain(Boolean retain);
 
     void setClientUserId(String clientUserId);
-
-    void setEnabledState(LocalizedText enabledState);
-
-    void setQuality(StatusCode quality);
-
-    void setLastSeverity(UShort lastSeverity);
-
-    void setComment(LocalizedText comment);
 
     void atomicSet(Runnable runnable);
 

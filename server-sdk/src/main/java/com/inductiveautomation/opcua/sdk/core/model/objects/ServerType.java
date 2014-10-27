@@ -1,7 +1,7 @@
 package com.inductiveautomation.opcua.sdk.core.model.objects;
 
+import com.inductiveautomation.opcua.sdk.core.model.variables.ServerStatusType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UByte;
-import com.inductiveautomation.opcua.stack.core.types.structured.ServerStatusDataType;
 
 public interface ServerType extends BaseObjectType {
 
@@ -13,7 +13,7 @@ public interface ServerType extends BaseObjectType {
 
     Boolean getAuditing();
 
-    ServerStatusDataType getServerStatus();
+    ServerStatusType getServerStatus();
 
     ServerCapabilitiesType getServerCapabilities();
 
@@ -32,18 +32,6 @@ public interface ServerType extends BaseObjectType {
     void setServiceLevel(UByte serviceLevel);
 
     void setAuditing(Boolean auditing);
-
-    void setServerStatus(ServerStatusDataType serverStatus);
-
-    void setServerCapabilities(ServerCapabilitiesType serverCapabilities);
-
-    void setServerDiagnostics(ServerDiagnosticsType serverDiagnostics);
-
-    void setVendorServerInfo(VendorServerInfoType vendorServerInfo);
-
-    void setServerRedundancy(ServerRedundancyType serverRedundancy);
-
-    void setNamespaces(NamespacesType namespaces);
 
     void atomicSet(Runnable runnable);
 

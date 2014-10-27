@@ -1,20 +1,15 @@
 package com.inductiveautomation.opcua.sdk.core.model.objects;
 
-import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
+import com.inductiveautomation.opcua.sdk.core.model.variables.TwoStateVariableType;
 
 public interface AcknowledgeableConditionType extends ConditionType {
 
-    LocalizedText getEnabledState();
+    TwoStateVariableType getEnabledState();
 
-    LocalizedText getAckedState();
+    TwoStateVariableType getAckedState();
 
-    LocalizedText getConfirmedState();
+    TwoStateVariableType getConfirmedState();
 
-    void setEnabledState(LocalizedText enabledState);
-
-    void setAckedState(LocalizedText ackedState);
-
-    void setConfirmedState(LocalizedText confirmedState);
 
     void atomicSet(Runnable runnable);
 

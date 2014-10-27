@@ -1,30 +1,22 @@
 package com.inductiveautomation.opcua.sdk.core.model.objects;
 
-import com.inductiveautomation.opcua.stack.core.types.structured.SamplingIntervalDiagnosticsDataType;
-import com.inductiveautomation.opcua.stack.core.types.structured.ServerDiagnosticsSummaryDataType;
-import com.inductiveautomation.opcua.stack.core.types.structured.SubscriptionDiagnosticsDataType;
+import com.inductiveautomation.opcua.sdk.core.model.variables.SamplingIntervalDiagnosticsArrayType;
+import com.inductiveautomation.opcua.sdk.core.model.variables.ServerDiagnosticsSummaryType;
+import com.inductiveautomation.opcua.sdk.core.model.variables.SubscriptionDiagnosticsArrayType;
 
 public interface ServerDiagnosticsType extends BaseObjectType {
 
     Boolean getEnabledFlag();
 
-    ServerDiagnosticsSummaryDataType getServerDiagnosticsSummary();
+    ServerDiagnosticsSummaryType getServerDiagnosticsSummary();
 
-    SamplingIntervalDiagnosticsDataType[] getSamplingIntervalDiagnosticsArray();
+    SamplingIntervalDiagnosticsArrayType getSamplingIntervalDiagnosticsArray();
 
-    SubscriptionDiagnosticsDataType[] getSubscriptionDiagnosticsArray();
+    SubscriptionDiagnosticsArrayType getSubscriptionDiagnosticsArray();
 
     SessionsDiagnosticsSummaryType getSessionsDiagnosticsSummary();
 
     void setEnabledFlag(Boolean enabledFlag);
-
-    void setServerDiagnosticsSummary(ServerDiagnosticsSummaryDataType serverDiagnosticsSummary);
-
-    void setSamplingIntervalDiagnosticsArray(SamplingIntervalDiagnosticsDataType[] samplingIntervalDiagnosticsArray);
-
-    void setSubscriptionDiagnosticsArray(SubscriptionDiagnosticsDataType[] subscriptionDiagnosticsArray);
-
-    void setSessionsDiagnosticsSummary(SessionsDiagnosticsSummaryType sessionsDiagnosticsSummary);
 
     void atomicSet(Runnable runnable);
 

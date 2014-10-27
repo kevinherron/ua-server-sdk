@@ -35,8 +35,6 @@ public interface NamespaceMetadataType extends BaseObjectType {
 
     void setStaticStringNodeIdPattern(String[] staticStringNodeIdPattern);
 
-    void setNamespaceFile(AddressSpaceFileType namespaceFile);
-
     void atomicSet(Runnable runnable);
 
 }

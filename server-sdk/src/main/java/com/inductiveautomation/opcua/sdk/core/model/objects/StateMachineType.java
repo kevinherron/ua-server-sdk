@@ -1,16 +1,14 @@
 package com.inductiveautomation.opcua.sdk.core.model.objects;
 
-import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
+import com.inductiveautomation.opcua.sdk.core.model.variables.StateVariableType;
+import com.inductiveautomation.opcua.sdk.core.model.variables.TransitionVariableType;
 
 public interface StateMachineType extends BaseObjectType {
 
-    LocalizedText getCurrentState();
+    StateVariableType getCurrentState();
 
-    LocalizedText getLastTransition();
+    TransitionVariableType getLastTransition();
 
-    void setCurrentState(LocalizedText currentState);
-
-    void setLastTransition(LocalizedText lastTransition);
 
     void atomicSet(Runnable runnable);
 

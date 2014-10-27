@@ -6,9 +6,6 @@ public interface NamespacesType extends BaseObjectType {
 
     AddressSpaceFileType getAddressSpaceFile();
 
-    void setNamespaceIdentifier(NamespaceMetadataType namespaceIdentifier);
-
-    void setAddressSpaceFile(AddressSpaceFileType addressSpaceFile);
 
     void atomicSet(Runnable runnable);
 

@@ -41,10 +41,6 @@ public interface HistoricalDataConfigurationType extends BaseObjectType {
 
     void setStartOfOnlineArchive(DateTime startOfOnlineArchive);
 
-    void setAggregateConfiguration(AggregateConfigurationType aggregateConfiguration);
-
-    void setAggregateFunctions(FolderType aggregateFunctions);
-
     void atomicSet(Runnable runnable);
 
 }
