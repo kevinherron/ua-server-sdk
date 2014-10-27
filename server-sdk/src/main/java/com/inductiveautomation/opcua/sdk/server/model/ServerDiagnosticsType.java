@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package com.inductiveautomation.opcua.sdk.server.objects;
+package com.inductiveautomation.opcua.sdk.server.model;
 
+import com.inductiveautomation.opcua.sdk.core.model.BaseObjectType;
 import com.inductiveautomation.opcua.stack.core.types.structured.SamplingIntervalDiagnosticsDataType;
 import com.inductiveautomation.opcua.stack.core.types.structured.ServerDiagnosticsSummaryDataType;
 import com.inductiveautomation.opcua.stack.core.types.structured.SubscriptionDiagnosticsDataType;
 
-public interface ServerDiagnostics extends ObjectPrototype {
+public interface ServerDiagnosticsType extends BaseObjectType {
 
     ServerDiagnosticsSummaryDataType getServerDiagnosticsSummary();
 
@@ -28,6 +29,6 @@ public interface ServerDiagnostics extends ObjectPrototype {
 
     SubscriptionDiagnosticsDataType[] getSubscriptionDiagnosticsArray();
 
-    SessionDiagnosticsSummary getSessionDiagnostics();
+    SessionDiagnosticsSummaryType getSessionDiagnostics();
 
 }

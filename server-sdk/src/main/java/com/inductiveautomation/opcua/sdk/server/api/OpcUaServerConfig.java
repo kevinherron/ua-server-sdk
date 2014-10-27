@@ -24,7 +24,6 @@ import java.util.EnumSet;
 import java.util.List;
 
 import com.google.common.collect.Lists;
-import com.inductiveautomation.opcua.sdk.server.objects.ServerCapabilities;
 import com.inductiveautomation.opcua.stack.core.Stack;
 import com.inductiveautomation.opcua.stack.core.security.SecurityPolicy;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
@@ -100,7 +99,5 @@ public interface OpcUaServerConfig {
     default Certificate getCertificate() {
         return null;
     }
-
-    ServerCapabilities getServerCapabilities();
 
 }

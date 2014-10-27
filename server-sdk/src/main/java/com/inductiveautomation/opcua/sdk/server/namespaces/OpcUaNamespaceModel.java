@@ -89,31 +89,31 @@ public class OpcUaNamespaceModel {
         }
 
         /* ServerCapabilities.OperationLimits */
-        else if (nodeId.equals(Identifiers.Server_ServerCapabilities_OperationLimits_MaxMonitoredItemsPerCall)) {
-            return dv(server.getConfig().getServerCapabilities().getOperationLimits().getMaxMonitoredItemsPerCall());
-        } else if (nodeId.equals(Identifiers.Server_ServerCapabilities_OperationLimits_MaxNodesPerBrowse)) {
-            return dv(server.getConfig().getServerCapabilities().getOperationLimits().getMaxNodesPerBrowse());
-        } else if (nodeId.equals(Identifiers.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryReadData)) {
-            return dv(server.getConfig().getServerCapabilities().getOperationLimits().getMaxNodesPerHistoryReadData());
-        } else if (nodeId.equals(Identifiers.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryReadEvents)) {
-            return dv(server.getConfig().getServerCapabilities().getOperationLimits().getMaxNodesPerHistoryReadEvents());
-        } else if (nodeId.equals(Identifiers.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryUpdateData)) {
-            return dv(server.getConfig().getServerCapabilities().getOperationLimits().getMaxNodesPerHistoryUpdateData());
-        } else if (nodeId.equals(Identifiers.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryUpdateEvents)) {
-            return dv(server.getConfig().getServerCapabilities().getOperationLimits().getMaxNodesPerHistoryUpdateEvents());
-        } else if (nodeId.equals(Identifiers.Server_ServerCapabilities_OperationLimits_MaxNodesPerMethodCall)) {
-            return dv(server.getConfig().getServerCapabilities().getOperationLimits().getMaxNodesPerMethodCall());
-        } else if (nodeId.equals(Identifiers.Server_ServerCapabilities_OperationLimits_MaxNodesPerNodeManagement)) {
-            return dv(server.getConfig().getServerCapabilities().getOperationLimits().getMaxNodesPerNodeManagement());
-        } else if (nodeId.equals(Identifiers.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead)) {
-            return dv(server.getConfig().getServerCapabilities().getOperationLimits().getMaxNodesPerRead());
-        } else if (nodeId.equals(Identifiers.Server_ServerCapabilities_OperationLimits_MaxNodesPerRegisterNodes)) {
-            return dv(server.getConfig().getServerCapabilities().getOperationLimits().getMaxNodesPerRegisterNodes());
-        } else if (nodeId.equals(Identifiers.Server_ServerCapabilities_OperationLimits_MaxNodesPerTranslateBrowsePathsToNodeIds)) {
-            return dv(server.getConfig().getServerCapabilities().getOperationLimits().getMaxNodesPerTranslateBrowsePaths());
-        } else if (nodeId.equals(Identifiers.Server_ServerCapabilities_OperationLimits_MaxNodesPerWrite)) {
-            return dv(server.getConfig().getServerCapabilities().getOperationLimits().getMaxNodesPerWrite());
-        }
+//        else if (nodeId.equals(Identifiers.Server_ServerCapabilities_OperationLimits_MaxMonitoredItemsPerCall)) {
+//            return dv(server.getConfig().getServerCapabilities().getOperationLimits().getMaxMonitoredItemsPerCall());
+//        } else if (nodeId.equals(Identifiers.Server_ServerCapabilities_OperationLimits_MaxNodesPerBrowse)) {
+//            return dv(server.getConfig().getServerCapabilities().getOperationLimits().getMaxNodesPerBrowse());
+//        } else if (nodeId.equals(Identifiers.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryReadData)) {
+//            return dv(server.getConfig().getServerCapabilities().getOperationLimits().getMaxNodesPerHistoryReadData());
+//        } else if (nodeId.equals(Identifiers.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryReadEvents)) {
+//            return dv(server.getConfig().getServerCapabilities().getOperationLimits().getMaxNodesPerHistoryReadEvents());
+//        } else if (nodeId.equals(Identifiers.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryUpdateData)) {
+//            return dv(server.getConfig().getServerCapabilities().getOperationLimits().getMaxNodesPerHistoryUpdateData());
+//        } else if (nodeId.equals(Identifiers.Server_ServerCapabilities_OperationLimits_MaxNodesPerHistoryUpdateEvents)) {
+//            return dv(server.getConfig().getServerCapabilities().getOperationLimits().getMaxNodesPerHistoryUpdateEvents());
+//        } else if (nodeId.equals(Identifiers.Server_ServerCapabilities_OperationLimits_MaxNodesPerMethodCall)) {
+//            return dv(server.getConfig().getServerCapabilities().getOperationLimits().getMaxNodesPerMethodCall());
+//        } else if (nodeId.equals(Identifiers.Server_ServerCapabilities_OperationLimits_MaxNodesPerNodeManagement)) {
+//            return dv(server.getConfig().getServerCapabilities().getOperationLimits().getMaxNodesPerNodeManagement());
+//        } else if (nodeId.equals(Identifiers.Server_ServerCapabilities_OperationLimits_MaxNodesPerRead)) {
+//            return dv(server.getConfig().getServerCapabilities().getOperationLimits().getMaxNodesPerRead());
+//        } else if (nodeId.equals(Identifiers.Server_ServerCapabilities_OperationLimits_MaxNodesPerRegisterNodes)) {
+//            return dv(server.getConfig().getServerCapabilities().getOperationLimits().getMaxNodesPerRegisterNodes());
+//        } else if (nodeId.equals(Identifiers.Server_ServerCapabilities_OperationLimits_MaxNodesPerTranslateBrowsePathsToNodeIds)) {
+//            return dv(server.getConfig().getServerCapabilities().getOperationLimits().getMaxNodesPerTranslateBrowsePaths());
+//        } else if (nodeId.equals(Identifiers.Server_ServerCapabilities_OperationLimits_MaxNodesPerWrite)) {
+//            return dv(server.getConfig().getServerCapabilities().getOperationLimits().getMaxNodesPerWrite());
+//        }
 
         /* Fall back to UaNode's value */
         else {

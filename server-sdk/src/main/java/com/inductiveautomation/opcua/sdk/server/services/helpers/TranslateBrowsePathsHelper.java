@@ -22,9 +22,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.Lists;
+import com.inductiveautomation.opcua.sdk.core.Reference;
 import com.inductiveautomation.opcua.sdk.server.NamespaceManager;
 import com.inductiveautomation.opcua.sdk.server.OpcUaServer;
-import com.inductiveautomation.opcua.sdk.core.Reference;
 import com.inductiveautomation.opcua.sdk.server.services.ServiceAttributes;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.UaException;
@@ -48,6 +48,8 @@ import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Un
 
 public class TranslateBrowsePathsHelper {
 
+    private static final int MaxNodesPerTranslate = 0xFFFF;
+
     private final NamespaceManager namespaceManager;
 
     public TranslateBrowsePathsHelper(NamespaceManager namespaceManager) {
@@ -61,10 +63,7 @@ public class TranslateBrowsePathsHelper {
 
         BrowsePath[] browsePaths = service.getRequest().getBrowsePaths();
 
-        long maxNodesPerTranslate =
-                server.getConfig().getServerCapabilities().getOperationLimits().getMaxNodesPerTranslateBrowsePaths();
-
-        if (browsePaths.length > maxNodesPerTranslate) {
+        if (browsePaths.length > MaxNodesPerTranslate) {
             service.setServiceFault(StatusCodes.Bad_TooManyOperations);
             return;
         }

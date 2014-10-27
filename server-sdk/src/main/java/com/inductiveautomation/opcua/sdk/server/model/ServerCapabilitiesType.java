@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package com.inductiveautomation.opcua.sdk.server.objects;
+package com.inductiveautomation.opcua.sdk.server.model;
 
-import java.util.Locale;
-
+import com.inductiveautomation.opcua.sdk.core.model.BaseObjectType;
 import com.inductiveautomation.opcua.stack.core.channel.ChannelConfig;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UShort;
 import com.inductiveautomation.opcua.stack.core.types.structured.SignedSoftwareCertificate;
-import com.inductiveautomation.opcua.stack.core.util.annotations.UInt16Primitive;
-import com.inductiveautomation.opcua.stack.core.util.annotations.UInt32Primitive;
 
-public interface ServerCapabilities {
+public interface ServerCapabilitiesType extends BaseObjectType {
 
     /**
      * ServerProfileArray defines the conformance profiles of the Server.
@@ -41,14 +40,14 @@ public interface ServerCapabilities {
      *
      * @return an array of LocaleIds that are known to be supported by the Server.
      */
-    default String[] getLocaleIdArray() { return new String[] {Locale.ENGLISH.getLanguage()}; }
+    String[] getLocaleIdArray();
 
     /**
      * MinSupportedSampleRate defines the minimum supported sample rate, including 0, which is supported by the Server.
      *
      * @return the minimum supported sample rate, including 0, which is supported by the Server.
      */
-    double getMinSupportedSampleRate();
+    Double getMinSupportedSampleRate();
 
     /**
      * MaxBrowseContinuationPoints is an integer specifying the maximum number of parallel continuation points of the
@@ -58,8 +57,7 @@ public interface ServerCapabilities {
      * @return the maximum number of parallel continuation points of the Browse Service that the Server can support per
      * session.
      */
-    @UInt16Primitive
-    default int getMaxBrowseContinuationPoints() { return 32; }
+    UShort getMaxBrowseContinuationPoints();
 
     /**
      * MaxQueryContinuationPoints is an integer specifying the maximum number of parallel continuation points of the
@@ -74,8 +72,7 @@ public interface ServerCapabilities {
      * @return the maximum number of parallel continuation points of the QueryFirst Services that the Server can
      * support per session.
      */
-    @UInt16Primitive
-    default int getMaxQueryContinuationPoints() { return 32; }
+    UShort getMaxQueryContinuationPoints();
 
     /**
      * MaxHistoryContinuationPoints is an integer specifying the maximum number of parallel continuation points of the
@@ -90,8 +87,7 @@ public interface ServerCapabilities {
      * @return the maximum number of parallel continuation points of the HistoryRead Services that the Server can
      * support per session.
      */
-    @UInt16Primitive
-    default int getMaxHistoryContinuationPoints() { return 32; }
+    UShort getMaxHistoryContinuationPoints();
 
     /**
      * SoftwareCertificates is an array of SignedSoftwareCertificates containing all SoftwareCertificates supported by
@@ -116,8 +112,7 @@ public interface ServerCapabilities {
      *
      * @return the maximum length of a one or multidimensional array supported by Variables of the Server.
      */
-    @UInt32Primitive
-    default long getMaxArrayLength() { return ChannelConfig.DEFAULT_MAX_ARRAY_LENGTH; }
+    UInteger getMaxArrayLength();
 
     /**
      * The MaxStringLength Property indicates the maximum length of Strings supported by Variables of the Server.
@@ -131,8 +126,7 @@ public interface ServerCapabilities {
      *
      * @return the maximum length of Strings supported by Variables of the Server.
      */
-    @UInt32Primitive
-    default long getMaxStringLength() { return ChannelConfig.DEFAULT_MAX_STRING_LENGTH; }
+    UInteger getMaxStringLength();
 
     /**
      * OperationLimits is an entry point to access information on operation limits of the Server, for example the
@@ -140,6 +134,6 @@ public interface ServerCapabilities {
      *
      * @return an entry point to access information on operation limits of the Server.
      */
-    OperationLimits getOperationLimits();
+    OperationLimitsType getOperationLimits();
 
 }

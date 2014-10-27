@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Inductive Automation
+ * Copyright 2014
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.inductiveautomation.opcua.sdk.server.objects;
+package com.inductiveautomation.opcua.sdk.core.model;
 
-public interface ServerDiagnosticsSummary {
+public interface BaseDataType {
 }

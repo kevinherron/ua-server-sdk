@@ -42,19 +42,19 @@ import static com.inductiveautomation.opcua.sdk.server.util.FutureUtils.sequence
 
 public class WriteHelper {
 
+    private static final int MaxNodesPerWrite = 0xFFFF;
+
     public static void write(ServiceRequest<WriteRequest, WriteResponse> service) {
         WriteRequest request = service.getRequest();
 
         OpcUaServer server = service.attr(ServiceAttributes.ServerKey).get();
-
-        long maxNodesPerWrite = server.getConfig().getServerCapabilities().getOperationLimits().getMaxNodesPerWrite();
 
         if (request.getNodesToWrite().length == 0) {
             service.setServiceFault(StatusCodes.Bad_NothingToDo);
             return;
         }
 
-        if (request.getNodesToWrite().length > maxNodesPerWrite) {
+        if (request.getNodesToWrite().length > MaxNodesPerWrite) {
             service.setServiceFault(StatusCodes.Bad_TooManyOperations);
             return;
         }

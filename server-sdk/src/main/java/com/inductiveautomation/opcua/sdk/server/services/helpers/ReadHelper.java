@@ -42,19 +42,19 @@ import static com.inductiveautomation.opcua.sdk.server.util.FutureUtils.sequence
 
 public class ReadHelper {
 
+    private static final int MaxNodesPerRead = 0xFFFF;
+
     public static void read(ServiceRequest<ReadRequest, ReadResponse> service) {
         ReadRequest request = service.getRequest();
 
         OpcUaServer server = service.attr(ServiceAttributes.ServerKey).get();
-
-        long maxNodesPerRead = server.getConfig().getServerCapabilities().getOperationLimits().getMaxNodesPerRead();
 
         if (request.getNodesToRead().length == 0) {
             service.setServiceFault(StatusCodes.Bad_NothingToDo);
             return;
         }
 
-        if (request.getNodesToRead().length > maxNodesPerRead) {
+        if (request.getNodesToRead().length > MaxNodesPerRead) {
             service.setServiceFault(StatusCodes.Bad_TooManyOperations);
             return;
         }

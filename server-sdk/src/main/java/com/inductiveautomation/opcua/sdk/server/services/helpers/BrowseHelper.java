@@ -29,10 +29,10 @@ import java.util.stream.Stream;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Ints;
-import com.inductiveautomation.opcua.sdk.server.NamespaceManager;
-import com.inductiveautomation.opcua.sdk.server.OpcUaServer;
 import com.inductiveautomation.opcua.sdk.core.Reference;
 import com.inductiveautomation.opcua.sdk.core.nodes.Node;
+import com.inductiveautomation.opcua.sdk.server.NamespaceManager;
+import com.inductiveautomation.opcua.sdk.server.OpcUaServer;
 import com.inductiveautomation.opcua.sdk.server.services.ServiceAttributes;
 import com.inductiveautomation.opcua.sdk.server.util.PendingBrowse;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
@@ -61,10 +61,10 @@ import com.inductiveautomation.opcua.stack.core.util.NonceUtil;
 import static com.inductiveautomation.opcua.sdk.server.util.FutureUtils.sequence;
 import static com.inductiveautomation.opcua.sdk.server.util.UaEnumUtil.browseResultMasks;
 import static com.inductiveautomation.opcua.sdk.server.util.UaEnumUtil.nodeClasses;
-import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
 public class BrowseHelper {
 
+    private static final int MaxNodesPerBrowse = 0xFFFF;
     private static final int MaxContinuationPoints = 1024;
 
     private static final StatusCode Bad_ContinuationPointInvalid = new StatusCode(StatusCodes.Bad_ContinuationPointInvalid);
@@ -80,9 +80,7 @@ public class BrowseHelper {
 
         BrowseRequest request = service.getRequest();
 
-        long maxNodesPerBrowse = server.getConfig().getServerCapabilities().getOperationLimits().getMaxNodesPerBrowse();
-
-        if (request.getNodesToBrowse().length > maxNodesPerBrowse) {
+        if (request.getNodesToBrowse().length > MaxNodesPerBrowse) {
             service.setServiceFault(StatusCodes.Bad_TooManyOperations);
             return;
         }
@@ -118,9 +116,7 @@ public class BrowseHelper {
 
         BrowseNextRequest request = service.getRequest();
 
-        long maxContinuationPoints = server.getConfig().getServerCapabilities().getOperationLimits().getMaxNodesPerBrowse();
-
-        if (request.getContinuationPoints().length > maxContinuationPoints) {
+        if (request.getContinuationPoints().length > MaxContinuationPoints) {
             service.setServiceFault(StatusCodes.Bad_TooManyOperations);
             return;
         }

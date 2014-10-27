@@ -14,13 +14,7 @@
  * limitations under the License.
  */
 
-package com.inductiveautomation.opcua.sdk.server.objects;
+package com.inductiveautomation.opcua.sdk.server.model;
 
-import com.inductiveautomation.opcua.sdk.core.nodes.ObjectNode;
-import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
-
-public interface ObjectPrototype extends ObjectNode {
-
-    NodeId getType();
-
+public interface SessionDiagnosticsSummaryType {
 }
