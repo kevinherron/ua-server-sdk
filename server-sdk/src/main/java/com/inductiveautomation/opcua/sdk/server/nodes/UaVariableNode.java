@@ -21,6 +21,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import com.google.common.base.Preconditions;
@@ -30,8 +31,9 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimaps;
 import com.inductiveautomation.opcua.sdk.core.AccessLevel;
-import com.inductiveautomation.opcua.sdk.core.nodes.VariableNode;
+import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.Reference;
+import com.inductiveautomation.opcua.sdk.core.nodes.VariableNode;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
@@ -54,7 +56,7 @@ public class UaVariableNode extends UaNode implements VariableNode {
     private final ListMultimap<NodeId, Reference> referenceMap =
             Multimaps.synchronizedListMultimap(ArrayListMultimap.create());
 
-    private final AtomicReference<ValueDelegate> valueDelegate;
+    private final AtomicReference<DataValue> value;
     private final AtomicReference<Attributes> attributes;
 
     public UaVariableNode(NodeId nodeId,
@@ -78,19 +80,15 @@ public class UaVariableNode extends UaNode implements VariableNode {
 
         Preconditions.checkArgument(nodeClass == NodeClass.Variable);
 
-        Attributes as = new Attributes(dataType, valueRank, arrayDimensions,
+        Attributes attributes = new Attributes(dataType, valueRank, arrayDimensions,
                 accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
 
-        attributes = new AtomicReference<>(as);
-        valueDelegate = new AtomicReference<>(new AtomicValueDelegate(value));
+        this.attributes = new AtomicReference<>(attributes);
+        this.value = new AtomicReference<>(value);
 
         for (Reference reference : references) {
             referenceMap.put(reference.getReferenceTypeId(), reference);
         }
-    }
-
-    public void setValueDelegate(ValueDelegate delegate) {
-        valueDelegate.set(delegate);
     }
 
     @Override
@@ -107,7 +105,7 @@ public class UaVariableNode extends UaNode implements VariableNode {
 
     @Override
     public DataValue getValue() {
-        return valueDelegate.get().get();
+        return value.get();
     }
 
     @Override
@@ -146,94 +144,58 @@ public class UaVariableNode extends UaNode implements VariableNode {
     }
 
     @Override
-    public void setValue(DataValue value) {
-        valueDelegate.get().accept(value);
+    public synchronized void setValue(DataValue value) {
+        this.value.set(value);
+
+        fireAttributeChanged(AttributeIds.Value, value);
     }
 
     @Override
     public void setDataType(NodeId dataType) {
-        safeSet(b -> b.setDataType(dataType));
+        setAttribute(AttributeIds.DataType, dataType, b -> b::setDataType);
     }
 
     @Override
     public void setValueRank(Integer valueRank) {
-        safeSet(b -> b.setValueRank(valueRank));
+        setAttribute(AttributeIds.ValueRank, valueRank, b -> b::setValueRank);
     }
 
     @Override
     public void setArrayDimensions(Optional<UInteger[]> arrayDimensions) {
-        safeSet(b -> b.setArrayDimensions(arrayDimensions));
+        setAttribute(AttributeIds.ArrayDimensions, arrayDimensions, b -> b::setArrayDimensions);
     }
 
     @Override
     public void setAccessLevel(UByte accessLevel) {
-        safeSet(b -> b.setAccessLevel(accessLevel));
+        setAttribute(AttributeIds.AccessLevel, accessLevel, b -> b::setAccessLevel);
     }
 
     @Override
     public void setUserAccessLevel(UByte userAccessLevel) {
-        safeSet(b -> b.setUserAccessLevel(userAccessLevel));
+        setAttribute(AttributeIds.UserAccessLevel, userAccessLevel, b -> b::setUserAccessLevel);
     }
 
     @Override
     public void setHistorizing(boolean historizing) {
-        safeSet(b -> b.setHistorizing(historizing));
+        setAttribute(AttributeIds.Historizing, historizing, b -> b::setHistorizing);
+    }
+
+    private synchronized <T> void setAttribute(int attributeId, T value,
+                                               Function<Attributes.Builder, Consumer<T>> setter) {
+
+        Attributes current = attributes.get();
+
+        Attributes.Builder builder = Attributes.Builder.copy(current);
+        setter.apply(builder).accept(value);
+        Attributes updated = builder.get();
+
+        attributes.set(updated);
+
+        fireAttributeChanged(attributeId, value);
     }
 
     public static UaVariableNodeBuilder builder() {
         return new UaVariableNodeBuilder();
-    }
-
-    private void safeSet(Consumer<Attributes.Builder> consumer) {
-        Attributes as = attributes.get();
-
-        Attributes.Builder builder = Attributes.Builder.copy(as);
-        consumer.accept(builder);
-        Attributes mutatedCopy = builder.get();
-
-        while (!attributes.compareAndSet(as, mutatedCopy)) {
-            as = attributes.get();
-
-            builder = Attributes.Builder.copy(as);
-            consumer.accept(builder);
-            mutatedCopy = builder.get();
-        }
-    }
-
-    private static Reference hasTypeDefinition(NodeId sourceNodeId, NodeId typeDefinition) {
-        return hasTypeDefinition(sourceNodeId, new ExpandedNodeId(typeDefinition));
-    }
-
-    private static Reference hasTypeDefinition(NodeId sourceNodeId, ExpandedNodeId typeDefinition) {
-        return new Reference(sourceNodeId, Identifiers.HasTypeDefinition, typeDefinition, NodeClass.VariableType, true);
-    }
-
-    /**
-     * A union of {@link Consumer} and {@link Supplier} that provides the container for this Node's DataValue.
-     */
-    public static interface ValueDelegate extends Consumer<DataValue>, Supplier<DataValue> {
-
-    }
-
-    /**
-     * A thread-safe {@link ValueDelegate} that stores the {@link DataValue} in an {@link AtomicReference}.
-     */
-    private static class AtomicValueDelegate implements ValueDelegate {
-        private final AtomicReference<DataValue> value = new AtomicReference<>();
-
-        private AtomicValueDelegate(DataValue value) {
-            this.value.set(value);
-        }
-
-        @Override
-        public void accept(DataValue dataValue) {
-            value.set(dataValue);
-        }
-
-        @Override
-        public DataValue get() {
-            return value.get();
-        }
     }
 
     private static class Attributes {

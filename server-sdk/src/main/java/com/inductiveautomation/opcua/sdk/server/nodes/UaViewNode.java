@@ -26,8 +26,9 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
-import com.inductiveautomation.opcua.sdk.core.nodes.ViewNode;
+import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.Reference;
+import com.inductiveautomation.opcua.sdk.core.nodes.ViewNode;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
@@ -88,12 +89,18 @@ public class UaViewNode extends UaNode implements ViewNode {
         return eventNotifier.get();
     }
 
-    public void setContainsNoLoops(boolean containsNoLoops) {
+    @Override
+    public synchronized void setContainsNoLoops(boolean containsNoLoops) {
         this.containsNoLoops.set(containsNoLoops);
+
+        fireAttributeChanged(AttributeIds.ContainsNoLoops, containsNoLoops);
     }
 
-    public void setEventNotifier(UByte eventNotifier) {
+    @Override
+    public synchronized void setEventNotifier(UByte eventNotifier) {
         this.eventNotifier.set(eventNotifier);
+
+        fireAttributeChanged(AttributeIds.EventNotifier, eventNotifier);
     }
 
 }

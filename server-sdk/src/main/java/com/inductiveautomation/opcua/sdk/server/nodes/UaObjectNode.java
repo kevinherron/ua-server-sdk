@@ -28,6 +28,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimaps;
+import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.nodes.ObjectNode;
 import com.inductiveautomation.opcua.sdk.core.Reference;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
@@ -90,8 +91,11 @@ public class UaObjectNode extends UaNode implements ObjectNode {
         return eventNotifier.get();
     }
 
-    public void setEventNotifier(UByte eventNotifier) {
+    @Override
+    public synchronized void setEventNotifier(UByte eventNotifier) {
         this.eventNotifier.set(eventNotifier);
+
+        fireAttributeChanged(AttributeIds.EventNotifier, eventNotifier);
     }
 
     public static UaObjectNodeBuilder builder() {

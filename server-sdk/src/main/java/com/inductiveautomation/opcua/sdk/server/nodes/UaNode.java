@@ -16,14 +16,19 @@
 
 package com.inductiveautomation.opcua.sdk.server.nodes;
 
+import java.lang.ref.WeakReference;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
-import com.inductiveautomation.opcua.sdk.core.nodes.Node;
+import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.Reference;
+import com.inductiveautomation.opcua.sdk.core.nodes.Node;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
@@ -31,6 +36,8 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
 
 public abstract class UaNode implements Node {
+
+    private List<WeakReference<AttributeObserver>> observers;
 
     private final AtomicReference<Attributes> attributes;
 
@@ -98,52 +105,89 @@ public abstract class UaNode implements Node {
 
     @Override
     public void setNodeId(NodeId nodeId) {
-        safeSet(b -> b.setNodeId(nodeId));
+        setAttribute(AttributeIds.NodeId, nodeId, b -> b::setNodeId);
     }
 
     @Override
     public void setNodeClass(NodeClass nodeClass) {
-        safeSet(b -> b.setNodeClass(nodeClass));
+        setAttribute(AttributeIds.NodeClass, nodeClass, b -> b::setNodeClass);
     }
 
     @Override
     public void setBrowseName(QualifiedName browseName) {
-        safeSet(b -> b.setBrowseName(browseName));
+        setAttribute(AttributeIds.BrowseName, browseName, b -> b::setBrowseName);
     }
 
     @Override
     public void setDisplayName(LocalizedText displayName) {
-        safeSet(b -> b.setDisplayName(displayName));
+        setAttribute(AttributeIds.DisplayName, displayName, b -> b::setDisplayName);
     }
 
     @Override
     public void setDescription(Optional<LocalizedText> description) {
-        safeSet(b -> b.setDescription(description));
+        setAttribute(AttributeIds.Description, description, b -> b::setDescription);
     }
 
     @Override
     public void setWriteMask(Optional<UInteger> writeMask) {
-        safeSet(b -> b.setWriteMask(writeMask));
+        setAttribute(AttributeIds.WriteMask, writeMask, b -> b::setWriteMask);
     }
 
     @Override
     public void setUserWriteMask(Optional<UInteger> userWriteMask) {
-        safeSet(b -> b.setUserWriteMask(userWriteMask));
+        setAttribute(AttributeIds.UserWriteMask, userWriteMask, b -> b::setUserWriteMask);
     }
 
-    private void safeSet(Consumer<Attributes.Builder> consumer) {
-        Attributes as = attributes.get();
+    private synchronized <T> void setAttribute(int attributeId, T value,
+                                               Function<Attributes.Builder, Consumer<T>> setter) {
 
-        Attributes.Builder builder = Attributes.Builder.copy(as);
-        consumer.accept(builder);
-        Attributes mutatedCopy = builder.get();
+        Attributes current = attributes.get();
 
-        while (!attributes.compareAndSet(as, mutatedCopy)) {
-            as = attributes.get();
+        Attributes.Builder builder = Attributes.Builder.copy(current);
+        setter.apply(builder).accept(value);
+        Attributes updated = builder.get();
 
-            builder = Attributes.Builder.copy(as);
-            consumer.accept(builder);
-            mutatedCopy = builder.get();
+        attributes.set(updated);
+
+        fireAttributeChanged(attributeId, value);
+    }
+
+    public synchronized void addAttributeObserver(AttributeObserver observer) {
+        if (observers == null) {
+            observers = new LinkedList<>();
+        }
+
+        observers.add(new WeakReference<>(observer));
+    }
+
+    public synchronized void removeAttributeObserver(AttributeObserver observer) {
+        if (observers == null) return;
+
+        Iterator<WeakReference<AttributeObserver>> iterator = observers.iterator();
+
+        while (iterator.hasNext()) {
+            WeakReference<AttributeObserver> ref = iterator.next();
+            if (ref.get() == null || ref.get() == observer) {
+                iterator.remove();
+            }
+        }
+
+        if (observers.isEmpty()) observers = null;
+    }
+
+    protected synchronized void fireAttributeChanged(int attributeId, Object attributeValue) {
+        if (observers == null) return;
+
+        Iterator<WeakReference<AttributeObserver>> iterator = observers.iterator();
+
+        while (iterator.hasNext()) {
+            WeakReference<AttributeObserver> ref = iterator.next();
+            AttributeObserver observer = ref.get();
+            if (observer != null) {
+                observer.attributeChanged(this, attributeId, attributeValue);
+            } else {
+                iterator.remove();
+            }
         }
     }
 

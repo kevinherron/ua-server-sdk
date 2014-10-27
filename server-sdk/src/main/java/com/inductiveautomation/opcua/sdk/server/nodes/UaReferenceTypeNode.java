@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import com.google.common.base.Preconditions;
@@ -27,8 +28,9 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
-import com.inductiveautomation.opcua.sdk.core.nodes.ReferenceTypeNode;
+import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.Reference;
+import com.inductiveautomation.opcua.sdk.core.nodes.ReferenceTypeNode;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ExpandedNodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
@@ -135,32 +137,33 @@ public class UaReferenceTypeNode extends UaNode implements ReferenceTypeNode {
         return attributes.get().getInverseName();
     }
 
+    @Override
     public void setIsAbstract(boolean isAbstract) {
-        safeSet(b -> b.setIsAbstract(isAbstract));
+        setAttribute(AttributeIds.IsAbstract, isAbstract, b -> b::setIsAbstract);
     }
 
-    public void setSymmetric(boolean symmetric) {
-        safeSet(b -> b.setSymmetric(symmetric));
+    @Override
+    public void setIsSymmetric(boolean symmetric) {
+        setAttribute(AttributeIds.Symmetric, symmetric, b -> b::setSymmetric);
     }
 
+    @Override
     public void setInverseName(Optional<LocalizedText> inverseName) {
-        safeSet(b -> b.setInverseName(inverseName));
+        setAttribute(AttributeIds.InverseName, inverseName, b -> b::setInverseName);
     }
 
-    private void safeSet(Consumer<Attributes.Builder> consumer) {
-        Attributes as = attributes.get();
+    private synchronized <T> void setAttribute(int attributeId, T value,
+                                               Function<Attributes.Builder, Consumer<T>> setter) {
 
-        Attributes.Builder builder = Attributes.Builder.copy(as);
-        consumer.accept(builder);
-        Attributes mutatedCopy = builder.get();
+        Attributes current = attributes.get();
 
-        while (!attributes.compareAndSet(as, mutatedCopy)) {
-            as = attributes.get();
+        Attributes.Builder builder = Attributes.Builder.copy(current);
+        setter.apply(builder).accept(value);
+        Attributes updated = builder.get();
 
-            builder = Attributes.Builder.copy(as);
-            consumer.accept(builder);
-            mutatedCopy = builder.get();
-        }
+        attributes.set(updated);
+
+        fireAttributeChanged(attributeId, value);
     }
 
     private static class Attributes {

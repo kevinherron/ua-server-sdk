@@ -25,8 +25,9 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
-import com.inductiveautomation.opcua.sdk.core.nodes.ObjectTypeNode;
+import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.Reference;
+import com.inductiveautomation.opcua.sdk.core.nodes.ObjectTypeNode;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
@@ -76,8 +77,11 @@ public class UaObjectTypeNode extends UaNode implements ObjectTypeNode {
         return isAbstract.get();
     }
 
-    public void setIsAbstract(boolean isAbstract) {
+    @Override
+    public synchronized void setIsAbstract(boolean isAbstract) {
         this.isAbstract.set(isAbstract);
+
+        fireAttributeChanged(AttributeIds.IsAbstract, isAbstract);
     }
 
 }

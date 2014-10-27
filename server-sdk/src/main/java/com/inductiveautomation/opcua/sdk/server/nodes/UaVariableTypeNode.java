@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import com.google.common.base.Preconditions;
@@ -27,8 +28,9 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
-import com.inductiveautomation.opcua.sdk.core.nodes.VariableTypeNode;
+import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.Reference;
+import com.inductiveautomation.opcua.sdk.core.nodes.VariableTypeNode;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
@@ -106,41 +108,45 @@ public class UaVariableTypeNode extends UaNode implements VariableTypeNode {
         return attributes.get().isAbstract();
     }
 
+    @Override
     public void setValue(Optional<DataValue> value) {
-        safeSet(b -> b.setValue(value));
+        setAttribute(AttributeIds.Value, value, b -> b::setValue);
     }
 
+    @Override
     public void setDataType(NodeId dataType) {
-        safeSet(b -> b.setDataType(dataType));
+        setAttribute(AttributeIds.DataType, dataType, b -> b::setDataType);
     }
 
+    @Override
     public void setValueRank(int valueRank) {
-        safeSet(b -> b.setValueRank(valueRank));
+        setAttribute(AttributeIds.ValueRank, valueRank, b -> b::setValueRank);
     }
 
+    @Override
     public void setArrayDimensions(Optional<UInteger[]> arrayDimensions) {
-        safeSet(b -> b.setArrayDimensions(arrayDimensions));
+        setAttribute(AttributeIds.ArrayDimensions, arrayDimensions, b -> b::setArrayDimensions);
     }
 
+    @Override
     public void setIsAbstract(boolean isAbstract) {
-        safeSet(b -> b.setIsAbstract(isAbstract));
+        setAttribute(AttributeIds.IsAbstract, isAbstract, b -> b::setIsAbstract);
     }
 
-    private void safeSet(Consumer<Attributes.Builder> consumer) {
-        Attributes as = attributes.get();
+    private synchronized <T> void setAttribute(int attributeId, T value,
+                                               Function<Attributes.Builder, Consumer<T>> setter) {
 
-        Attributes.Builder builder = Attributes.Builder.copy(as);
-        consumer.accept(builder);
-        Attributes mutatedCopy = builder.get();
+        Attributes current = attributes.get();
 
-        while (!attributes.compareAndSet(as, mutatedCopy)) {
-            as = attributes.get();
+        Attributes.Builder builder = Attributes.Builder.copy(current);
+        setter.apply(builder).accept(value);
+        Attributes updated = builder.get();
 
-            builder = Attributes.Builder.copy(as);
-            consumer.accept(builder);
-            mutatedCopy = builder.get();
-        }
+        attributes.set(updated);
+
+        fireAttributeChanged(attributeId, value);
     }
+
 
     private static class Attributes {
 

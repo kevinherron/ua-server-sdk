@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimaps;
+import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.ValueRank;
 import com.inductiveautomation.opcua.sdk.core.nodes.MethodNode;
 import com.inductiveautomation.opcua.sdk.server.api.MethodInvocationHandler;
@@ -100,12 +101,18 @@ public class UaMethodNode extends UaNode implements MethodNode {
         return userExecutable.get();
     }
 
-    public void setExecutable(boolean executable) {
+    @Override
+    public synchronized void setExecutable(boolean executable) {
         this.executable.set(executable);
+
+        fireAttributeChanged(AttributeIds.Executable, executable);
     }
 
-    public void setUserExecutable(boolean userExecutable) {
+    @Override
+    public synchronized void setUserExecutable(boolean userExecutable) {
         this.userExecutable.set(userExecutable);
+
+        fireAttributeChanged(AttributeIds.UserExecutable, userExecutable);
     }
 
     public UaVariableNode setInputArguments(Argument[] arguments) {
