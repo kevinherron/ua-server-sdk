@@ -16,8 +16,6 @@
 
 package com.inductiveautomation.opcua.sdk.server.api;
 
-import java.util.List;
-
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
 
@@ -36,16 +34,6 @@ public interface DataItem extends MonitoredItem {
      * @param quality the {@link StatusCode} to apply.
      */
     void setQuality(StatusCode quality);
-
-    /**
-     * Set the sampling interval.
-     * <p>
-     * Only has any effect during a {@link MonitoredItemManager#onDataItemsCreated(List)} or
-     * {@link MonitoredItemManager#onDataItemsModified(List)} call.
-     *
-     * @param samplingInterval the revised sampling interval.
-     */
-    void setSamplingInterval(double samplingInterval);
 
     /**
      * @return the rate to sample this item at.

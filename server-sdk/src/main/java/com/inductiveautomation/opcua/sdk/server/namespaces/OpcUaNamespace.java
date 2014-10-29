@@ -182,19 +182,11 @@ public class OpcUaNamespace implements Namespace, UaNodeManager {
 
     @Override
     public void onDataItemsCreated(List<DataItem> dataItems) {
-        dataItems.stream().forEach(item -> {
-            if (item.getSamplingInterval() < 100) item.setSamplingInterval(100.0);
-        });
-
         subscriptionModel.onDataItemsCreated(dataItems);
     }
 
     @Override
     public void onDataItemsModified(List<DataItem> dataItems) {
-        dataItems.stream().forEach(item -> {
-            if (item.getSamplingInterval() < 100) item.setSamplingInterval(100.0);
-        });
-
         subscriptionModel.onDataItemsModified(dataItems);
     }
 
