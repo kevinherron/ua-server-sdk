@@ -202,6 +202,10 @@ public abstract class UaNode implements Node {
         references.removeAll(c);
     }
 
+    public <T> Optional<T> getProperty(String browseName) {
+        return getProperty(new QualifiedName(getNodeId().getNamespaceIndex(), browseName));
+    }
+
     public <T> Optional<T> getProperty(QualifiedName browseName) {
         Node node = getPropertyNode(browseName).orElse(null);
 
