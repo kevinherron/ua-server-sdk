@@ -28,6 +28,7 @@ import com.google.common.collect.ImmutableList;
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.Reference;
 import com.inductiveautomation.opcua.sdk.core.nodes.Node;
+import com.inductiveautomation.opcua.sdk.core.nodes.ObjectNode;
 import com.inductiveautomation.opcua.sdk.core.nodes.VariableNode;
 import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
@@ -216,6 +217,10 @@ public abstract class UaNode implements Node {
         }
     }
 
+    public Optional<VariableNode> getPropertyNode(String browseName) {
+        return getPropertyNode(new QualifiedName(getNodeId().getNamespaceIndex(), browseName));
+    }
+
     public Optional<VariableNode> getPropertyNode(QualifiedName browseName) {
         Node node = references.stream()
                 .filter(Reference.HAS_PROPERTY_PREDICATE)
@@ -256,6 +261,34 @@ public abstract class UaNode implements Node {
 
     protected Optional<UaNode> removePropertyNode(QualifiedName browseName) {
         return getPropertyNode(browseName).flatMap(n -> getNodeManager().removeUaNode(n.getNodeId()));
+    }
+
+    protected Optional<ObjectNode> getObjectComponent(String browseName) {
+        return getObjectComponent(new QualifiedName(getNodeId().getNamespaceIndex(), browseName));
+    }
+
+    protected Optional<ObjectNode> getObjectComponent(QualifiedName browseName) {
+        ObjectNode node = (ObjectNode) references.stream()
+                .filter(Reference.HAS_COMPONENT_PREDICATE.and(r -> r.getTargetNodeClass() == NodeClass.Object))
+                .flatMap(r -> opt2stream(getNode(r.getTargetNodeId())))
+                .filter(n -> n.getBrowseName().equals(browseName))
+                .findFirst().orElse(null);
+
+        return Optional.ofNullable(node);
+    }
+
+    protected Optional<VariableNode> getVariableComponent(String browseName) {
+        return getVariableComponent(new QualifiedName(getNodeId().getNamespaceIndex(), browseName));
+    }
+
+    protected Optional<VariableNode> getVariableComponent(QualifiedName browseName) {
+        VariableNode node = (VariableNode) references.stream()
+                .filter(Reference.HAS_COMPONENT_PREDICATE.and(r -> r.getTargetNodeClass() == NodeClass.Variable))
+                .flatMap(r -> opt2stream(getNode(r.getTargetNodeId())))
+                .filter(n -> n.getBrowseName().equals(browseName))
+                .findFirst().orElse(null);
+
+        return Optional.ofNullable(node);
     }
 
     public synchronized void addAttributeObserver(AttributeObserver observer) {
