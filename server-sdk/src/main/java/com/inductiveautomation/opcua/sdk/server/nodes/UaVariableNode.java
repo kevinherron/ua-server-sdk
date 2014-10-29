@@ -19,23 +19,23 @@ package com.inductiveautomation.opcua.sdk.server.nodes;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimaps;
 import com.inductiveautomation.opcua.sdk.core.AccessLevel;
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.Reference;
+import com.inductiveautomation.opcua.sdk.core.ValueRank;
+import com.inductiveautomation.opcua.sdk.core.nodes.Node;
+import com.inductiveautomation.opcua.sdk.core.nodes.ObjectNode;
 import com.inductiveautomation.opcua.sdk.core.nodes.VariableNode;
+import com.inductiveautomation.opcua.sdk.core.nodes.VariableTypeNode;
+import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
+import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ExpandedNodeId;
@@ -47,20 +47,50 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.Variant;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
+import com.inductiveautomation.opcua.stack.core.types.structured.EUInformation;
+import com.inductiveautomation.opcua.stack.core.types.structured.TimeZoneDataType;
 
+import static com.inductiveautomation.opcua.sdk.core.Reference.HAS_COMPONENT_PREDICATE;
+import static com.inductiveautomation.opcua.sdk.core.Reference.HAS_MODELLING_RULE_PREDICATE;
+import static com.inductiveautomation.opcua.sdk.core.Reference.HAS_PROPERTY_PREDICATE;
+import static com.inductiveautomation.opcua.sdk.core.Reference.HAS_TYPE_DEFINITION_PREDICATE;
+import static com.inductiveautomation.opcua.sdk.server.util.StreamUtil.opt2stream;
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.ubyte;
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
 public class UaVariableNode extends UaNode implements VariableNode {
 
-    private final ListMultimap<NodeId, Reference> referenceMap =
-            Multimaps.synchronizedListMultimap(ArrayListMultimap.create());
+    private static final DataValue INITIAL_VALUE = new DataValue(new StatusCode(StatusCodes.Uncertain_InitialValue));
 
-    private final AtomicReference<DataValue> value;
-    private final AtomicReference<Attributes> attributes;
+    public static final QualifiedName NODE_VERSION = new QualifiedName(0, "NodeVersion");
+    public static final QualifiedName LOCAL_TIME = new QualifiedName(0, "LocalTime");
+    public static final QualifiedName DATA_TYPE_VERSION = new QualifiedName(0, "DataTypeVersion");
+    public static final QualifiedName DICTIONARY_FRAGMENT = new QualifiedName(0, "DictionaryFragment");
+    public static final QualifiedName ALLOW_NULLS = new QualifiedName(0, "AllowNulls");
+    public static final QualifiedName VALUE_AS_TEXT = new QualifiedName(0, "ValueAsText");
+    public static final QualifiedName MAX_STRING_LENGTH = new QualifiedName(0, "MaxStringLength");
+    public static final QualifiedName MAX_ARRAY_LENGTH = new QualifiedName(0, "MaxArrayLength");
+    public static final QualifiedName ENGINEERING_UNITS = new QualifiedName(0, "EngineeringUnits");
 
-    public UaVariableNode(NodeId nodeId,
-                          NodeClass nodeClass,
+    private volatile DataValue value = INITIAL_VALUE;
+    private volatile NodeId dataType = Identifiers.BaseDataType;
+    private volatile Integer valueRank = ValueRank.Scalar;
+    private volatile Optional<UInteger[]> arrayDimensions = Optional.empty();
+    private volatile UByte accessLevel = ubyte(AccessLevel.getMask(AccessLevel.CurrentRead));
+    private volatile UByte userAccessLevel = ubyte(AccessLevel.getMask(AccessLevel.CurrentRead));
+    private volatile Optional<Double> minimumSamplingInterval = Optional.empty();
+    private volatile boolean historizing = false;
+
+    public UaVariableNode(UaNodeManager nodeManager,
+                          NodeId nodeId,
+                          QualifiedName browseName,
+                          LocalizedText displayName) {
+
+        super(nodeManager, nodeId, NodeClass.Variable, browseName, displayName);
+    }
+
+    public UaVariableNode(UaNodeManager nodeManager,
+                          NodeId nodeId,
                           QualifiedName browseName,
                           LocalizedText displayName,
                           Optional<LocalizedText> description,
@@ -73,284 +103,375 @@ public class UaVariableNode extends UaNode implements VariableNode {
                           UByte accessLevel,
                           UByte userAccessLevel,
                           Optional<Double> minimumSamplingInterval,
-                          boolean historizing,
-                          List<Reference> references) {
+                          boolean historizing) {
 
-        super(nodeId, nodeClass, browseName, displayName, description, writeMask, userWriteMask);
+        super(nodeManager, nodeId, NodeClass.Variable, browseName, displayName, description, writeMask, userWriteMask);
 
-        Preconditions.checkArgument(nodeClass == NodeClass.Variable);
-
-        Attributes attributes = new Attributes(dataType, valueRank, arrayDimensions,
-                accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
-
-        this.attributes = new AtomicReference<>(attributes);
-        this.value = new AtomicReference<>(value);
-
-        for (Reference reference : references) {
-            referenceMap.put(reference.getReferenceTypeId(), reference);
-        }
-    }
-
-    @Override
-    public void addReference(Reference reference) {
-        referenceMap.put(reference.getReferenceTypeId(), reference);
-    }
-
-    @Override
-    public List<Reference> getReferences() {
-        synchronized (referenceMap) {
-            return ImmutableList.copyOf(referenceMap.values());
-        }
+        this.value = value;
+        this.dataType = dataType;
+        this.valueRank = valueRank;
+        this.arrayDimensions = arrayDimensions;
+        this.accessLevel = accessLevel;
+        this.userAccessLevel = userAccessLevel;
+        this.minimumSamplingInterval = minimumSamplingInterval;
+        this.historizing = historizing;
     }
 
     @Override
     public DataValue getValue() {
-        return value.get();
+        return value;
     }
 
     @Override
     public NodeId getDataType() {
-        return attributes.get().getDataType();
+        return dataType;
     }
 
     @Override
     public Integer getValueRank() {
-        return attributes.get().getValueRank();
+        return valueRank;
     }
 
     @Override
     public Optional<UInteger[]> getArrayDimensions() {
-        return attributes.get().getArrayDimensions();
+        return arrayDimensions;
     }
 
     @Override
     public UByte getAccessLevel() {
-        return attributes.get().getAccessLevel();
+        return accessLevel;
     }
 
     @Override
     public UByte getUserAccessLevel() {
-        return attributes.get().getUserAccessLevel();
+        return userAccessLevel;
     }
 
     @Override
     public Optional<Double> getMinimumSamplingInterval() {
-        return attributes.get().getMinimumSamplingInterval();
+        return minimumSamplingInterval;
     }
 
     @Override
-    public Boolean isHistorizing() {
-        return attributes.get().isHistorizing();
+    public Boolean getHistorizing() {
+        return historizing;
     }
 
     @Override
     public synchronized void setValue(DataValue value) {
-        this.value.set(value);
+        this.value = value;
 
         fireAttributeChanged(AttributeIds.Value, value);
     }
 
     @Override
-    public void setDataType(NodeId dataType) {
-        setAttribute(AttributeIds.DataType, dataType, b -> b::setDataType);
+    public synchronized void setDataType(NodeId dataType) {
+        this.dataType = dataType;
+
+        fireAttributeChanged(AttributeIds.DataType, dataType);
     }
 
     @Override
-    public void setValueRank(Integer valueRank) {
-        setAttribute(AttributeIds.ValueRank, valueRank, b -> b::setValueRank);
+    public synchronized void setValueRank(Integer valueRank) {
+        this.valueRank = valueRank;
+
+        fireAttributeChanged(AttributeIds.ValueRank, valueRank);
     }
 
     @Override
-    public void setArrayDimensions(Optional<UInteger[]> arrayDimensions) {
-        setAttribute(AttributeIds.ArrayDimensions, arrayDimensions, b -> b::setArrayDimensions);
+    public synchronized void setArrayDimensions(Optional<UInteger[]> arrayDimensions) {
+        this.arrayDimensions = arrayDimensions;
+
+        arrayDimensions.ifPresent(v -> fireAttributeChanged(AttributeIds.ArrayDimensions, v));
     }
 
     @Override
-    public void setAccessLevel(UByte accessLevel) {
-        setAttribute(AttributeIds.AccessLevel, accessLevel, b -> b::setAccessLevel);
+    public synchronized void setAccessLevel(UByte accessLevel) {
+        this.accessLevel = accessLevel;
+
+        fireAttributeChanged(AttributeIds.AccessLevel, accessLevel);
     }
 
     @Override
-    public void setUserAccessLevel(UByte userAccessLevel) {
-        setAttribute(AttributeIds.UserAccessLevel, userAccessLevel, b -> b::setUserAccessLevel);
+    public synchronized void setUserAccessLevel(UByte userAccessLevel) {
+        this.userAccessLevel = userAccessLevel;
+
+        fireAttributeChanged(AttributeIds.UserAccessLevel, userAccessLevel);
+    }
+
+    @Override
+    public void setMinimumSamplingInterval(Optional<Double> minimumSamplingInterval) {
+        this.minimumSamplingInterval = minimumSamplingInterval;
+
+        minimumSamplingInterval.ifPresent(v -> fireAttributeChanged(AttributeIds.MinimumSamplingInterval, v));
     }
 
     @Override
     public void setHistorizing(boolean historizing) {
-        setAttribute(AttributeIds.Historizing, historizing, b -> b::setHistorizing);
+        this.historizing = historizing;
+
+        fireAttributeChanged(AttributeIds.Historizing, historizing);
     }
 
-    private synchronized <T> void setAttribute(int attributeId, T value,
-                                               Function<Attributes.Builder, Consumer<T>> setter) {
+    public Optional<ObjectNode> getModellingRuleNode() {
+        Node node = getReferences().stream()
+                .filter(HAS_MODELLING_RULE_PREDICATE)
+                .findFirst()
+                .flatMap(r -> getNode(r.getTargetNodeId()))
+                .orElse(null);
 
-        Attributes current = attributes.get();
+        ObjectNode objectNode = (node instanceof ObjectNode) ? (ObjectNode) node : null;
 
-        Attributes.Builder builder = Attributes.Builder.copy(current);
-        setter.apply(builder).accept(value);
-        Attributes updated = builder.get();
-
-        attributes.set(updated);
-
-        fireAttributeChanged(attributeId, value);
+        return Optional.ofNullable(objectNode);
     }
 
-    public static UaVariableNodeBuilder builder() {
-        return new UaVariableNodeBuilder();
+    public List<Node> getPropertyNodes() {
+        return getReferences().stream()
+                .filter(HAS_PROPERTY_PREDICATE)
+                .flatMap(r -> opt2stream(getNode(r.getTargetNodeId())))
+                .collect(Collectors.toList());
     }
 
-    private static class Attributes {
+    public List<Node> getComponentNodes() {
+        return getReferences().stream()
+                .filter(HAS_COMPONENT_PREDICATE)
+                .flatMap(r -> opt2stream(getNode(r.getTargetNodeId())))
+                .collect(Collectors.toList());
+    }
 
-        private final NodeId dataType;
-        private final Integer valueRank;
-        private final Optional<UInteger[]> arrayDimensions;
-        private final UByte accessLevel;
-        private final UByte userAccessLevel;
-        private final Optional<Double> minimumSamplingInterval;
-        private final boolean historizing;
+    public VariableTypeNode getTypeDefinitionNode() {
+        Node node = getReferences().stream()
+                .filter(HAS_TYPE_DEFINITION_PREDICATE)
+                .findFirst()
+                .flatMap(r -> getNode(r.getTargetNodeId()))
+                .orElse(null);
 
-        private Attributes(NodeId dataType,
-                           Integer valueRank,
-                           Optional<UInteger[]> arrayDimensions,
-                           UByte accessLevel,
-                           UByte  userAccessLevel,
-                           Optional<Double> minimumSamplingInterval,
-                           boolean historizing) {
+        return (node instanceof VariableTypeNode) ? (VariableTypeNode) node : null;
+    }
 
-            this.dataType = dataType;
-            this.valueRank = valueRank;
-            this.arrayDimensions = arrayDimensions;
-            this.accessLevel = accessLevel;
-            this.userAccessLevel = userAccessLevel;
-            this.minimumSamplingInterval = minimumSamplingInterval;
-            this.historizing = historizing;
+    @Override
+    public Optional<String> getNodeVersion() {
+        return getProperty(NODE_VERSION);
+    }
+
+    @Override
+    public Optional<TimeZoneDataType> getLocalTime() {
+        return getProperty(LOCAL_TIME);
+    }
+
+    @Override
+    public Optional<String> getDataTypeVersion() {
+        return getProperty(DATA_TYPE_VERSION);
+    }
+
+    @Override
+    public Optional<ByteString> getDictionaryFragment() {
+        return getProperty(DICTIONARY_FRAGMENT);
+    }
+
+    @Override
+    public Optional<Boolean> getAllowNulls() {
+        return getProperty(ALLOW_NULLS);
+    }
+
+    @Override
+    public Optional<LocalizedText> getValueAsText() {
+        return getProperty(VALUE_AS_TEXT);
+    }
+
+    @Override
+    public Optional<UInteger> getMaxStringLength() {
+        return getProperty(MAX_STRING_LENGTH);
+    }
+
+    @Override
+    public Optional<UInteger> getMaxArrayLength() {
+        return getProperty(MAX_ARRAY_LENGTH);
+    }
+
+    @Override
+    public Optional<EUInformation> getEngineeringUnits() {
+        return getProperty(ENGINEERING_UNITS);
+    }
+
+    @Override
+    public void setNodeVersion(Optional<String> nodeVersion) {
+        if (nodeVersion.isPresent()) {
+            VariableNode node = getPropertyNode(NODE_VERSION).orElseGet(() -> {
+                UaPropertyNode propertyNode = createPropertyNode(NODE_VERSION);
+
+                propertyNode.setDataType(Identifiers.String);
+
+                addPropertyNode(propertyNode);
+
+                return propertyNode;
+            });
+
+            node.setValue(new DataValue(new Variant(nodeVersion.get())));
+        } else {
+            removePropertyNode(NODE_VERSION);
         }
+    }
 
-        public NodeId getDataType() {
-            return dataType;
+    @Override
+    public void setLocalTime(Optional<TimeZoneDataType> localTime) {
+        if (localTime.isPresent()) {
+            VariableNode node = getPropertyNode(LOCAL_TIME).orElseGet(() -> {
+                UaPropertyNode propertyNode = createPropertyNode(LOCAL_TIME);
+
+                propertyNode.setDataType(Identifiers.TimeZoneDataType);
+
+                addPropertyNode(propertyNode);
+
+                return propertyNode;
+            });
+
+            node.setValue(new DataValue(new Variant(localTime.get())));
+        } else {
+            removePropertyNode(LOCAL_TIME);
         }
+    }
 
-        public int getValueRank() {
-            return valueRank;
+    @Override
+    public void setDataTypeVersion(Optional<String> dataTypeVersion) {
+        if (dataTypeVersion.isPresent()) {
+            VariableNode node = getPropertyNode(DATA_TYPE_VERSION).orElseGet(() -> {
+                UaPropertyNode propertyNode = createPropertyNode(DATA_TYPE_VERSION);
+
+                propertyNode.setDataType(Identifiers.String);
+
+                addPropertyNode(propertyNode);
+
+                return propertyNode;
+            });
+
+            node.setValue(new DataValue(new Variant(dataTypeVersion.get())));
+        } else {
+            removePropertyNode(DATA_TYPE_VERSION);
         }
+    }
 
-        public Optional<UInteger[]> getArrayDimensions() {
-            return arrayDimensions;
+    @Override
+    public void setDictionaryFragment(Optional<ByteString> dictionaryFragment) {
+        if (dictionaryFragment.isPresent()) {
+            VariableNode node = getPropertyNode(DICTIONARY_FRAGMENT).orElseGet(() -> {
+                UaPropertyNode propertyNode = createPropertyNode(DICTIONARY_FRAGMENT);
+
+                propertyNode.setDataType(Identifiers.ByteString);
+
+                addPropertyNode(propertyNode);
+
+                return propertyNode;
+            });
+
+            node.setValue(new DataValue(new Variant(dictionaryFragment.get())));
+        } else {
+            removePropertyNode(DICTIONARY_FRAGMENT);
         }
+    }
 
-        public UByte getAccessLevel() {
-            return accessLevel;
+    @Override
+    public void setAllowNulls(Optional<Boolean> allowNulls) {
+        if (allowNulls.isPresent()) {
+            VariableNode node = getPropertyNode(ALLOW_NULLS).orElseGet(() -> {
+                UaPropertyNode propertyNode = createPropertyNode(ALLOW_NULLS);
+
+                propertyNode.setDataType(Identifiers.Boolean);
+
+                addPropertyNode(propertyNode);
+
+                return propertyNode;
+            });
+
+            node.setValue(new DataValue(new Variant(allowNulls.get())));
+        } else {
+            removePropertyNode(ALLOW_NULLS);
         }
+    }
 
-        public UByte getUserAccessLevel() {
-            return userAccessLevel;
+    @Override
+    public void setValueAsText(Optional<LocalizedText> valueAsText) {
+        if (valueAsText.isPresent()) {
+            VariableNode node = getPropertyNode(VALUE_AS_TEXT).orElseGet(() -> {
+                UaPropertyNode propertyNode = createPropertyNode(VALUE_AS_TEXT);
+
+                propertyNode.setDataType(Identifiers.LocalizedText);
+
+                addPropertyNode(propertyNode);
+
+                return propertyNode;
+            });
+
+            node.setValue(new DataValue(new Variant(valueAsText.get())));
+        } else {
+            removePropertyNode(VALUE_AS_TEXT);
         }
+    }
 
-        public Optional<Double> getMinimumSamplingInterval() {
-            return minimumSamplingInterval;
+    @Override
+    public void setMaxStringLength(Optional<UInteger> maxStringLength) {
+        if (maxStringLength.isPresent()) {
+            VariableNode node = getPropertyNode(MAX_STRING_LENGTH).orElseGet(() -> {
+                UaPropertyNode propertyNode = createPropertyNode(MAX_STRING_LENGTH);
+
+                propertyNode.setDataType(Identifiers.UInt32);
+
+                addPropertyNode(propertyNode);
+
+                return propertyNode;
+            });
+
+            node.setValue(new DataValue(new Variant(maxStringLength.get())));
+        } else {
+            removePropertyNode(MAX_STRING_LENGTH);
         }
+    }
 
-        public boolean isHistorizing() {
-            return historizing;
+    @Override
+    public void setMaxArrayLength(Optional<UInteger> maxArrayLength) {
+        if (maxArrayLength.isPresent()) {
+            VariableNode node = getPropertyNode(MAX_ARRAY_LENGTH).orElseGet(() -> {
+                UaPropertyNode propertyNode = createPropertyNode(MAX_ARRAY_LENGTH);
+
+                propertyNode.setDataType(Identifiers.UInt32);
+
+                addPropertyNode(propertyNode);
+
+                return propertyNode;
+            });
+
+            node.setValue(new DataValue(new Variant(maxArrayLength.get())));
+        } else {
+            removePropertyNode(MAX_ARRAY_LENGTH);
         }
+    }
 
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+    @Override
+    public void setEngineeringUnits(Optional<EUInformation> engineeringUnits) {
+        if (engineeringUnits.isPresent()) {
+            VariableNode node = getPropertyNode(ENGINEERING_UNITS).orElseGet(() -> {
+                UaPropertyNode propertyNode = createPropertyNode(ENGINEERING_UNITS);
 
-            Attributes that = (Attributes) o;
+                propertyNode.setDataType(Identifiers.EUInformation);
 
-            return historizing == that.historizing &&
-                    accessLevel.equals(that.accessLevel) &&
-                    arrayDimensions.equals(that.arrayDimensions) &&
-                    dataType.equals(that.dataType) &&
-                    minimumSamplingInterval.equals(that.minimumSamplingInterval) &&
-                    userAccessLevel.equals(that.userAccessLevel) &&
-                    valueRank.equals(that.valueRank);
+                addPropertyNode(propertyNode);
+
+                return propertyNode;
+            });
+
+            node.setValue(new DataValue(new Variant(engineeringUnits.get())));
+        } else {
+            removePropertyNode(ENGINEERING_UNITS);
         }
+    }
 
-        @Override
-        public int hashCode() {
-            int result = dataType.hashCode();
-            result = 31 * result + valueRank.hashCode();
-            result = 31 * result + arrayDimensions.hashCode();
-            result = 31 * result + accessLevel.hashCode();
-            result = 31 * result + userAccessLevel.hashCode();
-            result = 31 * result + minimumSamplingInterval.hashCode();
-            result = 31 * result + (historizing ? 1 : 0);
-            return result;
-        }
-
-        private static class Builder implements Supplier<Attributes> {
-
-            private NodeId dataType;
-            private Integer valueRank;
-            private Optional<UInteger[]> arrayDimensions;
-            private UByte accessLevel;
-            private UByte userAccessLevel;
-            private Optional<Double> minimumSamplingInterval;
-            private boolean historizing;
-
-            @Override
-            public Attributes get() {
-                return new Attributes(dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
-            }
-
-            public Builder setDataType(NodeId dataType) {
-                this.dataType = dataType;
-                return this;
-            }
-
-            public Builder setValueRank(Integer valueRank) {
-                this.valueRank = valueRank;
-                return this;
-            }
-
-            public Builder setArrayDimensions(Optional<UInteger[]> arrayDimensions) {
-                this.arrayDimensions = arrayDimensions;
-                return this;
-            }
-
-            public Builder setAccessLevel(UByte accessLevel) {
-                this.accessLevel = accessLevel;
-                return this;
-            }
-
-            public Builder setUserAccessLevel(UByte userAccessLevel) {
-                this.userAccessLevel = userAccessLevel;
-                return this;
-            }
-
-            public Builder setMinimumSamplingInterval(Optional<Double> minimumSamplingInterval) {
-                this.minimumSamplingInterval = minimumSamplingInterval;
-                return this;
-            }
-
-            public Builder setHistorizing(boolean historizing) {
-                this.historizing = historizing;
-                return this;
-            }
-
-            public static Builder copy(Attributes attributes) {
-                return new Builder()
-                        .setDataType(attributes.getDataType())
-                        .setValueRank(attributes.getValueRank())
-                        .setArrayDimensions(attributes.getArrayDimensions())
-                        .setAccessLevel(attributes.getAccessLevel())
-                        .setUserAccessLevel(attributes.getUserAccessLevel())
-                        .setMinimumSamplingInterval(attributes.getMinimumSamplingInterval())
-                        .setHistorizing(attributes.isHistorizing());
-            }
-
-        }
-
+    public static UaVariableNodeBuilder builder(UaNodeManager nodeManager) {
+        return new UaVariableNodeBuilder(nodeManager);
     }
 
     public static class UaVariableNodeBuilder implements Supplier<UaVariableNode> {
 
         private final List<Reference> references = Lists.newArrayList();
-
-        private final NodeClass nodeClass = NodeClass.Variable;
 
         private NodeId nodeId;
         private QualifiedName browseName;
@@ -365,12 +486,18 @@ public class UaVariableNode extends UaNode implements VariableNode {
         );
 
         private NodeId dataType;
-        private int valueRank = -1;
+        private int valueRank = ValueRank.Scalar;
         private Optional<UInteger[]> arrayDimensions = Optional.empty();
         private UByte accessLevel = ubyte(AccessLevel.getMask(AccessLevel.CurrentRead));
         private UByte userAccessLevel = ubyte(AccessLevel.getMask(AccessLevel.CurrentRead));
         private Optional<Double> minimumSamplingInterval = Optional.empty();
         private boolean historizing = false;
+
+        private final UaNodeManager nodeManager;
+
+        public UaVariableNodeBuilder(UaNodeManager nodeManager) {
+            this.nodeManager = nodeManager;
+        }
 
         @Override
         public UaVariableNode get() {
@@ -379,7 +506,6 @@ public class UaVariableNode extends UaNode implements VariableNode {
 
         public UaVariableNode build() {
             Preconditions.checkNotNull(nodeId, "NodeId cannot be null");
-            Preconditions.checkNotNull(nodeClass, "NodeClass cannot be null");
             Preconditions.checkNotNull(browseName, "BrowseName cannot be null");
             Preconditions.checkNotNull(displayName, "DisplayName cannot be null");
             Preconditions.checkNotNull(dataType, "DataType cannot be null");
@@ -397,16 +523,19 @@ public class UaVariableNode extends UaNode implements VariableNode {
 
             // TODO More validation on references.
 
-            return new UaVariableNode(
-                    nodeId, nodeClass,
-                    browseName, displayName,
-                    description, writeMask,
-                    userWriteMask, value,
-                    dataType, valueRank,
+            UaVariableNode node = new UaVariableNode(
+                    nodeManager,
+                    nodeId, browseName, displayName,
+                    description, writeMask, userWriteMask,
+                    value, dataType, valueRank,
                     arrayDimensions, accessLevel,
                     userAccessLevel, minimumSamplingInterval,
-                    historizing, references
+                    historizing
             );
+
+            node.addReferences(references);
+
+            return node;
         }
 
         public UaVariableNodeBuilder setNodeId(NodeId nodeId) {

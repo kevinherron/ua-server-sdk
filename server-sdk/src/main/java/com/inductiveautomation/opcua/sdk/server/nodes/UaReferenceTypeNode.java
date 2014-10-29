@@ -16,38 +16,31 @@
 
 package com.inductiveautomation.opcua.sdk.server.nodes;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimaps;
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
-import com.inductiveautomation.opcua.sdk.core.Reference;
 import com.inductiveautomation.opcua.sdk.core.nodes.ReferenceTypeNode;
+import com.inductiveautomation.opcua.sdk.core.nodes.VariableNode;
+import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
-import com.inductiveautomation.opcua.stack.core.types.builtin.ExpandedNodeId;
+import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
+import com.inductiveautomation.opcua.stack.core.types.builtin.Variant;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
 
 public class UaReferenceTypeNode extends UaNode implements ReferenceTypeNode {
 
-    private final AtomicReference<Attributes> attributes;
+    public static final QualifiedName NODE_VERSION = new QualifiedName(0, "NodeVersion");
 
-    private final ListMultimap<NodeId, Reference> referenceMap =
-            Multimaps.synchronizedListMultimap(ArrayListMultimap.create());
+    private volatile boolean isAbstract;
+    private volatile boolean symmetric;
+    private volatile Optional<LocalizedText> inverseName;
 
-    public UaReferenceTypeNode(NodeId nodeId,
-                               NodeClass nodeClass,
+    public UaReferenceTypeNode(UaNodeManager nodeManager,
+                               NodeId nodeId,
                                QualifiedName browseName,
                                LocalizedText displayName,
                                Optional<LocalizedText> description,
@@ -55,191 +48,74 @@ public class UaReferenceTypeNode extends UaNode implements ReferenceTypeNode {
                                Optional<UInteger> userWriteMask,
                                boolean isAbstract,
                                boolean symmetric,
-                               Optional<LocalizedText> inverseName,
-                               List<Reference> references) {
+                               Optional<LocalizedText> inverseName) {
 
-        super(nodeId, nodeClass, browseName, displayName, description, writeMask, userWriteMask);
+        super(nodeManager, nodeId, NodeClass.ReferenceType, browseName, displayName, description, writeMask, userWriteMask);
 
-        Preconditions.checkArgument(nodeClass == NodeClass.ReferenceType);
-
-        Attributes as = new Attributes(isAbstract, symmetric, inverseName);
-        this.attributes = new AtomicReference<>(as);
-
-        references.stream().forEach(reference -> {
-            referenceMap.put(reference.getReferenceTypeId(), reference);
-        });
+        this.isAbstract = isAbstract;
+        this.symmetric = symmetric;
+        this.inverseName = inverseName;
     }
 
-    public void addHasPropertyReference(ExpandedNodeId targetNodeId) {
-        Reference reference = new Reference(
-                getNodeId(),
-                Identifiers.HasProperty,
-                targetNodeId,
-                NodeClass.Variable,
-                true
-        );
-
-        referenceMap.put(Identifiers.HasProperty, reference);
-    }
-
-    public void addHasSubtypeReference(ExpandedNodeId targetNodeId, NodeClass targetNodeClass, boolean forward) {
-        Reference reference = new Reference(
-                getNodeId(),
-                Identifiers.HasSubtype,
-                targetNodeId,
-                targetNodeClass,
-                forward
-        );
-
-        referenceMap.put(Identifiers.HasSubtype, reference);
-    }
-
-    public boolean removeReference(Reference reference) {
-        return referenceMap.remove(reference.getReferenceTypeId(), reference);
-    }
-
-    @Override
-    public void addReference(Reference reference) {
-        referenceMap.put(reference.getReferenceTypeId(), reference);
-    }
-
-    @Override
-    public List<Reference> getReferences() {
-        synchronized (referenceMap) {
-            return ImmutableList.copyOf(referenceMap.values());
-        }
-    }
-
-    public List<Reference> getHasPropertyReferences() {
-        synchronized (referenceMap) {
-            return ImmutableList.copyOf(referenceMap.get(Identifiers.HasProperty));
-        }
-    }
-
-    public List<Reference> getHasSubtypeReferences() {
-        synchronized (referenceMap) {
-            return ImmutableList.copyOf(referenceMap.get(Identifiers.HasSubtype));
-        }
-    }
 
     @Override
     public Boolean getIsAbstract() {
-        return attributes.get().isAbstract();
+        return isAbstract;
     }
 
     @Override
-    public Boolean getIsSymmetric() {
-        return attributes.get().isSymmetric();
+    public Boolean getSymmetric() {
+        return symmetric;
     }
 
     @Override
     public Optional<LocalizedText> getInverseName() {
-        return attributes.get().getInverseName();
+        return inverseName;
     }
 
     @Override
-    public void setIsAbstract(boolean isAbstract) {
-        setAttribute(AttributeIds.IsAbstract, isAbstract, b -> b::setIsAbstract);
+    public synchronized void setIsAbstract(boolean isAbstract) {
+        this.isAbstract = isAbstract;
+
+        fireAttributeChanged(AttributeIds.IsAbstract, isAbstract);
     }
 
     @Override
-    public void setIsSymmetric(boolean symmetric) {
-        setAttribute(AttributeIds.Symmetric, symmetric, b -> b::setSymmetric);
+    public synchronized void setSymmetric(boolean symmetric) {
+        this.symmetric = symmetric;
+
+        fireAttributeChanged(AttributeIds.Symmetric, symmetric);
     }
 
     @Override
-    public void setInverseName(Optional<LocalizedText> inverseName) {
-        setAttribute(AttributeIds.InverseName, inverseName, b -> b::setInverseName);
+    public synchronized void setInverseName(Optional<LocalizedText> inverseName) {
+        this.inverseName = inverseName;
+
+        inverseName.ifPresent(v -> fireAttributeChanged(AttributeIds.InverseName, v));
     }
 
-    private synchronized <T> void setAttribute(int attributeId, T value,
-                                               Function<Attributes.Builder, Consumer<T>> setter) {
-
-        Attributes current = attributes.get();
-
-        Attributes.Builder builder = Attributes.Builder.copy(current);
-        setter.apply(builder).accept(value);
-        Attributes updated = builder.get();
-
-        attributes.set(updated);
-
-        fireAttributeChanged(attributeId, value);
+    @Override
+    public Optional<String> getNodeVersion() {
+        return getProperty(NODE_VERSION);
     }
 
-    private static class Attributes {
-        private final boolean isAbstract;
-        private final boolean symmetric;
-        private final Optional<LocalizedText> inverseName;
+    @Override
+    public void setNodeVersion(Optional<String> nodeVersion) {
+        if (nodeVersion.isPresent()) {
+            VariableNode node = getPropertyNode(NODE_VERSION).orElseGet(() -> {
+                UaPropertyNode propertyNode = createPropertyNode(NODE_VERSION);
 
-        private Attributes(boolean isAbstract, boolean symmetric, Optional<LocalizedText> inverseName) {
-            this.isAbstract = isAbstract;
-            this.symmetric = symmetric;
-            this.inverseName = inverseName;
-        }
+                propertyNode.setDataType(Identifiers.String);
 
-        public boolean isAbstract() {
-            return isAbstract;
-        }
+                addPropertyNode(propertyNode);
 
-        public boolean isSymmetric() {
-            return symmetric;
-        }
+                return propertyNode;
+            });
 
-        public Optional<LocalizedText> getInverseName() {
-            return inverseName;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            Attributes that = (Attributes) o;
-
-            return isAbstract == that.isAbstract &&
-                    symmetric == that.symmetric &&
-                    inverseName.equals(that.inverseName);
-        }
-
-        @Override
-        public int hashCode() {
-            int result = (isAbstract ? 1 : 0);
-            result = 31 * result + (symmetric ? 1 : 0);
-            result = 31 * result + inverseName.hashCode();
-            return result;
-        }
-
-        private static class Builder implements Supplier<Attributes> {
-            private boolean isAbstract;
-            private boolean symmetric;
-            private Optional<LocalizedText> inverseName;
-
-            @Override
-            public Attributes get() {
-                return new Attributes(isAbstract, symmetric, inverseName);
-            }
-
-            public Builder setIsAbstract(boolean isAbstract) {
-                this.isAbstract = isAbstract;
-                return this;
-            }
-
-            public Builder setSymmetric(boolean symmetric) {
-                this.symmetric = symmetric;
-                return this;
-            }
-
-            public Builder setInverseName(Optional<LocalizedText> inverseName) {
-                this.inverseName = inverseName;
-                return this;
-            }
-
-            public static Builder copy(Attributes attributes) {
-                return new Builder()
-                        .setIsAbstract(attributes.isAbstract())
-                        .setSymmetric(attributes.isSymmetric())
-                        .setInverseName(attributes.getInverseName());
-            }
+            node.setValue(new DataValue(new Variant(nodeVersion.get())));
+        } else {
+            removePropertyNode(NODE_VERSION);
         }
     }
+
 }

@@ -29,14 +29,15 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.PeekingIterator;
 import com.inductiveautomation.opcua.sdk.core.AccessLevel;
+import com.inductiveautomation.opcua.sdk.core.Reference;
 import com.inductiveautomation.opcua.sdk.core.ValueRank;
+import com.inductiveautomation.opcua.sdk.core.nodes.Node;
 import com.inductiveautomation.opcua.sdk.server.OpcUaServer;
 import com.inductiveautomation.opcua.sdk.server.api.DataItem;
 import com.inductiveautomation.opcua.sdk.server.api.MethodInvocationHandler;
 import com.inductiveautomation.opcua.sdk.server.api.MonitoredItem;
 import com.inductiveautomation.opcua.sdk.server.api.Namespace;
-import com.inductiveautomation.opcua.sdk.core.Reference;
-import com.inductiveautomation.opcua.sdk.core.nodes.Node;
+import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
 import com.inductiveautomation.opcua.sdk.server.nodes.UaMethodNode;
 import com.inductiveautomation.opcua.sdk.server.nodes.UaNode;
 import com.inductiveautomation.opcua.sdk.server.nodes.UaObjectNode;
@@ -50,6 +51,7 @@ import com.inductiveautomation.opcua.stack.core.UaException;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
+import com.inductiveautomation.opcua.stack.core.types.builtin.ExpandedNodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
@@ -71,7 +73,7 @@ import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Un
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.ulong;
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.ushort;
 
-public class CttNamespace implements Namespace {
+public class CttNamespace implements Namespace, UaNodeManager {
 
     public static final String NamespaceUri = "ctt";
     public static final UShort NamespaceIndex = ushort(2);
@@ -90,7 +92,7 @@ public class CttNamespace implements Namespace {
 
         NodeId cttNodeId = new NodeId(NamespaceIndex, "CTT");
 
-        cttFolder = UaObjectNode.builder()
+        cttFolder = UaObjectNode.builder(this)
                 .setNodeId(cttNodeId)
                 .setBrowseName(new QualifiedName(NamespaceIndex, "CTT"))
                 .setDisplayName(LocalizedText.english("CTT"))
@@ -148,7 +150,7 @@ public class CttNamespace implements Namespace {
             NodeId typeId = (NodeId) os[1];
             Variant variant = (Variant) os[2];
 
-            UaVariableNode node = new UaVariableNodeBuilder()
+            UaVariableNode node = new UaVariableNodeBuilder(this)
                     .setNodeId(new NodeId(NamespaceIndex, "/Static/AllProfiles/Scalar/" + name))
                     .setAccessLevel(ubyte(AccessLevel.getMask(AccessLevel.ReadWrite)))
                     .setBrowseName(new QualifiedName(NamespaceIndex, name))
@@ -209,7 +211,7 @@ public class CttNamespace implements Namespace {
             }
             Variant variant = new Variant(array);
 
-            UaVariableNode node = new UaVariableNodeBuilder()
+            UaVariableNode node = new UaVariableNodeBuilder(this)
                     .setNodeId(new NodeId(NamespaceIndex, "/Static/AllProfiles/Array/" + name))
                     .setAccessLevel(ubyte(AccessLevel.getMask(AccessLevel.ReadWrite)))
                     .setBrowseName(new QualifiedName(NamespaceIndex, name))
@@ -239,7 +241,7 @@ public class CttNamespace implements Namespace {
     private void addMethodNodes() {
         UaObjectNode folder = addFoldersToRoot(cttFolder, "/Methods");
 
-        UaMethodNode methodNode = UaMethodNode.builder()
+        UaMethodNode methodNode = UaMethodNode.builder(this)
                 .setNodeId(new NodeId(NamespaceIndex, "/Methods/sqrt(x)"))
                 .setBrowseName(new QualifiedName(NamespaceIndex, "sqrt(x)"))
                 .setDisplayName(new LocalizedText(null, "sqrt(x)"))
@@ -257,12 +259,9 @@ public class CttNamespace implements Namespace {
                 LocalizedText.english("The positive square root of x. If the argument is NaN or less than zero, the result is NaN."));
 
         methodNode.setInvocationHandler(new SqrtInvocationHandler());
+        methodNode.setInputArguments(Optional.of(new Argument[]{input}));
+        methodNode.setOutputArguments(Optional.of(new Argument[]{output}));
 
-        UaVariableNode inputNode = methodNode.setInputArguments(new Argument[]{input});
-        UaVariableNode outputNode = methodNode.setOutputArguments(new Argument[]{output});
-
-        nodes.put(inputNode.getNodeId(), inputNode);
-        nodes.put(outputNode.getNodeId(), outputNode);
         nodes.put(methodNode.getNodeId(), methodNode);
 
         folder.addReference(new Reference(
@@ -335,7 +334,7 @@ public class CttNamespace implements Namespace {
             String prefix = String.join("/", path) + "/";
             if (!prefix.startsWith("/")) prefix = "/" + prefix;
 
-            UaObjectNode node = UaObjectNode.builder()
+            UaObjectNode node = UaObjectNode.builder(this)
                     .setNodeId(new NodeId(NamespaceIndex, prefix + name))
                     .setBrowseName(new QualifiedName(NamespaceIndex, name))
                     .setDisplayName(LocalizedText.english(name))
@@ -350,7 +349,7 @@ public class CttNamespace implements Namespace {
             String prefix = String.join("/", path) + "/";
             if (!prefix.startsWith("/")) prefix = "/" + prefix;
 
-            UaObjectNode node = UaObjectNode.builder()
+            UaObjectNode node = UaObjectNode.builder(this)
                     .setNodeId(new NodeId(NamespaceIndex, prefix + name))
                     .setBrowseName(new QualifiedName(NamespaceIndex, name))
                     .setDisplayName(LocalizedText.english(name))
@@ -393,6 +392,26 @@ public class CttNamespace implements Namespace {
         } else {
             return Optional.empty();
         }
+    }
+
+    @Override
+    public void addUaNode(UaNode node) {
+        nodes.put(node.getNodeId(), node);
+    }
+
+    @Override
+    public Optional<UaNode> getUaNode(NodeId nodeId) {
+        return Optional.ofNullable(nodes.get(nodeId));
+    }
+
+    @Override
+    public Optional<UaNode> getUaNode(ExpandedNodeId nodeId) {
+        return nodeId.local().flatMap(this::getUaNode);
+    }
+
+    @Override
+    public Optional<UaNode> removeUaNode(NodeId nodeId) {
+        return Optional.ofNullable(nodes.remove(nodeId));
     }
 
     @Override

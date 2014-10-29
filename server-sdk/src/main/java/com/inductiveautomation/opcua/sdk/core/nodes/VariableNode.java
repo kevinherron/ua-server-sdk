@@ -18,12 +18,14 @@ package com.inductiveautomation.opcua.sdk.core.nodes;
 
 import java.util.Optional;
 
-import com.inductiveautomation.opcua.stack.core.StatusCodes;
-import com.inductiveautomation.opcua.stack.core.UaException;
+import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
+import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
+import com.inductiveautomation.opcua.stack.core.types.structured.EUInformation;
+import com.inductiveautomation.opcua.stack.core.types.structured.TimeZoneDataType;
 
 public interface VariableNode extends Node {
 
@@ -41,50 +43,68 @@ public interface VariableNode extends Node {
 
     Optional<Double> getMinimumSamplingInterval();
 
-    Boolean isHistorizing();
+    Boolean getHistorizing();
 
     /**
      * Set the Value attribute of this Node.
      *
      * @param value the Value to set.
-     * @throws UaException if the attribute cannot be set.
      */
-    default void setValue(DataValue value) throws UaException {
-        throw new UaException(StatusCodes.Bad_NotWritable);
-    }
+    void setValue(DataValue value);
 
     /**
      * Set the DataType attribute of this Node.
      *
      * @param dataType the DataType to set.
-     * @throws UaException if the attribute cannot be set.
      */
-    default void setDataType(NodeId dataType) throws UaException {
-        throw new UaException(StatusCodes.Bad_NotWritable);
-    }
+    void setDataType(NodeId dataType);
 
-    default void setValueRank(Integer valueRank) throws UaException {
-        throw new UaException(StatusCodes.Bad_NotWritable);
-    }
+    void setValueRank(Integer valueRank);
 
-    default void setArrayDimensions(Optional<UInteger[]> arrayDimensions) throws UaException {
-        throw new UaException(StatusCodes.Bad_NotWritable);
-    }
+    void setArrayDimensions(Optional<UInteger[]> arrayDimensions);
 
-    default void setAccessLevel(UByte accessLevel) throws UaException {
-        throw new UaException(StatusCodes.Bad_NotWritable);
-    }
+    void setAccessLevel(UByte accessLevel);
 
-    default void setUserAccessLevel(UByte userAccessLevel) throws UaException {
-        throw new UaException(StatusCodes.Bad_NotWritable);
-    }
+    void setUserAccessLevel(UByte userAccessLevel);
 
-    default void setMinimumSamplingInterval(Optional<Double> minimumSamplingInterval) throws UaException {
-        throw new UaException(StatusCodes.Bad_NotWritable);
-    }
+    void setMinimumSamplingInterval(Optional<Double> minimumSamplingInterval);
 
-    default void setHistorizing(boolean historizing) throws UaException {
-        throw new UaException(StatusCodes.Bad_NotWritable);
-    }
+    void setHistorizing(boolean historizing);
+
+    Optional<String> getNodeVersion();
+
+    Optional<TimeZoneDataType> getLocalTime();
+
+    Optional<String> getDataTypeVersion();
+
+    Optional<ByteString> getDictionaryFragment();
+
+    Optional<Boolean> getAllowNulls();
+
+    Optional<LocalizedText> getValueAsText();
+
+    Optional<UInteger> getMaxStringLength();
+
+    Optional<UInteger> getMaxArrayLength();
+
+    Optional<EUInformation> getEngineeringUnits();
+
+    void setNodeVersion(Optional<String> nodeVersion);
+
+    void setLocalTime(Optional<TimeZoneDataType> localTime);
+
+    void setDataTypeVersion(Optional<String> dataTypeVersion);
+
+    void setDictionaryFragment(Optional<ByteString> dictionaryFragment);
+
+    void setAllowNulls(Optional<Boolean> allowNulls);
+
+    void setValueAsText(Optional<LocalizedText> valueAsText);
+
+    void setMaxStringLength(Optional<UInteger> maxStringLength);
+
+    void setMaxArrayLength(Optional<UInteger> maxArrayLength);
+
+    void setEngineeringUnits(Optional<EUInformation> engineeringUnits);
 
 }

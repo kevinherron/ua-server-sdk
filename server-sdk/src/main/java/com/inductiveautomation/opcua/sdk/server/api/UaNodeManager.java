@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Inductive Automation
+ * Copyright 2014
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,28 +14,22 @@
  * limitations under the License.
  */
 
-package com.inductiveautomation.opcua.sdk.core.nodes;
+package com.inductiveautomation.opcua.sdk.server.api;
 
 import java.util.Optional;
 
-import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
+import com.inductiveautomation.opcua.sdk.server.nodes.UaNode;
+import com.inductiveautomation.opcua.stack.core.types.builtin.ExpandedNodeId;
+import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 
-public interface ReferenceTypeNode extends Node {
+public interface UaNodeManager extends NodeManager {
 
-    Boolean getIsAbstract();
+    void addUaNode(UaNode node);
 
-    Boolean getSymmetric();
+    Optional<UaNode> getUaNode(NodeId nodeId);
 
-    Optional<LocalizedText> getInverseName();
+    Optional<UaNode> getUaNode(ExpandedNodeId nodeId);
 
-    void setIsAbstract(boolean isAbstract);
-
-    void setSymmetric(boolean isSymmetric);
-
-    void setInverseName(Optional<LocalizedText> inverseName);
-
-    Optional<String> getNodeVersion();
-
-    void setNodeVersion(Optional<String> nodeVersion);
+    Optional<UaNode> removeUaNode(NodeId nodeId);
 
 }

@@ -16,8 +16,11 @@
 
 package com.inductiveautomation.opcua.sdk.core.nodes;
 
-import com.inductiveautomation.opcua.stack.core.StatusCodes;
+import java.util.List;
+import java.util.Optional;
+
 import com.inductiveautomation.opcua.stack.core.UaException;
+import com.inductiveautomation.opcua.stack.core.types.structured.Argument;
 
 public interface MethodNode extends Node {
 
@@ -47,20 +50,26 @@ public interface MethodNode extends Node {
      * Set the Executable attribute of this Method.
      *
      * @param executable {@code true} if the method is executable.
-     * @throws UaException if the attribute cannot be set.
      */
-    default void setExecutable(boolean executable) throws UaException {
-        throw new UaException(StatusCodes.Bad_NotWritable);
-    }
+    void setExecutable(boolean executable);
 
     /**
      * Set the UserExecutable attribute of this Method.
      *
      * @param userExecutable {@code true} if the method is executable, taking access rights into account.
-     * @throws UaException if the attribute cannot be set.
      */
-    default void setUserExecutable(boolean userExecutable) throws UaException {
-        throw new UaException(StatusCodes.Bad_NotWritable);
-    }
+    void setUserExecutable(boolean userExecutable);
+
+    Optional<String> getNodeVersion();
+
+    Optional<Argument[]> getInputArguments();
+
+    Optional<Argument[]> getOutputArguments();
+
+    void setNodeVersion(Optional<String> nodeVersion);
+
+    void setInputArguments(Optional<Argument[]> inputArguments);
+
+    void setOutputArguments(Optional<Argument[]> outputArguments);
 
 }

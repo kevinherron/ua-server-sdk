@@ -18,8 +18,6 @@ package com.inductiveautomation.opcua.sdk.core.nodes;
 
 import java.util.Optional;
 
-import com.inductiveautomation.opcua.stack.core.StatusCodes;
-import com.inductiveautomation.opcua.stack.core.UaException;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
@@ -36,24 +34,18 @@ public interface VariableTypeNode extends Node {
 
     Boolean getIsAbstract();
 
-    default void setValue(Optional<DataValue> value) throws UaException {
-        throw new UaException(StatusCodes.Bad_NotWritable);
-    }
+    void setValue(Optional<DataValue> value);
 
-    default void setDataType(NodeId dataType) throws UaException {
-        throw new UaException(StatusCodes.Bad_NotWritable);
-    }
+    void setDataType(NodeId dataType);
 
-    default void setValueRank(int valueRank) throws UaException {
-        throw new UaException(StatusCodes.Bad_NotWritable);
-    }
+    void setValueRank(int valueRank);
 
-    default void setArrayDimensions(Optional<UInteger[]> arrayDimensions) throws UaException {
-        throw new UaException(StatusCodes.Bad_NotWritable);
-    }
+    void setArrayDimensions(Optional<UInteger[]> arrayDimensions);
 
-    default void setIsAbstract(boolean isAbstract) throws UaException {
-        throw new UaException(StatusCodes.Bad_NotWritable);
-    }
+    void setIsAbstract(boolean isAbstract);
+
+    Optional<String> getNodeVersion();
+
+    void setNodeVersion(Optional<String> nodeVersion);
 
 }

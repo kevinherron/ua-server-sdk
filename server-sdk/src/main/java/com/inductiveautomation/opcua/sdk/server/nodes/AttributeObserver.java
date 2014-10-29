@@ -21,10 +21,10 @@ public interface AttributeObserver {
     /**
      * The Attribute indicated by {@code attributeId} on {@code node} changed.
      *
-     * @param node           the {@link UaNode} the change originated from.
-     * @param attributeId    the id of the Attribute that changed.
-     * @param attributeValue the new value of the attribute.
+     * @param node        the {@link UaNode} the change originated from.
+     * @param attributeId the id of the Attribute that changed.
+     * @param value       the new value of the attribute.
      */
-    void attributeChanged(UaNode node, int attributeId, Object attributeValue);
+    void attributeChanged(UaNode node, int attributeId, Object value);
 
 }

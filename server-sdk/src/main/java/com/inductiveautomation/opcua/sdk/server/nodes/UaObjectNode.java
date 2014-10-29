@@ -19,94 +19,223 @@ package com.inductiveautomation.opcua.sdk.server.nodes;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimaps;
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
-import com.inductiveautomation.opcua.sdk.core.nodes.ObjectNode;
 import com.inductiveautomation.opcua.sdk.core.Reference;
+import com.inductiveautomation.opcua.sdk.core.ValueRank;
+import com.inductiveautomation.opcua.sdk.core.nodes.Node;
+import com.inductiveautomation.opcua.sdk.core.nodes.ObjectNode;
+import com.inductiveautomation.opcua.sdk.core.nodes.ObjectTypeNode;
+import com.inductiveautomation.opcua.sdk.core.nodes.VariableNode;
+import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
+import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ExpandedNodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
+import com.inductiveautomation.opcua.stack.core.types.builtin.Variant;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
+import com.inductiveautomation.opcua.stack.core.types.structured.EnumValueType;
 
+import static com.inductiveautomation.opcua.sdk.core.Reference.HAS_COMPONENT_PREDICATE;
+import static com.inductiveautomation.opcua.sdk.core.Reference.HAS_DESCRIPTION_PREDICATE;
+import static com.inductiveautomation.opcua.sdk.core.Reference.HAS_EVENT_SOURCE_PREDICATE;
+import static com.inductiveautomation.opcua.sdk.core.Reference.HAS_NOTIFIER_PREDICATE;
+import static com.inductiveautomation.opcua.sdk.core.Reference.HAS_PROPERTY_PREDICATE;
+import static com.inductiveautomation.opcua.sdk.core.Reference.HAS_TYPE_DEFINITION_PREDICATE;
+import static com.inductiveautomation.opcua.sdk.core.Reference.ORGANIZES_PREDICATE;
+import static com.inductiveautomation.opcua.sdk.server.util.StreamUtil.opt2stream;
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.ubyte;
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
+import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint_a;
 
 public class UaObjectNode extends UaNode implements ObjectNode {
 
-    private final ListMultimap<NodeId, Reference> referenceMap =
-            Multimaps.synchronizedListMultimap(ArrayListMultimap.create());
+    public static final QualifiedName NODE_VERSION = new QualifiedName(0, "NodeVersion");
+    public static final QualifiedName ENUM_STRINGS = new QualifiedName(0, "EnumStrings");
+    public static final QualifiedName ENUM_VALUES = new QualifiedName(0, "EnumValues");
 
-    private final AtomicReference<UByte> eventNotifier;
+    private volatile UByte eventNotifier = ubyte(0);
 
-    public UaObjectNode(NodeId nodeId,
-                        NodeClass nodeClass,
+    public UaObjectNode(UaNodeManager nodeManager,
+                        NodeId nodeId,
+                        QualifiedName browseName,
+                        LocalizedText displayName) {
+
+        super(nodeManager, nodeId, NodeClass.Object, browseName, displayName);
+    }
+
+    public UaObjectNode(UaNodeManager nodeManager,
+                        NodeId nodeId,
                         QualifiedName browseName,
                         LocalizedText displayName,
                         Optional<LocalizedText> description,
                         Optional<UInteger> writeMask,
                         Optional<UInteger> userWriteMask,
-                        UByte eventNotifier,
-                        List<Reference> references) {
+                        UByte eventNotifier) {
 
-        super(nodeId, nodeClass, browseName, displayName, description, writeMask, userWriteMask);
+        super(nodeManager, nodeId, NodeClass.Object, browseName, displayName, description, writeMask, userWriteMask);
 
-        Preconditions.checkArgument(nodeClass == NodeClass.Object);
-
-        this.eventNotifier = new AtomicReference<>(eventNotifier);
-
-        references.stream().forEach(reference -> {
-            referenceMap.put(reference.getReferenceTypeId(), reference);
-        });
-    }
-
-    public void addReference(Reference reference) {
-        referenceMap.put(reference.getReferenceTypeId(), reference);
-    }
-
-    @Override
-    public List<Reference> getReferences() {
-        synchronized (referenceMap) {
-            return ImmutableList.copyOf(referenceMap.values());
-        }
-    }
-
-    public boolean removeReference(Reference reference) {
-        return referenceMap.remove(reference.getReferenceTypeId(), reference);
+        this.eventNotifier = eventNotifier;
     }
 
     @Override
     public UByte getEventNotifier() {
-        return eventNotifier.get();
+        return eventNotifier;
     }
 
     @Override
     public synchronized void setEventNotifier(UByte eventNotifier) {
-        this.eventNotifier.set(eventNotifier);
+        this.eventNotifier = eventNotifier;
 
         fireAttributeChanged(AttributeIds.EventNotifier, eventNotifier);
     }
 
-    public static UaObjectNodeBuilder builder() {
-        return new UaObjectNodeBuilder();
+    public List<Node> getComponentNodes() {
+        return getReferences().stream()
+                .filter(HAS_COMPONENT_PREDICATE)
+                .flatMap(r -> opt2stream(getNode(r.getTargetNodeId())))
+                .collect(Collectors.toList());
+    }
+
+    public List<Node> getPropertyNodes() {
+        return getReferences().stream()
+                .filter(HAS_PROPERTY_PREDICATE)
+                .flatMap(r -> opt2stream(getNode(r.getTargetNodeId())))
+                .collect(Collectors.toList());
+    }
+
+    public ObjectTypeNode getTypeDefinitionNode() {
+        Node node = getReferences().stream()
+                .filter(HAS_TYPE_DEFINITION_PREDICATE)
+                .findFirst()
+                .flatMap(r -> getNode(r.getTargetNodeId()))
+                .orElse(null);
+
+        return (node instanceof ObjectTypeNode) ? (ObjectTypeNode) node : null;
+    }
+
+    public List<Node> getEventSourceNodes() {
+        return getReferences().stream()
+                .filter(HAS_EVENT_SOURCE_PREDICATE)
+                .flatMap(r -> opt2stream(getNode(r.getTargetNodeId())))
+                .collect(Collectors.toList());
+    }
+
+    public List<Node> getNotifierNodes() {
+        return getReferences().stream()
+                .filter(HAS_NOTIFIER_PREDICATE)
+                .flatMap(r -> opt2stream(getNode(r.getTargetNodeId())))
+                .collect(Collectors.toList());
+    }
+
+    public List<Node> getOrganizesNodes() {
+        return getReferences().stream()
+                .filter(ORGANIZES_PREDICATE)
+                .flatMap(r -> opt2stream(getNode(r.getTargetNodeId())))
+                .collect(Collectors.toList());
+    }
+
+    public Optional<Node> getDescriptionNode() {
+        Optional<UaNode> node = getReferences().stream()
+                .filter(HAS_DESCRIPTION_PREDICATE)
+                .findFirst()
+                .flatMap(r -> getNode(r.getTargetNodeId()));
+
+        return node.map(n -> n);
+    }
+
+    @Override
+    public Optional<String> getNodeVersion() {
+        return getProperty(NODE_VERSION);
+    }
+
+    @Override
+    public Optional<LocalizedText[]> getEnumStrings() {
+        return getProperty(ENUM_STRINGS);
+    }
+
+    @Override
+    public Optional<EnumValueType[]> getEnumValues() {
+        return getProperty(ENUM_VALUES);
+    }
+
+    @Override
+    public void setNodeVersion(Optional<String> nodeVersion) {
+        if (nodeVersion.isPresent()) {
+            VariableNode node = getPropertyNode(NODE_VERSION).orElseGet(() -> {
+                UaPropertyNode propertyNode = createPropertyNode(NODE_VERSION);
+
+                propertyNode.setDataType(Identifiers.String);
+
+                addPropertyNode(propertyNode);
+
+                return propertyNode;
+            });
+
+            node.setValue(new DataValue(new Variant(nodeVersion.get())));
+        } else {
+            removePropertyNode(NODE_VERSION);
+        }
+    }
+
+    @Override
+    public void setEnumStrings(Optional<LocalizedText[]> enumStrings) {
+        if (enumStrings.isPresent()) {
+            VariableNode node = getPropertyNode(ENUM_STRINGS).orElseGet(() -> {
+                UaPropertyNode propertyNode = createPropertyNode(ENUM_STRINGS);
+
+                propertyNode.setDataType(Identifiers.LocalizedText);
+                propertyNode.setValueRank(ValueRank.OneDimension);
+                propertyNode.setArrayDimensions(Optional.of(uint_a(0)));
+
+                addPropertyNode(propertyNode);
+
+                return propertyNode;
+            });
+
+            node.setValue(new DataValue(new Variant(enumStrings.get())));
+        } else {
+            removePropertyNode(ENUM_STRINGS);
+        }
+    }
+
+
+    @Override
+    public void setEnumValues(Optional<EnumValueType[]> enumValues) {
+        if (enumValues.isPresent()) {
+            VariableNode node = getPropertyNode(ENUM_VALUES).orElseGet(() -> {
+                UaPropertyNode propertyNode = createPropertyNode(ENUM_VALUES);
+
+                propertyNode.setDataType(Identifiers.EnumValueType);
+                propertyNode.setValueRank(ValueRank.OneDimension);
+                propertyNode.setArrayDimensions(Optional.of(uint_a(0)));
+
+                addPropertyNode(propertyNode);
+
+                return propertyNode;
+            });
+
+            node.setValue(new DataValue(new Variant(enumValues.get())));
+        } else {
+            removePropertyNode(ENUM_VALUES);
+        }
+    }
+
+    public static UaObjectNodeBuilder builder(UaNodeManager nodeManager) {
+        return new UaObjectNodeBuilder(nodeManager);
     }
 
     public static class UaObjectNodeBuilder implements Supplier<UaObjectNode> {
 
         private final List<Reference> references = Lists.newArrayList();
-
-        private final NodeClass nodeClass = NodeClass.Object;
 
         private NodeId nodeId;
         private QualifiedName browseName;
@@ -115,6 +244,12 @@ public class UaObjectNode extends UaNode implements ObjectNode {
         private Optional<UInteger> writeMask = Optional.of(uint(0));
         private Optional<UInteger> userWriteMask = Optional.of(uint(0));
         private UByte eventNotifier = ubyte(0);
+
+        private final UaNodeManager nodeManager;
+
+        public UaObjectNodeBuilder(UaNodeManager nodeManager) {
+            this.nodeManager = nodeManager;
+        }
 
         @Override
         public UaObjectNode get() {
@@ -134,7 +269,6 @@ public class UaObjectNode extends UaNode implements ObjectNode {
          */
         public UaObjectNode build() {
             Preconditions.checkNotNull(nodeId, "NodeId cannot be null");
-            Preconditions.checkNotNull(nodeClass, "NodeClass cannot be null");
             Preconditions.checkNotNull(browseName, "BrowseName cannot be null");
             Preconditions.checkNotNull(displayName, "DisplayName cannot be null");
 
@@ -147,17 +281,20 @@ public class UaObjectNode extends UaNode implements ObjectNode {
 
             // TODO More validation on references.
 
-            return new UaObjectNode(
+            UaObjectNode node = new UaObjectNode(
+                    nodeManager,
                     nodeId,
-                    nodeClass,
                     browseName,
                     displayName,
                     description,
                     writeMask,
                     userWriteMask,
-                    eventNotifier,
-                    references
+                    eventNotifier
             );
+
+            node.addReferences(references);
+
+            return node;
         }
 
         public UaObjectNodeBuilder setNodeId(NodeId nodeId) {

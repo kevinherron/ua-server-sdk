@@ -88,71 +88,50 @@ public interface Node {
      * Set the NodeId attribute of this Node.
      *
      * @param nodeId the NodeId to set.
-     * @throws UaException if the attribute cannot be set.
      */
-    default void setNodeId(NodeId nodeId) throws UaException {
-        throw new UaException(StatusCodes.Bad_NotWritable);
-    }
+    void setNodeId(NodeId nodeId);
 
     /**
      * Set the NodeClass attribute of this Node.
      *
      * @param nodeClass the NodeClass to set.
-     * @throws UaException if the attribute cannot be set.
      */
-    default void setNodeClass(NodeClass nodeClass) throws UaException {
-        throw new UaException(StatusCodes.Bad_NotWritable);
-    }
+    void setNodeClass(NodeClass nodeClass);
 
     /**
      * Set the BrowseName attribute of this Node.
      *
      * @param browseName the BrowseName to set.
-     * @throws UaException if the attribute cannot be set.
      */
-    default void setBrowseName(QualifiedName browseName) throws UaException {
-        throw new UaException(StatusCodes.Bad_NotWritable);
-    }
+    void setBrowseName(QualifiedName browseName);
 
     /**
      * Set the DisplayName attribute of this Node.
      *
      * @param displayName the DisplayName to set.
-     * @throws UaException if the attribute cannot be set.
      */
-    default void setDisplayName(LocalizedText displayName) throws UaException {
-        throw new UaException(StatusCodes.Bad_NotWritable);
-    }
+    void setDisplayName(LocalizedText displayName);
 
     /**
      * Set the Description attribute of this Node.
      *
      * @param description the Description to set.
-     * @throws UaException if the attribute cannot be set.
      */
-    default void setDescription(Optional<LocalizedText> description) throws UaException {
-        throw new UaException(StatusCodes.Bad_NotWritable);
-    }
+    void setDescription(Optional<LocalizedText> description);
 
     /**
      * Set the WriteMask attribute of this Node.
      *
      * @param writeMask the WriteMask to set.
-     * @throws UaException if the attribute cannot be set.
      */
-    default void setWriteMask(Optional<UInteger> writeMask) throws UaException {
-        throw new UaException(StatusCodes.Bad_NotWritable);
-    }
+    void setWriteMask(Optional<UInteger> writeMask);
 
     /**
      * Set the UserWriteMask attribute of this Node.
      *
      * @param userWriteMask the UserWriteMask to set.
-     * @throws UaException if the attribute cannot be set.
      */
-    default void setUserWriteMask(Optional<UInteger> userWriteMask) throws UaException {
-        throw new UaException(StatusCodes.Bad_NotWritable);
-    }
+    void setUserWriteMask(Optional<UInteger> userWriteMask);
 
     /**
      * @param attributeId the id of the attribute in question.

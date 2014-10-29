@@ -16,8 +16,10 @@
 
 package com.inductiveautomation.opcua.sdk.core.nodes;
 
-import com.inductiveautomation.opcua.stack.core.StatusCodes;
-import com.inductiveautomation.opcua.stack.core.UaException;
+import java.util.Optional;
+
+import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
+import com.inductiveautomation.opcua.stack.core.types.structured.EnumValueType;
 
 public interface DataTypeNode extends Node {
 
@@ -36,10 +38,19 @@ public interface DataTypeNode extends Node {
      * Set the IsAbstract attribute of this DataType.
      *
      * @param isAbstract {@code true} if this
-     * @throws UaException if the attribute cannot be set.
      */
-    default void setIsAbstract(boolean isAbstract) throws UaException {
-        throw new UaException(StatusCodes.Bad_NotWritable);
-    }
+    void setIsAbstract(boolean isAbstract);
+
+    Optional<String> getNodeVersion();
+
+    Optional<LocalizedText[]> getEnumStrings();
+
+    Optional<EnumValueType[]> getEnumValues();
+
+    void setNodeVersion(Optional<String> nodeVersion);
+
+    void setEnumStrings(Optional<LocalizedText[]> enumStrings);
+
+    void setEnumValues(Optional<EnumValueType[]> enumValues);
 
 }

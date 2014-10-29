@@ -18,7 +18,7 @@ package com.inductiveautomation.opcua.sdk.server.api;
 
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UShort;
 
-public interface Namespace extends AttributeManager, MethodManager, MonitoredItemManager, NodeManager {
+public interface Namespace extends ReadWriteManager, MethodManager, MonitoredItemManager, NodeManager {
 
     UShort getNamespaceIndex();
 

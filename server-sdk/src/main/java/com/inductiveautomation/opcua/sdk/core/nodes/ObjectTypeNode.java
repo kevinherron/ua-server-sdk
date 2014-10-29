@@ -16,8 +16,10 @@
 
 package com.inductiveautomation.opcua.sdk.core.nodes;
 
-import com.inductiveautomation.opcua.stack.core.StatusCodes;
+import java.util.Optional;
+
 import com.inductiveautomation.opcua.stack.core.UaException;
+import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
 
 public interface ObjectTypeNode extends Node {
 
@@ -32,10 +34,15 @@ public interface ObjectTypeNode extends Node {
      * Set the IsAbstract attribute of this ObjectType.
      *
      * @param isAbstract {@code true} if this
-     * @throws UaException if the attribute cannot be set.
      */
-    default void setIsAbstract(boolean isAbstract) throws UaException {
-        throw new UaException(StatusCodes.Bad_NotWritable);
-    }
+    void setIsAbstract(boolean isAbstract);
+
+    Optional<String> getNodeVersion();
+
+    Optional<ByteString> getIcon();
+
+    void setNodeVersion(Optional<String> nodeVersion);
+
+    void setIcon(Optional<ByteString> icon);
 
 }

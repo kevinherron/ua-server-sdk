@@ -16,37 +16,33 @@
 
 package com.inductiveautomation.opcua.sdk.server.nodes;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimaps;
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
-import com.inductiveautomation.opcua.sdk.core.Reference;
+import com.inductiveautomation.opcua.sdk.core.nodes.VariableNode;
 import com.inductiveautomation.opcua.sdk.core.nodes.VariableTypeNode;
+import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
+import com.inductiveautomation.opcua.stack.core.types.builtin.Variant;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
 
 public class UaVariableTypeNode extends UaNode implements VariableTypeNode {
 
-    private final ListMultimap<NodeId, Reference> referenceMap =
-            Multimaps.synchronizedListMultimap(ArrayListMultimap.create());
+    public static final QualifiedName NODE_VERSION = new QualifiedName(0, "NodeVersion");
 
-    private final AtomicReference<Attributes> attributes;
+    private volatile Optional<DataValue> value;
+    private volatile NodeId dataType;
+    private volatile int valueRank;
+    private volatile Optional<UInteger[]> arrayDimensions;
+    private volatile boolean isAbstract;
 
-    public UaVariableTypeNode(NodeId nodeId,
-                              NodeClass nodeClass,
+    public UaVariableTypeNode(UaNodeManager nodeManager,
+                              NodeId nodeId,
                               QualifiedName browseName,
                               LocalizedText displayName,
                               Optional<LocalizedText> description,
@@ -56,209 +52,99 @@ public class UaVariableTypeNode extends UaNode implements VariableTypeNode {
                               NodeId dataType,
                               int valueRank,
                               Optional<UInteger[]> arrayDimensions,
-                              boolean isAbstract,
-                              List<Reference> references) {
+                              boolean isAbstract) {
 
-        super(nodeId, nodeClass, browseName, displayName, description, writeMask, userWriteMask);
+        super(nodeManager, nodeId, NodeClass.VariableType, browseName, displayName, description, writeMask, userWriteMask);
 
-        Preconditions.checkArgument(nodeClass == NodeClass.VariableType);
-
-        Attributes as = new Attributes(value, dataType, valueRank, arrayDimensions, isAbstract);
-        attributes = new AtomicReference<>(as);
-
-        for (Reference reference : references) {
-            referenceMap.put(reference.getReferenceTypeId(), reference);
-        }
-    }
-
-    @Override
-    public void addReference(Reference reference) {
-        referenceMap.put(reference.getReferenceTypeId(), reference);
-    }
-
-    @Override
-    public List<Reference> getReferences() {
-        synchronized (referenceMap) {
-            return ImmutableList.copyOf(referenceMap.values());
-        }
+        this.value = value;
+        this.dataType = dataType;
+        this.valueRank = valueRank;
+        this.arrayDimensions = arrayDimensions;
+        this.isAbstract = isAbstract;
     }
 
     @Override
     public Optional<DataValue> getValue() {
-        return attributes.get().getValue();
+        return value;
     }
 
     @Override
     public NodeId getDataType() {
-        return attributes.get().getDataType();
+        return dataType;
     }
 
     @Override
     public Integer getValueRank() {
-        return attributes.get().getValueRank();
+        return valueRank;
     }
 
     @Override
     public Optional<UInteger[]> getArrayDimensions() {
-        return attributes.get().getArrayDimensions();
+        return arrayDimensions;
     }
 
     @Override
     public Boolean getIsAbstract() {
-        return attributes.get().isAbstract();
+        return isAbstract;
     }
 
     @Override
-    public void setValue(Optional<DataValue> value) {
-        setAttribute(AttributeIds.Value, value, b -> b::setValue);
+    public synchronized void setValue(Optional<DataValue> value) {
+        this.value = value;
+
+        value.ifPresent(v -> fireAttributeChanged(AttributeIds.Value, v));
     }
 
     @Override
-    public void setDataType(NodeId dataType) {
-        setAttribute(AttributeIds.DataType, dataType, b -> b::setDataType);
+    public synchronized void setDataType(NodeId dataType) {
+        this.dataType = dataType;
+
+        fireAttributeChanged(AttributeIds.Value, dataType);
     }
 
     @Override
-    public void setValueRank(int valueRank) {
-        setAttribute(AttributeIds.ValueRank, valueRank, b -> b::setValueRank);
+    public synchronized void setValueRank(int valueRank) {
+        this.valueRank = valueRank;
+
+        fireAttributeChanged(AttributeIds.ValueRank, valueRank);
     }
 
     @Override
-    public void setArrayDimensions(Optional<UInteger[]> arrayDimensions) {
-        setAttribute(AttributeIds.ArrayDimensions, arrayDimensions, b -> b::setArrayDimensions);
+    public synchronized void setArrayDimensions(Optional<UInteger[]> arrayDimensions) {
+        this.arrayDimensions = arrayDimensions;
+
+        arrayDimensions.ifPresent(v -> fireAttributeChanged(AttributeIds.ArrayDimensions, v));
     }
 
     @Override
-    public void setIsAbstract(boolean isAbstract) {
-        setAttribute(AttributeIds.IsAbstract, isAbstract, b -> b::setIsAbstract);
+    public synchronized void setIsAbstract(boolean isAbstract) {
+        this.isAbstract = isAbstract;
+
+        fireAttributeChanged(AttributeIds.IsAbstract, isAbstract);
     }
 
-    private synchronized <T> void setAttribute(int attributeId, T value,
-                                               Function<Attributes.Builder, Consumer<T>> setter) {
-
-        Attributes current = attributes.get();
-
-        Attributes.Builder builder = Attributes.Builder.copy(current);
-        setter.apply(builder).accept(value);
-        Attributes updated = builder.get();
-
-        attributes.set(updated);
-
-        fireAttributeChanged(attributeId, value);
+    @Override
+    public Optional<String> getNodeVersion() {
+        return getProperty(NODE_VERSION);
     }
 
+    @Override
+    public void setNodeVersion(Optional<String> nodeVersion) {
+        if (nodeVersion.isPresent()) {
+            VariableNode node = getPropertyNode(NODE_VERSION).orElseGet(() -> {
+                UaPropertyNode propertyNode = createPropertyNode(NODE_VERSION);
 
-    private static class Attributes {
+                propertyNode.setDataType(Identifiers.String);
 
-        private final Optional<DataValue> value;
-        private final NodeId dataType;
-        private final int valueRank;
-        private final Optional<UInteger[]> arrayDimensions;
-        private final boolean isAbstract;
+                addPropertyNode(propertyNode);
 
-        private Attributes(Optional<DataValue> value,
-                           NodeId dataType,
-                           int valueRank,
-                           Optional<UInteger[]> arrayDimensions,
-                           boolean isAbstract) {
+                return propertyNode;
+            });
 
-            this.value = value;
-            this.dataType = dataType;
-            this.valueRank = valueRank;
-            this.arrayDimensions = arrayDimensions;
-            this.isAbstract = isAbstract;
-        }
-
-        public Optional<DataValue> getValue() {
-            return value;
-        }
-
-        public NodeId getDataType() {
-            return dataType;
-        }
-
-        public int getValueRank() {
-            return valueRank;
-        }
-
-        public Optional<UInteger[]> getArrayDimensions() {
-            return arrayDimensions;
-        }
-
-        public boolean isAbstract() {
-            return isAbstract;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            Attributes that = (Attributes) o;
-
-            return isAbstract == that.isAbstract &&
-                    valueRank == that.valueRank &&
-                    arrayDimensions.equals(that.arrayDimensions) &&
-                    dataType.equals(that.dataType) &&
-                    value.equals(that.value);
-        }
-
-        @Override
-        public int hashCode() {
-            int result = value.hashCode();
-            result = 31 * result + dataType.hashCode();
-            result = 31 * result + valueRank;
-            result = 31 * result + arrayDimensions.hashCode();
-            result = 31 * result + (isAbstract ? 1 : 0);
-            return result;
-        }
-
-        private static class Builder implements Supplier<Attributes> {
-
-            private Optional<DataValue> value;
-            private NodeId dataType;
-            private int valueRank;
-            private Optional<UInteger[]> arrayDimensions;
-            private boolean isAbstract;
-
-            @Override
-            public Attributes get() {
-                return new Attributes(value, dataType, valueRank, arrayDimensions, isAbstract);
-            }
-
-            public Builder setValue(Optional<DataValue> value) {
-                this.value = value;
-                return this;
-            }
-
-            public Builder setDataType(NodeId dataType) {
-                this.dataType = dataType;
-                return this;
-            }
-
-            public Builder setValueRank(int valueRank) {
-                this.valueRank = valueRank;
-                return this;
-            }
-
-            public Builder setArrayDimensions(Optional<UInteger[]> arrayDimensions) {
-                this.arrayDimensions = arrayDimensions;
-                return this;
-            }
-
-            public Builder setIsAbstract(boolean isAbstract) {
-                this.isAbstract = isAbstract;
-                return this;
-            }
-
-            public static Builder copy(Attributes attributes) {
-                return new Builder()
-                        .setValue(attributes.getValue())
-                        .setDataType(attributes.getDataType())
-                        .setValueRank(attributes.getValueRank())
-                        .setArrayDimensions(attributes.getArrayDimensions())
-                        .setIsAbstract(attributes.isAbstract());
-            }
+            node.setValue(new DataValue(new Variant(nodeVersion.get())));
+        } else {
+            removePropertyNode(NODE_VERSION);
         }
     }
+
 }

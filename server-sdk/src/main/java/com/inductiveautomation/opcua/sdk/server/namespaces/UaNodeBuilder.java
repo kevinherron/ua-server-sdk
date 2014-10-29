@@ -28,6 +28,7 @@ import com.inductiveautomation.opcua.nodeset.attributes.VariableNodeAttributes;
 import com.inductiveautomation.opcua.nodeset.attributes.VariableTypeNodeAttributes;
 import com.inductiveautomation.opcua.nodeset.attributes.ViewNodeAttributes;
 import com.inductiveautomation.opcua.sdk.core.Reference;
+import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
 import com.inductiveautomation.opcua.sdk.server.nodes.UaDataTypeNode;
 import com.inductiveautomation.opcua.sdk.server.nodes.UaMethodNode;
 import com.inductiveautomation.opcua.sdk.server.nodes.UaNode;
@@ -40,72 +41,90 @@ import com.inductiveautomation.opcua.sdk.server.nodes.UaViewNode;
 
 public class UaNodeBuilder implements NodeBuilder<UaNode, Reference> {
 
+    private final UaNodeManager nodeManager;
+
+    public UaNodeBuilder(UaNodeManager nodeManager) {
+        this.nodeManager = nodeManager;
+    }
+
     @Override
     public UaNode buildDataTypeNode(DataTypeNodeAttributes attributes, List<Reference> references) {
-        return new UaDataTypeNode(
+        UaDataTypeNode node = new UaDataTypeNode(
+                nodeManager,
                 attributes.getNodeAttributes().getNodeId(),
-                attributes.getNodeAttributes().getNodeClass(),
                 attributes.getNodeAttributes().getBrowseName(),
                 attributes.getNodeAttributes().getDisplayName(),
                 attributes.getNodeAttributes().getDescription(),
                 attributes.getNodeAttributes().getWriteMask(),
                 attributes.getNodeAttributes().getUserWriteMask(),
-                attributes.isAbstract(),
-                references
+                attributes.isAbstract()
         );
+
+        node.addReferences(references);
+
+        return node;
     }
 
     @Override
     public UaNode buildMethodNode(MethodNodeAttributes attributes, List<Reference> references) {
-        return new UaMethodNode(
+        UaMethodNode node = new UaMethodNode(
+                nodeManager,
                 attributes.getNodeAttributes().getNodeId(),
-                attributes.getNodeAttributes().getNodeClass(),
                 attributes.getNodeAttributes().getBrowseName(),
                 attributes.getNodeAttributes().getDisplayName(),
                 attributes.getNodeAttributes().getDescription(),
                 attributes.getNodeAttributes().getWriteMask(),
                 attributes.getNodeAttributes().getUserWriteMask(),
                 attributes.isExecutable(),
-                attributes.isUserExecutable(),
-                references
+                attributes.isUserExecutable()
         );
+
+        node.addReferences(references);
+
+        return node;
     }
 
     @Override
     public UaNode buildObjectNode(ObjectNodeAttributes attributes, List<Reference> references) {
-        return new UaObjectNode(
+        UaObjectNode node =  new UaObjectNode(
+                nodeManager,
                 attributes.getNodeAttributes().getNodeId(),
-                attributes.getNodeAttributes().getNodeClass(),
                 attributes.getNodeAttributes().getBrowseName(),
                 attributes.getNodeAttributes().getDisplayName(),
                 attributes.getNodeAttributes().getDescription(),
                 attributes.getNodeAttributes().getWriteMask(),
                 attributes.getNodeAttributes().getUserWriteMask(),
-                attributes.getEventNotifier(),
-                references
+                attributes.getEventNotifier()
         );
+
+        node.addReferences(references);
+
+        return node;
     }
 
     @Override
     public UaNode buildObjectTypeNode(ObjectTypeNodeAttributes attributes, List<Reference> references) {
-        return new UaObjectTypeNode(
+        UaObjectTypeNode node = new UaObjectTypeNode(
+                nodeManager,
                 attributes.getNodeAttributes().getNodeId(),
-                attributes.getNodeAttributes().getNodeClass(),
                 attributes.getNodeAttributes().getBrowseName(),
                 attributes.getNodeAttributes().getDisplayName(),
                 attributes.getNodeAttributes().getDescription(),
                 attributes.getNodeAttributes().getWriteMask(),
                 attributes.getNodeAttributes().getUserWriteMask(),
-                attributes.isAbstract(),
-                references
+                attributes.isAbstract()
         );
+
+        node.addReferences(references);
+
+        return node;
     }
 
     @Override
     public UaNode buildReferenceTypeNode(ReferenceTypeNodeAttributes attributes, List<Reference> references) {
-        return new UaReferenceTypeNode(
+        UaReferenceTypeNode node = new UaReferenceTypeNode(
+                nodeManager,
                 attributes.getNodeAttributes().getNodeId(),
-                attributes.getNodeAttributes().getNodeClass(),
                 attributes.getNodeAttributes().getBrowseName(),
                 attributes.getNodeAttributes().getDisplayName(),
                 attributes.getNodeAttributes().getDescription(),
@@ -113,16 +132,19 @@ public class UaNodeBuilder implements NodeBuilder<UaNode, Reference> {
                 attributes.getNodeAttributes().getUserWriteMask(),
                 attributes.isAbstract(),
                 attributes.isSymmetric(),
-                attributes.getInverseName(),
-                references
+                attributes.getInverseName()
         );
+
+        node.addReferences(references);
+
+        return node;
     }
 
     @Override
     public UaNode buildVariableNode(VariableNodeAttributes attributes, List<Reference> references) {
-        return new UaVariableNode(
+        UaVariableNode node = new UaVariableNode(
+                nodeManager,
                 attributes.getNodeAttributes().getNodeId(),
-                attributes.getNodeAttributes().getNodeClass(),
                 attributes.getNodeAttributes().getBrowseName(),
                 attributes.getNodeAttributes().getDisplayName(),
                 attributes.getNodeAttributes().getDescription(),
@@ -135,16 +157,19 @@ public class UaNodeBuilder implements NodeBuilder<UaNode, Reference> {
                 attributes.getAccessLevel(),
                 attributes.getUserAccessLevel(),
                 attributes.getMinimumSamplingInterval(),
-                attributes.isHistorizing(),
-                references
+                attributes.isHistorizing()
         );
+
+        node.addReferences(references);
+
+        return node;
     }
 
     @Override
     public UaNode buildVariableTypeNode(VariableTypeNodeAttributes attributes, List<Reference> references) {
-        return new UaVariableTypeNode(
+        UaVariableTypeNode node = new UaVariableTypeNode(
+                nodeManager,
                 attributes.getNodeAttributes().getNodeId(),
-                attributes.getNodeAttributes().getNodeClass(),
                 attributes.getNodeAttributes().getBrowseName(),
                 attributes.getNodeAttributes().getDisplayName(),
                 attributes.getNodeAttributes().getDescription(),
@@ -154,24 +179,31 @@ public class UaNodeBuilder implements NodeBuilder<UaNode, Reference> {
                 attributes.getDataType(),
                 attributes.getValueRank(),
                 attributes.getArrayDimensions(),
-                attributes.isAbstract(),
-                references
+                attributes.isAbstract()
         );
+
+        node.addReferences(references);
+
+        return node;
     }
 
     @Override
     public UaNode buildViewNode(ViewNodeAttributes attributes, List<Reference> references) {
-        return new UaViewNode(
+        UaViewNode node = new UaViewNode(
+                nodeManager,
                 attributes.getNodeAttributes().getNodeId(),
-                attributes.getNodeAttributes().getNodeClass(),
                 attributes.getNodeAttributes().getBrowseName(),
                 attributes.getNodeAttributes().getDisplayName(),
                 attributes.getNodeAttributes().getDescription(),
                 attributes.getNodeAttributes().getWriteMask(),
                 attributes.getNodeAttributes().getUserWriteMask(),
                 attributes.isContainsNoLoops(),
-                attributes.getEventNotifier(),
-                references
+                attributes.getEventNotifier()
         );
+
+        node.addReferences(references);
+
+        return node;
     }
+
 }

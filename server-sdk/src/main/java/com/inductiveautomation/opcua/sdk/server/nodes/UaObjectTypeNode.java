@@ -16,72 +16,101 @@
 
 package com.inductiveautomation.opcua.sdk.server.nodes;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimaps;
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
-import com.inductiveautomation.opcua.sdk.core.Reference;
 import com.inductiveautomation.opcua.sdk.core.nodes.ObjectTypeNode;
+import com.inductiveautomation.opcua.sdk.core.nodes.VariableNode;
+import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.stack.core.Identifiers;
+import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
+import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
+import com.inductiveautomation.opcua.stack.core.types.builtin.Variant;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
 
 public class UaObjectTypeNode extends UaNode implements ObjectTypeNode {
 
-    private final ListMultimap<NodeId, Reference> referenceMap =
-            Multimaps.synchronizedListMultimap(ArrayListMultimap.create());
+    public static final QualifiedName NODE_VERSION = new QualifiedName(0, "NodeVersion");
+    public static final QualifiedName ICON = new QualifiedName(0, "Icon");
 
-    private final AtomicBoolean isAbstract;
+    private volatile boolean isAbstract;
 
-    public UaObjectTypeNode(NodeId nodeId,
-                            NodeClass nodeClass,
+    public UaObjectTypeNode(UaNodeManager nodeManager,
+                            NodeId nodeId,
                             QualifiedName browseName,
                             LocalizedText displayName,
                             Optional<LocalizedText> description,
                             Optional<UInteger> writeMask,
                             Optional<UInteger> userWriteMask,
-                            boolean isAbstract,
-                            List<Reference> references) {
+                            boolean isAbstract) {
 
-        super(nodeId, nodeClass, browseName, displayName, description, writeMask, userWriteMask);
+        super(nodeManager, nodeId, NodeClass.ObjectType, browseName, displayName, description, writeMask, userWriteMask);
 
-        Preconditions.checkArgument(nodeClass == NodeClass.ObjectType);
-
-        this.isAbstract = new AtomicBoolean(isAbstract);
-
-        references.stream().forEach(reference -> referenceMap.put(reference.getReferenceTypeId(), reference));
-    }
-
-    @Override
-    public void addReference(Reference reference) {
-        referenceMap.put(reference.getReferenceTypeId(), reference);
-    }
-
-    @Override
-    public List<Reference> getReferences() {
-        synchronized (referenceMap) {
-            return ImmutableList.copyOf(referenceMap.values());
-        }
+        this.isAbstract = isAbstract;
     }
 
     @Override
     public Boolean getIsAbstract() {
-        return isAbstract.get();
+        return isAbstract;
     }
 
     @Override
     public synchronized void setIsAbstract(boolean isAbstract) {
-        this.isAbstract.set(isAbstract);
+        this.isAbstract = isAbstract;
 
         fireAttributeChanged(AttributeIds.IsAbstract, isAbstract);
+    }
+
+    @Override
+    public Optional<String> getNodeVersion() {
+        return getProperty(NODE_VERSION);
+    }
+
+    @Override
+    public Optional<ByteString> getIcon() {
+        return getProperty(ICON);
+    }
+
+    @Override
+    public void setNodeVersion(Optional<String> nodeVersion) {
+        if (nodeVersion.isPresent()) {
+            VariableNode node = getPropertyNode(NODE_VERSION).orElseGet(() -> {
+                UaPropertyNode propertyNode = createPropertyNode(NODE_VERSION);
+
+                propertyNode.setDataType(Identifiers.String);
+
+                addPropertyNode(propertyNode);
+
+                return propertyNode;
+            });
+
+            node.setValue(new DataValue(new Variant(nodeVersion.get())));
+        } else {
+            removePropertyNode(NODE_VERSION);
+        }
+    }
+
+    @Override
+    public void setIcon(Optional<ByteString> icon) {
+        if (icon.isPresent()) {
+            VariableNode node = getPropertyNode(ICON).orElseGet(() -> {
+                UaPropertyNode propertyNode = createPropertyNode(ICON);
+
+                propertyNode.setDataType(Identifiers.ByteString);
+
+                addPropertyNode(propertyNode);
+
+                return propertyNode;
+            });
+
+            node.setValue(new DataValue(new Variant(icon.get())));
+        } else {
+            removePropertyNode(ICON);
+        }
     }
 
 }

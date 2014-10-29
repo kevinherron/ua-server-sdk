@@ -30,13 +30,14 @@ import com.inductiveautomation.opcua.nodeset.UaNodeSet;
 import com.inductiveautomation.opcua.nodeset.UaNodeSetParser;
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.NamespaceTable;
+import com.inductiveautomation.opcua.sdk.core.Reference;
+import com.inductiveautomation.opcua.sdk.core.nodes.Node;
 import com.inductiveautomation.opcua.sdk.server.OpcUaServer;
 import com.inductiveautomation.opcua.sdk.server.api.DataItem;
 import com.inductiveautomation.opcua.sdk.server.api.EventItem;
 import com.inductiveautomation.opcua.sdk.server.api.MonitoredItem;
 import com.inductiveautomation.opcua.sdk.server.api.Namespace;
-import com.inductiveautomation.opcua.sdk.core.Reference;
-import com.inductiveautomation.opcua.sdk.core.nodes.Node;
+import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
 import com.inductiveautomation.opcua.sdk.server.nodes.UaNode;
 import com.inductiveautomation.opcua.sdk.server.util.SubscriptionModel;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
@@ -55,7 +56,7 @@ import org.slf4j.LoggerFactory;
 
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.ushort;
 
-public class OpcUaNamespace implements Namespace {
+public class OpcUaNamespace implements Namespace, UaNodeManager {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -98,6 +99,26 @@ public class OpcUaNamespace implements Namespace {
     @Override
     public Optional<Node> getNode(NodeId nodeId) {
         return Optional.ofNullable(nodes.get(nodeId));
+    }
+
+    @Override
+    public void addUaNode(UaNode node) {
+        nodes.put(node.getNodeId(), node);
+    }
+
+    @Override
+    public Optional<UaNode> getUaNode(NodeId nodeId) {
+        return Optional.ofNullable(nodes.get(nodeId));
+    }
+
+    @Override
+    public Optional<UaNode> getUaNode(ExpandedNodeId nodeId) {
+        return nodeId.local().flatMap(this::getUaNode);
+    }
+
+    @Override
+    public Optional<UaNode> removeUaNode(NodeId nodeId) {
+        return Optional.ofNullable(nodes.remove(nodeId));
     }
 
     @Override
@@ -238,7 +259,11 @@ public class OpcUaNamespace implements Namespace {
     private void parseNodes() throws JAXBException {
         logger.info("Parsing Opc.Ua.NodeSet2.xml...");
         InputStream nodeSetXml = getClass().getClassLoader().getResourceAsStream("Opc.Ua.NodeSet2.xml");
-        UaNodeSetParser<UaNode, Reference> parser = new UaNodeSetParser<>(new UaNodeBuilder(), new UaReferenceBuilder());
+
+        UaNodeSetParser<UaNode, Reference> parser = new UaNodeSetParser<>(
+                new UaNodeBuilder(this),
+                new UaReferenceBuilder()
+        );
 
         UaNodeSet<UaNode, Reference> nodeSet = parser.parse(nodeSetXml);
 

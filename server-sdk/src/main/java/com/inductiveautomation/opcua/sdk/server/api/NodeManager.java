@@ -21,6 +21,7 @@ import java.util.Optional;
 
 import com.inductiveautomation.opcua.sdk.core.Reference;
 import com.inductiveautomation.opcua.sdk.core.nodes.Node;
+import com.inductiveautomation.opcua.sdk.server.nodes.UaNode;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.UaException;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ExpandedNodeId;
@@ -40,10 +41,10 @@ public interface NodeManager {
     boolean containsNodeId(NodeId nodeId);
 
     /**
-     * Get the {@link Node} for the given {@link NodeId}, or {@link Optional#EMPTY} if none exists.
+     * Get a {@link UaNode} for the given {@link NodeId}, or {@link Optional#EMPTY} if none exists.
      *
-     * @param nodeId The {@link NodeId} of the requested {@link Node}.
-     * @return The {@link Node} for the given {@link NodeId}, or <code>null</code> if none exists.
+     * @param nodeId The {@link NodeId} of the requested {@link UaNode}.
+     * @return The {@link UaNode} for the given {@link NodeId}, or <code>null</code> if none exists.
      */
     Optional<Node> getNode(NodeId nodeId);
 
@@ -62,7 +63,7 @@ public interface NodeManager {
                            QualifiedName browseName,
                            NodeClass nodeClass,
                            ExtensionObject nodeAttributes,
-                           ExpandedNodeId typeDefintiion) throws UaException {
+                           ExpandedNodeId typeDefinition) throws UaException {
 
         throw new UaException(StatusCodes.Bad_NotSupported);
     }

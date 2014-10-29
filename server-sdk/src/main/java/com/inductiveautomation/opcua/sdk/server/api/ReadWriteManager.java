@@ -25,7 +25,7 @@ import com.inductiveautomation.opcua.stack.core.types.enumerated.TimestampsToRet
 import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
 import com.inductiveautomation.opcua.stack.core.types.structured.WriteValue;
 
-public interface AttributeManager {
+public interface ReadWriteManager {
 
     /**
      * Read one or more values from nodes belonging to this {@link NodeManager}.

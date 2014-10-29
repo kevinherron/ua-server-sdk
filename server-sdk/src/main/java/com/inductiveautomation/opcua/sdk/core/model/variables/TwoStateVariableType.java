@@ -3,7 +3,7 @@ package com.inductiveautomation.opcua.sdk.core.model.variables;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 
-public interface TwoStateVariableType extends StateVariableType {
+public interface TwoStateVariableType<T> extends StateVariableType {
 
     Boolean getId();
 
@@ -24,7 +24,5 @@ public interface TwoStateVariableType extends StateVariableType {
     void setTrueState(LocalizedText trueState);
 
     void setFalseState(LocalizedText falseState);
-
-    void atomicSet(Runnable runnable);
 
 }

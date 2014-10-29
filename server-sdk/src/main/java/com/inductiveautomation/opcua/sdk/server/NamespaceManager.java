@@ -24,9 +24,9 @@ import java.util.function.Function;
 
 import com.google.common.collect.Maps;
 import com.inductiveautomation.opcua.sdk.core.NamespaceTable;
-import com.inductiveautomation.opcua.sdk.server.api.Namespace;
 import com.inductiveautomation.opcua.sdk.core.Reference;
 import com.inductiveautomation.opcua.sdk.core.nodes.Node;
+import com.inductiveautomation.opcua.sdk.server.api.Namespace;
 import com.inductiveautomation.opcua.sdk.server.util.NoOpNamespace;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.UaRuntimeException;

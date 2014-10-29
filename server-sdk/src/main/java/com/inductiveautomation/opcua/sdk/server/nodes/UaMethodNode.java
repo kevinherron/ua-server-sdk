@@ -18,20 +18,18 @@ package com.inductiveautomation.opcua.sdk.server.nodes;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimaps;
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.ValueRank;
 import com.inductiveautomation.opcua.sdk.core.nodes.MethodNode;
+import com.inductiveautomation.opcua.sdk.core.nodes.Node;
+import com.inductiveautomation.opcua.sdk.core.nodes.ObjectNode;
+import com.inductiveautomation.opcua.sdk.core.nodes.VariableNode;
 import com.inductiveautomation.opcua.sdk.server.api.MethodInvocationHandler;
-import com.inductiveautomation.opcua.sdk.core.Reference;
+import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
@@ -42,152 +40,181 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
 import com.inductiveautomation.opcua.stack.core.types.structured.Argument;
 
+import static com.inductiveautomation.opcua.sdk.core.Reference.ALWAYS_GENERATES_EVENT_PREDICATE;
+import static com.inductiveautomation.opcua.sdk.core.Reference.HAS_MODELLING_RULE_PREDICATE;
+import static com.inductiveautomation.opcua.sdk.core.Reference.HAS_PROPERTY_PREDICATE;
+import static com.inductiveautomation.opcua.sdk.server.util.StreamUtil.opt2stream;
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
 public class UaMethodNode extends UaNode implements MethodNode {
 
-    private final ListMultimap<NodeId, Reference> referenceMap =
-            Multimaps.synchronizedListMultimap(ArrayListMultimap.create());
+    public static final QualifiedName INPUT_ARGUMENTS = new QualifiedName(0, "InputArguments");
+    public static final QualifiedName NODE_VERSION = new QualifiedName(0, "NodeVersion");
+    public static final QualifiedName OUTPUT_ARGUMENTS = new QualifiedName(0, "OutputArguments");
 
-    private volatile Optional<UaVariableNode> inputArguments = Optional.empty();
-    private volatile Optional<UaVariableNode> outputArguments = Optional.empty();
     private volatile Optional<MethodInvocationHandler> handler = Optional.empty();
 
-    private final AtomicBoolean executable;
-    private final AtomicBoolean userExecutable;
+    private volatile boolean executable;
+    private volatile boolean userExecutable;
 
-    public UaMethodNode(NodeId nodeId,
-                        NodeClass nodeClass,
+    public UaMethodNode(UaNodeManager nodeManager,
+                        NodeId nodeId,
                         QualifiedName browseName,
                         LocalizedText displayName,
                         Optional<LocalizedText> description,
                         Optional<UInteger> writeMask,
                         Optional<UInteger> userWriteMask,
                         boolean executable,
-                        boolean userExecutable,
-                        List<Reference> references) {
+                        boolean userExecutable) {
 
-        super(nodeId, nodeClass, browseName, displayName, description, writeMask, userWriteMask);
+        super(nodeManager, nodeId, NodeClass.Method, browseName, displayName, description, writeMask, userWriteMask);
 
-        Preconditions.checkArgument(nodeClass == NodeClass.Method);
-
-        this.executable = new AtomicBoolean(executable);
-        this.userExecutable = new AtomicBoolean(userExecutable);
-
-        references.stream().forEach(reference -> {
-            referenceMap.put(reference.getReferenceTypeId(), reference);
-        });
-    }
-
-    @Override
-    public void addReference(Reference reference) {
-        referenceMap.put(reference.getReferenceTypeId(), reference);
-    }
-
-    @Override
-    public List<Reference> getReferences() {
-        synchronized (referenceMap) {
-            return ImmutableList.copyOf(referenceMap.values());
-        }
+        this.executable = executable;
+        this.userExecutable = userExecutable;
     }
 
     @Override
     public Boolean isExecutable() {
-        return executable.get();
+        return executable;
     }
 
     @Override
     public Boolean isUserExecutable() {
-        return userExecutable.get();
+        return userExecutable;
     }
 
     @Override
     public synchronized void setExecutable(boolean executable) {
-        this.executable.set(executable);
+        this.executable = executable;
 
         fireAttributeChanged(AttributeIds.Executable, executable);
     }
 
     @Override
     public synchronized void setUserExecutable(boolean userExecutable) {
-        this.userExecutable.set(userExecutable);
+        this.userExecutable = userExecutable;
 
         fireAttributeChanged(AttributeIds.UserExecutable, userExecutable);
     }
 
-    public UaVariableNode setInputArguments(Argument[] arguments) {
-        return setArguments(arguments, true);
+    public List<Node> getPropertyNodes() {
+        return getReferences().stream()
+                .filter(HAS_PROPERTY_PREDICATE)
+                .flatMap(r -> opt2stream(getNode(r.getTargetNodeId())))
+                .collect(Collectors.toList());
     }
 
-    public UaVariableNode setOutputArguments(Argument[] arguments) {
-        return setArguments(arguments, false);
+    public Optional<ObjectNode> getModellingRuleNode() {
+        Node node = getReferences().stream()
+                .filter(HAS_MODELLING_RULE_PREDICATE)
+                .findFirst()
+                .flatMap(r -> getNode(r.getTargetNodeId()))
+                .orElse(null);
+
+        ObjectNode objectNode = (node instanceof ObjectNode) ? (ObjectNode) node : null;
+
+        return Optional.ofNullable(objectNode);
     }
 
-    private UaVariableNode setArguments(Argument[] arguments, boolean input) {
-        String inputOrOutput = input ? "InputArguments" : "OutputArguments";
-        String identifier = String.format("%s.%s", getNodeId().getIdentifier().toString(), inputOrOutput);
-        NodeId nodeId = new NodeId(getNodeId().getNamespaceIndex(), identifier);
+    public List<Node> getAlwaysGeneratesEventNodes() {
+        return getReferences().stream()
+                .filter(ALWAYS_GENERATES_EVENT_PREDICATE)
+                .flatMap(r -> opt2stream(getNode(r.getTargetNodeId())))
+                .collect(Collectors.toList());
+    }
 
-        UaVariableNode node = UaVariableNode.builder()
-                .setNodeId(nodeId)
-                .setBrowseName(new QualifiedName(0, inputOrOutput))
-                .setDisplayName(LocalizedText.english(inputOrOutput))
-                .setValue(new DataValue(new Variant(arguments)))
-                .setDataType(input ? Identifiers.InputArguments : Identifiers.OutputArguments)
-                .setTypeDefinition(Identifiers.PropertyType)
-                .setValueRank(ValueRank.OneDimension)
-                .setArrayDimensions(new UInteger[]{uint(arguments.length)})
-                .build();
+    @Override
+    public Optional<String> getNodeVersion() {
+        return getProperty(NODE_VERSION);
+    }
 
-        Reference reference = new Reference(
-                getNodeId(),
-                Identifiers.HasProperty,
-                nodeId.expanded(),
-                NodeClass.Variable,
-                true
-        );
+    @Override
+    public Optional<Argument[]> getInputArguments() {
+        return getProperty(INPUT_ARGUMENTS);
+    }
 
-        synchronized (referenceMap) {
-            referenceMap.put(reference.getReferenceTypeId(), reference);
+    @Override
+    public Optional<Argument[]> getOutputArguments() {
+        return getProperty(OUTPUT_ARGUMENTS);
+    }
 
-            if (input) {
-                inputArguments = Optional.of(node);
-            } else {
-                outputArguments = Optional.of(node);
-            }
+    @Override
+    public void setNodeVersion(Optional<String> nodeVersion) {
+        if (nodeVersion.isPresent()) {
+            VariableNode node = getPropertyNode(NODE_VERSION).orElseGet(() -> {
+                UaPropertyNode propertyNode = createPropertyNode(NODE_VERSION);
+
+                propertyNode.setDataType(Identifiers.String);
+
+                addPropertyNode(propertyNode);
+
+                return propertyNode;
+            });
+
+            node.setValue(new DataValue(new Variant(nodeVersion.get())));
+        } else {
+            removePropertyNode(NODE_VERSION);
         }
-
-        return node;
     }
 
-    public void setInvocationHandler(MethodInvocationHandler handler) {
-        this.handler = Optional.of(handler);
+    @Override
+    public void setInputArguments(Optional<Argument[]> inputArguments) {
+        if (inputArguments.isPresent()) {
+            VariableNode node = getPropertyNode(INPUT_ARGUMENTS).orElseGet(() -> {
+                UaPropertyNode propertyNode = createPropertyNode(INPUT_ARGUMENTS);
+
+                propertyNode.setDataType(Identifiers.InputArguments);
+                propertyNode.setValueRank(ValueRank.OneDimension);
+                propertyNode.setArrayDimensions(Optional.of(new UInteger[]{uint(0)}));
+
+                addPropertyNode(propertyNode);
+
+                return propertyNode;
+            });
+
+            node.setValue(new DataValue(new Variant(inputArguments.get())));
+        } else {
+            removePropertyNode(INPUT_ARGUMENTS);
+        }
     }
 
-    public Optional<UaVariableNode> getInputArguments() {
-        return inputArguments;
-    }
+    @Override
+    public void setOutputArguments(Optional<Argument[]> outputArguments) {
+        if (outputArguments.isPresent()) {
+            VariableNode node = getPropertyNode(OUTPUT_ARGUMENTS).orElseGet(() -> {
+                UaPropertyNode propertyNode = createPropertyNode(OUTPUT_ARGUMENTS);
 
-    public Optional<UaVariableNode> getOutputArguments() {
-        return outputArguments;
+                propertyNode.setDataType(Identifiers.OutputArguments);
+                propertyNode.setValueRank(ValueRank.OneDimension);
+                propertyNode.setArrayDimensions(Optional.of(new UInteger[]{uint(0)}));
+
+                addPropertyNode(propertyNode);
+
+                return propertyNode;
+            });
+
+            node.setValue(new DataValue(new Variant(outputArguments.get())));
+        } else {
+            removePropertyNode(OUTPUT_ARGUMENTS);
+        }
     }
 
     public Optional<MethodInvocationHandler> getInvocationHandler() {
         return handler;
     }
 
+    public void setInvocationHandler(MethodInvocationHandler handler) {
+        this.handler = Optional.of(handler);
+    }
+
     /**
      * @return a new {@link UaMethodNodeBuilder}.
      */
-    public static UaMethodNodeBuilder builder() {
-        return new UaMethodNodeBuilder();
+    public static UaMethodNodeBuilder builder(UaNodeManager nodeManager) {
+        return new UaMethodNodeBuilder(nodeManager);
     }
 
     public static class UaMethodNodeBuilder implements Supplier<UaMethodNode> {
-
-        private final List<Reference> references = Lists.newArrayList();
-
-        private final NodeClass nodeClass = NodeClass.Method;
 
         private NodeId nodeId;
         private QualifiedName browseName;
@@ -199,6 +226,12 @@ public class UaMethodNode extends UaNode implements MethodNode {
         private boolean executable = true;
         private boolean userExecutable = true;
 
+        private final UaNodeManager nodeManager;
+
+        public UaMethodNodeBuilder(UaNodeManager nodeManager) {
+            this.nodeManager = nodeManager;
+        }
+
         @Override
         public UaMethodNode get() {
             return build();
@@ -206,21 +239,19 @@ public class UaMethodNode extends UaNode implements MethodNode {
 
         public UaMethodNode build() {
             Preconditions.checkNotNull(nodeId, "NodeId cannot be null");
-            Preconditions.checkNotNull(nodeClass, "NodeClass cannot be null");
             Preconditions.checkNotNull(browseName, "BrowseName cannot be null");
             Preconditions.checkNotNull(displayName, "DisplayName cannot be null");
 
             return new UaMethodNode(
+                    nodeManager,
                     nodeId,
-                    nodeClass,
                     browseName,
                     displayName,
                     description,
                     writeMask,
                     userWriteMask,
                     executable,
-                    userExecutable,
-                    references
+                    userExecutable
             );
         }
 

@@ -16,91 +16,116 @@
 
 package com.inductiveautomation.opcua.sdk.server.nodes;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimaps;
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
-import com.inductiveautomation.opcua.sdk.core.Reference;
+import com.inductiveautomation.opcua.sdk.core.nodes.VariableNode;
 import com.inductiveautomation.opcua.sdk.core.nodes.ViewNode;
+import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.stack.core.Identifiers;
+import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
+import com.inductiveautomation.opcua.stack.core.types.builtin.Variant;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
 
 public class UaViewNode extends UaNode implements ViewNode {
 
-    private final ListMultimap<NodeId, Reference> referenceMap =
-            Multimaps.synchronizedListMultimap(ArrayListMultimap.create());
+    public static final QualifiedName NODE_VERSION = new QualifiedName(0, "NodeVersion");
+    public static final QualifiedName VIEW_VERSION = new QualifiedName(0, "ViewVersion");
 
-    private final AtomicBoolean containsNoLoops;
-    private final AtomicReference<UByte> eventNotifier;
+    private volatile boolean containsNoLoops;
+    private volatile UByte eventNotifier;
 
-    public UaViewNode(NodeId nodeId,
-                      NodeClass nodeClass,
+    public UaViewNode(UaNodeManager nodeManager,
+                      NodeId nodeId,
                       QualifiedName browseName,
                       LocalizedText displayName,
                       Optional<LocalizedText> description,
                       Optional<UInteger> writeMask,
                       Optional<UInteger> userWriteMask,
                       boolean containsNoLoops,
-                      UByte eventNotifier,
-                      List<Reference> references) {
+                      UByte eventNotifier) {
 
-        super(nodeId, nodeClass, browseName, displayName, description, writeMask, userWriteMask);
+        super(nodeManager, nodeId, NodeClass.View, browseName, displayName, description, writeMask, userWriteMask);
 
-        Preconditions.checkArgument(nodeClass == NodeClass.View);
-
-        this.containsNoLoops = new AtomicBoolean(containsNoLoops);
-        this.eventNotifier = new AtomicReference<>(eventNotifier);
-
-        references.stream().forEach(reference -> {
-            referenceMap.put(reference.getReferenceTypeId(), reference);
-        });
-    }
-
-    @Override
-    public void addReference(Reference reference) {
-        referenceMap.put(reference.getReferenceTypeId(), reference);
-    }
-
-    @Override
-    public List<Reference> getReferences() {
-        synchronized (referenceMap) {
-            return ImmutableList.copyOf(referenceMap.values());
-        }
+        this.containsNoLoops = containsNoLoops;
+        this.eventNotifier = eventNotifier;
     }
 
     @Override
     public Boolean getContainsNoLoops() {
-        return containsNoLoops.get();
+        return containsNoLoops;
     }
 
     @Override
     public UByte getEventNotifier() {
-        return eventNotifier.get();
+        return eventNotifier;
     }
 
     @Override
     public synchronized void setContainsNoLoops(boolean containsNoLoops) {
-        this.containsNoLoops.set(containsNoLoops);
+        this.containsNoLoops = containsNoLoops;
 
         fireAttributeChanged(AttributeIds.ContainsNoLoops, containsNoLoops);
     }
 
     @Override
     public synchronized void setEventNotifier(UByte eventNotifier) {
-        this.eventNotifier.set(eventNotifier);
+        this.eventNotifier = eventNotifier;
 
         fireAttributeChanged(AttributeIds.EventNotifier, eventNotifier);
+    }
+
+    @Override
+    public Optional<String> getNodeVersion() {
+        return getProperty(NODE_VERSION);
+    }
+
+    @Override
+    public Optional<UInteger> getViewVersion() {
+        return getProperty(VIEW_VERSION);
+    }
+
+    @Override
+    public void setNodeVersion(Optional<String> nodeVersion) {
+        if (nodeVersion.isPresent()) {
+            VariableNode node = getPropertyNode(NODE_VERSION).orElseGet(() -> {
+                UaPropertyNode propertyNode = createPropertyNode(NODE_VERSION);
+
+                propertyNode.setDataType(Identifiers.String);
+
+                addPropertyNode(propertyNode);
+
+                return propertyNode;
+            });
+
+            node.setValue(new DataValue(new Variant(nodeVersion.get())));
+        } else {
+            removePropertyNode(NODE_VERSION);
+        }
+    }
+
+    @Override
+    public void setViewVersion(Optional<UInteger> viewVersion) {
+        if (viewVersion.isPresent()) {
+            VariableNode node = getPropertyNode(VIEW_VERSION).orElseGet(() -> {
+                UaPropertyNode propertyNode = createPropertyNode(VIEW_VERSION);
+
+                propertyNode.setDataType(Identifiers.UInt32);
+
+                addPropertyNode(propertyNode);
+
+                return propertyNode;
+            });
+
+            node.setValue(new DataValue(new Variant(viewVersion.get())));
+        } else {
+            removePropertyNode(VIEW_VERSION);
+        }
     }
 
 }

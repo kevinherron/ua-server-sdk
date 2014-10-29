@@ -33,7 +33,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.math.DoubleMath;
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
-import com.inductiveautomation.opcua.sdk.server.api.AttributeManager;
+import com.inductiveautomation.opcua.sdk.server.api.ReadWriteManager;
 import com.inductiveautomation.opcua.sdk.server.api.DataItem;
 import com.inductiveautomation.opcua.sdk.server.api.MonitoredItem;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
@@ -51,11 +51,11 @@ public class SubscriptionModel {
 
     private final ExecutionQueue<Runnable> executionQueue;
 
-    private final AttributeManager attributeManager;
+    private final ReadWriteManager readWriteManager;
     private final ExecutorService executorService;
 
-    public SubscriptionModel(AttributeManager attributeManager, ExecutorService executorService) {
-        this.attributeManager = attributeManager;
+    public SubscriptionModel(ReadWriteManager readWriteManager, ExecutorService executorService) {
+        this.readWriteManager = readWriteManager;
         this.executorService = executorService;
 
         executionQueue = new ExecutionQueue<>(ExecutionQueue.RUNNABLE_EXECUTOR, executorService);
@@ -152,7 +152,7 @@ public class SubscriptionModel {
                 }
             }, executorService);
 
-            executorService.execute(() -> attributeManager.read(ids, 0d, TimestampsToReturn.Both, future));
+            executorService.execute(() -> readWriteManager.read(ids, 0d, TimestampsToReturn.Both, future));
         }
 
     }

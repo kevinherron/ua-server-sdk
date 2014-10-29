@@ -182,7 +182,7 @@ public class AttributeReader {
                 return dv(node.getIsAbstract());
 
             case AttributeIds.Symmetric:
-                return dv(node.getIsSymmetric());
+                return dv(node.getSymmetric());
 
             case AttributeIds.InverseName:
                 return node.getInverseName().map(AttributeReader::dv)
@@ -219,7 +219,7 @@ public class AttributeReader {
                         .orElseThrow(ATTRIBUTE_ID_INVALID_EXCEPTION);
 
             case AttributeIds.Historizing:
-                return dv(node.isHistorizing());
+                return dv(node.getHistorizing());
 
             default:
                 return readNodeAttribute(node, attribute);

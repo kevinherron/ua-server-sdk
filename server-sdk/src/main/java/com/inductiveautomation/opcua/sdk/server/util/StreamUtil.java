@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Inductive Automation
+ * Copyright 2014
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,28 +14,18 @@
  * limitations under the License.
  */
 
-package com.inductiveautomation.opcua.sdk.core.nodes;
+package com.inductiveautomation.opcua.sdk.server.util;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
-import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
+public class StreamUtil {
 
-public interface ReferenceTypeNode extends Node {
-
-    Boolean getIsAbstract();
-
-    Boolean getSymmetric();
-
-    Optional<LocalizedText> getInverseName();
-
-    void setIsAbstract(boolean isAbstract);
-
-    void setSymmetric(boolean isSymmetric);
-
-    void setInverseName(Optional<LocalizedText> inverseName);
-
-    Optional<String> getNodeVersion();
-
-    void setNodeVersion(Optional<String> nodeVersion);
+    /**
+     * Turns an Optional<T> into a Stream<T> of length zero or one depending upon whether a value is present.
+     */
+    public static <T> Stream<T> opt2stream(Optional<T> opt) {
+        return opt.map(Stream::of).orElseGet(Stream::empty);
+    }
 
 }
