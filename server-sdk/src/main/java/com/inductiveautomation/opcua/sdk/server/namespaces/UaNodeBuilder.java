@@ -16,7 +16,11 @@
 
 package com.inductiveautomation.opcua.sdk.server.namespaces;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.inductiveautomation.opcua.nodeset.NodeBuilder;
 import com.inductiveautomation.opcua.nodeset.attributes.DataTypeNodeAttributes;
@@ -38,8 +42,22 @@ import com.inductiveautomation.opcua.sdk.server.nodes.UaReferenceTypeNode;
 import com.inductiveautomation.opcua.sdk.server.nodes.UaVariableNode;
 import com.inductiveautomation.opcua.sdk.server.nodes.UaVariableTypeNode;
 import com.inductiveautomation.opcua.sdk.server.nodes.UaViewNode;
+import com.inductiveautomation.opcua.sdk.server.util.UaObjectType;
+import com.inductiveautomation.opcua.sdk.server.util.UaVariableType;
+import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
+import org.reflections.Reflections;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class UaNodeBuilder implements NodeBuilder<UaNode, Reference> {
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    private final Reflections objectReflections =
+            new Reflections("com.inductiveautomation.opcua.sdk.server.nodes.generated.objects");
+
+    private final Reflections variableReflections =
+            new Reflections("com.inductiveautomation.opcua.sdk.server.nodes.generated.variables");
 
     private final UaNodeManager nodeManager;
 
@@ -85,7 +103,51 @@ public class UaNodeBuilder implements NodeBuilder<UaNode, Reference> {
     }
 
     @Override
-    public UaNode buildObjectNode(ObjectNodeAttributes attributes, List<Reference> references) {
+    public UaNode buildObjectNode(ObjectNodeAttributes attributes, List<Reference> references, Map<NodeId, UaNode> nodeMap) {
+        UaNode typeDefinitionNode = references.stream()
+                .filter(Reference.HAS_TYPE_DEFINITION_PREDICATE)
+                .findFirst()
+                .flatMap(r -> r.getTargetNodeId().local())
+                .map(nodeMap::get)
+                .orElseThrow(() -> new RuntimeException("no type definition found"));
+
+        String typeDefinitionName = typeDefinitionNode.getBrowseName().getName();
+
+        Set<Class<?>> annotated = objectReflections.getTypesAnnotatedWith(new UaObjectType() {
+            @Override
+            public String name() {
+                return typeDefinitionName;
+            }
+
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return UaObjectType.class;
+            }
+        });
+
+        for (Class<?> clazz : annotated) {
+            try {
+                Constructor<?> ctor = clazz.getConstructors()[0];
+
+                UaObjectNode n = (UaObjectNode) ctor.newInstance(
+                        nodeManager,
+                        attributes.getNodeAttributes().getNodeId(),
+                        attributes.getNodeAttributes().getBrowseName(),
+                        attributes.getNodeAttributes().getDisplayName(),
+                        attributes.getNodeAttributes().getDescription(),
+                        attributes.getNodeAttributes().getWriteMask(),
+                        attributes.getNodeAttributes().getUserWriteMask(),
+                        attributes.getEventNotifier()
+                );
+
+                n.addReferences(references);
+
+                return n;
+            } catch (Throwable t) {
+                logger.error("Error constructing class: " + clazz, t);
+            }
+        }
+
         UaObjectNode node =  new UaObjectNode(
                 nodeManager,
                 attributes.getNodeAttributes().getNodeId(),
@@ -122,6 +184,8 @@ public class UaNodeBuilder implements NodeBuilder<UaNode, Reference> {
 
     @Override
     public UaNode buildReferenceTypeNode(ReferenceTypeNodeAttributes attributes, List<Reference> references) {
+
+
         UaReferenceTypeNode node = new UaReferenceTypeNode(
                 nodeManager,
                 attributes.getNodeAttributes().getNodeId(),
@@ -141,7 +205,58 @@ public class UaNodeBuilder implements NodeBuilder<UaNode, Reference> {
     }
 
     @Override
-    public UaNode buildVariableNode(VariableNodeAttributes attributes, List<Reference> references) {
+    public UaNode buildVariableNode(VariableNodeAttributes attributes, List<Reference> references, Map<NodeId, UaNode> nodeMap) {
+        UaNode typeDefinitionNode = references.stream()
+                .filter(Reference.HAS_TYPE_DEFINITION_PREDICATE)
+                .findFirst()
+                .flatMap(r -> r.getTargetNodeId().local())
+                .map(nodeMap::get)
+                .orElseThrow(() -> new RuntimeException("no type definition found"));
+
+        String typeDefinitionName = typeDefinitionNode.getBrowseName().getName();
+
+        Set<Class<?>> annotated = variableReflections.getTypesAnnotatedWith(new UaVariableType() {
+            @Override
+            public String name() {
+                return typeDefinitionName;
+            }
+
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return UaVariableType.class;
+            }
+        });
+
+        for (Class<?> clazz : annotated) {
+            try {
+                Constructor<?> ctor = clazz.getConstructors()[0];
+
+                UaVariableNode n = (UaVariableNode) ctor.newInstance(
+                        nodeManager,
+                        attributes.getNodeAttributes().getNodeId(),
+                        attributes.getNodeAttributes().getBrowseName(),
+                        attributes.getNodeAttributes().getDisplayName(),
+                        attributes.getNodeAttributes().getDescription(),
+                        attributes.getNodeAttributes().getWriteMask(),
+                        attributes.getNodeAttributes().getUserWriteMask(),
+                        attributes.getValue(),
+                        attributes.getDataType(),
+                        attributes.getValueRank(),
+                        attributes.getArrayDimensions(),
+                        attributes.getAccessLevel(),
+                        attributes.getUserAccessLevel(),
+                        attributes.getMinimumSamplingInterval(),
+                        attributes.isHistorizing()
+                );
+
+                n.addReferences(references);
+
+                return n;
+            } catch (Throwable t) {
+                logger.error("Error constructing class: " + clazz, t);
+            }
+        }
+
         UaVariableNode node = new UaVariableNode(
                 nodeManager,
                 attributes.getNodeAttributes().getNodeId(),
