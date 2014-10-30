@@ -19,41 +19,53 @@ package com.inductiveautomation.opcua.sdk.server.namespaces;
 import javax.xml.bind.JAXBException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.inductiveautomation.opcua.nodeset.UaNodeSet;
 import com.inductiveautomation.opcua.nodeset.UaNodeSetParser;
-import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.NamespaceTable;
 import com.inductiveautomation.opcua.sdk.core.Reference;
+import com.inductiveautomation.opcua.sdk.core.model.objects.OperationLimitsType;
+import com.inductiveautomation.opcua.sdk.core.model.objects.ServerCapabilitiesType;
+import com.inductiveautomation.opcua.sdk.core.model.variables.ServerStatusType;
 import com.inductiveautomation.opcua.sdk.core.nodes.Node;
 import com.inductiveautomation.opcua.sdk.server.OpcUaServer;
 import com.inductiveautomation.opcua.sdk.server.api.DataItem;
 import com.inductiveautomation.opcua.sdk.server.api.EventItem;
 import com.inductiveautomation.opcua.sdk.server.api.MonitoredItem;
 import com.inductiveautomation.opcua.sdk.server.api.Namespace;
+import com.inductiveautomation.opcua.sdk.server.api.OpcUaServerConfigLimits;
 import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
 import com.inductiveautomation.opcua.sdk.server.nodes.UaNode;
+import com.inductiveautomation.opcua.sdk.server.nodes.generated.objects.ServerNode;
 import com.inductiveautomation.opcua.sdk.server.util.SubscriptionModel;
+import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.UaException;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
+import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ExpandedNodeId;
+import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UShort;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
+import com.inductiveautomation.opcua.stack.core.types.enumerated.RedundancySupport;
+import com.inductiveautomation.opcua.stack.core.types.enumerated.ServerState;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
 import com.inductiveautomation.opcua.stack.core.types.structured.WriteValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.ushort;
 
 public class OpcUaNamespace implements Namespace, UaNodeManager {
@@ -61,8 +73,6 @@ public class OpcUaNamespace implements Namespace, UaNodeManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final Map<NodeId, UaNode> nodes = Maps.newConcurrentMap();
-
-    private final OpcUaNamespaceModel model;
 
     private final SubscriptionModel subscriptionModel;
 
@@ -77,8 +87,9 @@ public class OpcUaNamespace implements Namespace, UaNodeManager {
             logger.error("Error parsing NodeSet.", t);
         }
 
-        model = new OpcUaNamespaceModel(server, nodes);
         subscriptionModel = new SubscriptionModel(this, server.getExecutorService());
+
+        configureServerObject();
     }
 
     @Override
@@ -143,22 +154,16 @@ public class OpcUaNamespace implements Namespace, UaNodeManager {
         for (ReadValueId id : readValueIds) {
             DataValue value;
 
-            if (id.getAttributeId().intValue() == AttributeIds.Value) {
-                value = model.readValue(id.getNodeId());
+            UaNode node = nodes.get(id.getNodeId());
 
-                value = DataValue.derivedValue(value, timestamps);
+            if (node != null) {
+                value = node.readAttribute(
+                        id.getAttributeId().intValue(),
+                        timestamps,
+                        id.getIndexRange()
+                );
             } else {
-                UaNode node = nodes.get(id.getNodeId());
-
-                if (node != null) {
-                    value = node.readAttribute(
-                            id.getAttributeId().intValue(),
-                            timestamps,
-                            id.getIndexRange()
-                    );
-                } else {
-                    value = new DataValue(new StatusCode(StatusCodes.Bad_NodeIdUnknown));
-                }
+                value = new DataValue(new StatusCode(StatusCodes.Bad_NodeIdUnknown));
             }
 
             results.add(value);
@@ -262,6 +267,76 @@ public class OpcUaNamespace implements Namespace, UaNodeManager {
         nodes.putAll(nodeSet.getNodeMap());
 
         logger.info("...parsed {} nodes.", nodes.size());
+    }
+
+    private void configureServerObject() {
+        OpcUaServerConfigLimits limits = server.getConfig().getLimits();
+
+        ServerNode serverNode = (ServerNode) nodes.get(Identifiers.Server);
+
+        swapServerArrayNode();
+        swapNamespaceArrayNode();
+
+        serverNode.setAuditing(false);
+        serverNode.getServerDiagnostics().setEnabledFlag(false);
+
+        ServerStatusType serverStatus = serverNode.getServerStatus();
+        serverStatus.setBuildInfo(server.getConfig().getBuildInfo());
+        serverStatus.setCurrentTime(DateTime.now());
+        serverStatus.setSecondsTillShutdown(uint(0));
+        serverStatus.setShutdownReason(LocalizedText.NullValue);
+        serverStatus.setState(ServerState.Running);
+
+        server.getScheduledExecutorService().scheduleAtFixedRate(
+                () -> serverStatus.setCurrentTime(DateTime.now()),
+                250, 250, TimeUnit.MILLISECONDS
+        );
+
+        ServerCapabilitiesType serverCapabilities = serverNode.getServerCapabilities();
+        serverCapabilities.setLocaleIdArray(new String[]{Locale.ENGLISH.getLanguage()});
+        serverCapabilities.setMaxArrayLength(limits.getMaxArrayLength());
+        serverCapabilities.setMaxBrowseContinuationPoints(limits.getMaxBrowseContinuationPoints());
+        serverCapabilities.setMaxHistoryContinuationPoints(limits.getMaxHistoryContinuationPoints());
+        serverCapabilities.setMaxQueryContinuationPoints(limits.getMaxQueryContinuationPoints());
+        serverCapabilities.setMaxStringLength(limits.getMaxStringLength());
+
+        OperationLimitsType operationLimits = serverCapabilities.getOperationLimits();
+        operationLimits.setMaxMonitoredItemsPerCall(limits.getMaxMonitoredItemsPerCall());
+        operationLimits.setMaxNodesPerBrowse(limits.getMaxNodesPerBrowse());
+        operationLimits.setMaxNodesPerHistoryReadData(limits.getMaxNodesPerHistoryReadData());
+        operationLimits.setMaxNodesPerHistoryReadEvents(limits.getMaxNodesPerHistoryReadEvents());
+        operationLimits.setMaxNodesPerHistoryUpdateData(limits.getMaxNodesPerHistoryUpdateData());
+        operationLimits.setMaxNodesPerHistoryUpdateEvents(limits.getMaxNodesPerHistoryUpdateEvents());
+        operationLimits.setMaxNodesPerMethodCall(limits.getMaxNodesPerMethodCall());
+        operationLimits.setMaxNodesPerNodeManagement(limits.getMaxNodesPerNodeManagement());
+        operationLimits.setMaxNodesPerRead(limits.getMaxNodesPerRead());
+        operationLimits.setMaxNodesPerRegisterNodes(limits.getMaxNodesPerRegisterNodes());
+        operationLimits.setMaxNodesPerTranslateBrowsePathsToNodeIds(limits.getMaxNodesPerTranslateBrowsePathsToNodeIds());
+        operationLimits.setMaxNodesPerWrite(limits.getMaxNodesPerWrite());
+
+        serverNode.getServerRedundancy().setRedundancySupport(RedundancySupport.None);
+    }
+
+    private void swapServerArrayNode() {
+        UaNode originalNode = nodes.get(Identifiers.Server_ServerArray);
+
+        ServerArrayNode serverArrayNode = new ServerArrayNode(
+                this, server.getServerTable());
+
+        serverArrayNode.addReferences(originalNode.getReferences());
+
+        nodes.put(serverArrayNode.getNodeId(), serverArrayNode);
+    }
+
+    private void swapNamespaceArrayNode() {
+        UaNode originalNode = nodes.get(Identifiers.Server_NamespaceArray);
+
+        NamespaceArrayNode namespaceArrayNode = new NamespaceArrayNode(
+                this, server.getNamespaceManager().getNamespaceTable());
+
+        namespaceArrayNode.addReferences(originalNode.getReferences());
+
+        nodes.put(namespaceArrayNode.getNodeId(), namespaceArrayNode);
     }
 
 }

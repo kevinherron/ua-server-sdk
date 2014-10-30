@@ -100,4 +100,8 @@ public interface OpcUaServerConfig {
         return null;
     }
 
+    default OpcUaServerConfigLimits getLimits() {
+        return new OpcUaServerConfigLimits() {};
+    }
+
 }

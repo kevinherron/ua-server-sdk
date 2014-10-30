@@ -24,9 +24,13 @@ import java.security.cert.Certificate;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
 
 import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.inductiveautomation.opcua.sdk.core.ServerTable;
 import com.inductiveautomation.opcua.sdk.server.api.OpcUaServerConfig;
 import com.inductiveautomation.opcua.sdk.server.namespaces.OpcUaNamespace;
@@ -52,6 +56,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class OpcUaServer {
+
+    private static final ThreadFactory THREAD_FACTORY = new ThreadFactoryBuilder()
+            .setNameFormat("shared-scheduled-executor-%d")
+            .setDaemon(true).build();
+
+    private static final ScheduledExecutorService SHARED_SCHEDULED_EXECUTOR =
+            Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors(), THREAD_FACTORY);
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -184,6 +195,10 @@ public class OpcUaServer {
 
     public ExecutorService getExecutorService() {
         return server.getExecutorService();
+    }
+
+    public ScheduledExecutorService getScheduledExecutorService() {
+        return SHARED_SCHEDULED_EXECUTOR;
     }
 
     public ChannelConfig getChannelConfig() {

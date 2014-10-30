@@ -63,15 +63,6 @@ import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Un
 
 public class Subscription {
 
-    private static final java.util.concurrent.ThreadFactory ThreadFactory = new ThreadFactoryBuilder()
-            .setNameFormat("shared-subscription-timer-%d")
-            .setDaemon(true)
-            .build();
-
-    private static final ScheduledExecutorService SharedScheduledExecutor =
-            Executors.newSingleThreadScheduledExecutor(ThreadFactory);
-
-
     private static final double MIN_LIFETIME = 10 * 1000.0;
     private static final double MAX_LIFETIME = 60 * 60 * 1000.0;
 
@@ -542,7 +533,7 @@ public class Subscription {
     synchronized void onPublish(ServiceRequest<PublishRequest, PublishResponse> service) {
         State state = this.state.get();
 
-        logger.debug("[id={}] onPublish(), state={}, keep-alive={}, lifetime={}",
+        logger.trace("[id={}] onPublish(), state={}, keep-alive={}, lifetime={}",
                 subscriptionId, state, keepAliveCounter, lifetimeCounter);
 
         if (state == State.Normal) publishHandler.whenNormal(service);
@@ -561,7 +552,7 @@ public class Subscription {
     synchronized void onPublishingTimer() {
         State state = this.state.get();
 
-        logger.debug("[id={}] onPublishingTimer(), state={}, keep-alive={}, lifetime={}",
+        logger.trace("[id={}] onPublishingTimer(), state={}, keep-alive={}, lifetime={}",
                 subscriptionId, state, keepAliveCounter, lifetimeCounter);
 
         if (state == State.Normal) timerHandler.whenNormal();
@@ -583,10 +574,11 @@ public class Subscription {
         } else {
             long interval = DoubleMath.roundToLong(publishingInterval, RoundingMode.UP);
 
-            SharedScheduledExecutor.schedule(
+            manager.getServer().getScheduledExecutorService().schedule(
                     this::onPublishingTimer,
                     interval,
-                    TimeUnit.MILLISECONDS);
+                    TimeUnit.MILLISECONDS
+            );
         }
     }
 

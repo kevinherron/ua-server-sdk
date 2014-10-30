@@ -109,6 +109,14 @@ public class SubscriptionManager {
         this.server = server;
     }
 
+    public Session getSession() {
+        return session;
+    }
+
+    public OpcUaServer getServer() {
+        return server;
+    }
+
     public void createSubscription(ServiceRequest<CreateSubscriptionRequest, CreateSubscriptionResponse> service) {
         CreateSubscriptionRequest request = service.getRequest();
 
