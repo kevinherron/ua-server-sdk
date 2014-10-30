@@ -34,8 +34,4 @@ public interface ReferenceTypeNode extends Node {
 
     void setInverseName(Optional<LocalizedText> inverseName);
 
-    Optional<String> getNodeVersion();
-
-    void setNodeVersion(Optional<String> nodeVersion);
-
 }

@@ -259,8 +259,8 @@ public class CttNamespace implements Namespace, UaNodeManager {
                 LocalizedText.english("The positive square root of x. If the argument is NaN or less than zero, the result is NaN."));
 
         methodNode.setInvocationHandler(new SqrtInvocationHandler());
-        methodNode.setInputArguments(Optional.of(new Argument[]{input}));
-        methodNode.setOutputArguments(Optional.of(new Argument[]{output}));
+        methodNode.setProperty(UaMethodNode.InputArguments, new Argument[]{input});
+        methodNode.setProperty(UaMethodNode.OutputArguments, new Argument[]{output});
 
         nodes.put(methodNode.getNodeId(), methodNode);
 

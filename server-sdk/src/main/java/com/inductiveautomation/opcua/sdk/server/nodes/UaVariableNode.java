@@ -33,6 +33,7 @@ import com.inductiveautomation.opcua.sdk.core.nodes.ObjectNode;
 import com.inductiveautomation.opcua.sdk.core.nodes.VariableNode;
 import com.inductiveautomation.opcua.sdk.core.nodes.VariableTypeNode;
 import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.nodes.Property.BasicProperty;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
@@ -61,16 +62,6 @@ import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Un
 public class UaVariableNode extends UaNode implements VariableNode {
 
     private static final DataValue INITIAL_VALUE = new DataValue(new StatusCode(StatusCodes.Uncertain_InitialValue));
-
-    public static final QualifiedName NODE_VERSION = new QualifiedName(0, "NodeVersion");
-    public static final QualifiedName LOCAL_TIME = new QualifiedName(0, "LocalTime");
-    public static final QualifiedName DATA_TYPE_VERSION = new QualifiedName(0, "DataTypeVersion");
-    public static final QualifiedName DICTIONARY_FRAGMENT = new QualifiedName(0, "DictionaryFragment");
-    public static final QualifiedName ALLOW_NULLS = new QualifiedName(0, "AllowNulls");
-    public static final QualifiedName VALUE_AS_TEXT = new QualifiedName(0, "ValueAsText");
-    public static final QualifiedName MAX_STRING_LENGTH = new QualifiedName(0, "MaxStringLength");
-    public static final QualifiedName MAX_ARRAY_LENGTH = new QualifiedName(0, "MaxArrayLength");
-    public static final QualifiedName ENGINEERING_UNITS = new QualifiedName(0, "EngineeringUnits");
 
     private volatile DataValue value = INITIAL_VALUE;
     private volatile NodeId dataType = Identifiers.BaseDataType;
@@ -249,221 +240,68 @@ public class UaVariableNode extends UaNode implements VariableNode {
         return (node instanceof VariableTypeNode) ? (VariableTypeNode) node : null;
     }
 
-    @Override
-    public Optional<String> getNodeVersion() {
-        return getProperty(NODE_VERSION);
-    }
+    public static final Property<String> NodeVersion = new BasicProperty<>(
+            new QualifiedName(0, "NodeVersion"),
+            Identifiers.String,
+            ValueRank.Scalar,
+            String.class
+    );
 
-    @Override
-    public Optional<TimeZoneDataType> getLocalTime() {
-        return getProperty(LOCAL_TIME);
-    }
+    public static final Property<TimeZoneDataType> LocalTime = new BasicProperty<>(
+            new QualifiedName(0, "LocalTime"),
+            Identifiers.TimeZoneDataType,
+            ValueRank.Scalar,
+            TimeZoneDataType.class
+    );
 
-    @Override
-    public Optional<String> getDataTypeVersion() {
-        return getProperty(DATA_TYPE_VERSION);
-    }
+    public static final Property<String> DataTypeVersion = new BasicProperty<>(
+            new QualifiedName(0, "DataTypeVersion"),
+            Identifiers.String,
+            ValueRank.Scalar,
+            String.class
+    );
 
-    @Override
-    public Optional<ByteString> getDictionaryFragment() {
-        return getProperty(DICTIONARY_FRAGMENT);
-    }
+    public static final Property<ByteString> DictionaryFragment = new BasicProperty<>(
+            new QualifiedName(0, "DictionaryFragment"),
+            Identifiers.ByteString,
+            ValueRank.Scalar,
+            ByteString.class
+    );
 
-    @Override
-    public Optional<Boolean> getAllowNulls() {
-        return getProperty(ALLOW_NULLS);
-    }
+    public static final Property<Boolean> AllowNulls = new BasicProperty<>(
+            new QualifiedName(0, "AllowNulls"),
+            Identifiers.Boolean,
+            ValueRank.Scalar,
+            Boolean.class
+    );
 
-    @Override
-    public Optional<LocalizedText> getValueAsText() {
-        return getProperty(VALUE_AS_TEXT);
-    }
+    public static final Property<LocalizedText> ValueAsText = new BasicProperty<>(
+            new QualifiedName(0, "ValueAsText"),
+            Identifiers.LocalizedText,
+            ValueRank.Scalar,
+            LocalizedText.class
+    );
 
-    @Override
-    public Optional<UInteger> getMaxStringLength() {
-        return getProperty(MAX_STRING_LENGTH);
-    }
+    public static final Property<UInteger> MaxStringLength = new BasicProperty<>(
+            new QualifiedName(0, "MaxStringLength"),
+            Identifiers.UInt32,
+            ValueRank.Scalar,
+            UInteger.class
+    );
 
-    @Override
-    public Optional<UInteger> getMaxArrayLength() {
-        return getProperty(MAX_ARRAY_LENGTH);
-    }
+    public static final Property<UInteger> MaxArrayLength = new BasicProperty<>(
+            new QualifiedName(0, "MaxArrayLength"),
+            Identifiers.UInt32,
+            ValueRank.Scalar,
+            UInteger.class
+    );
 
-    @Override
-    public Optional<EUInformation> getEngineeringUnits() {
-        return getProperty(ENGINEERING_UNITS);
-    }
-
-    @Override
-    public void setNodeVersion(Optional<String> nodeVersion) {
-        if (nodeVersion.isPresent()) {
-            VariableNode node = getPropertyNode(NODE_VERSION).orElseGet(() -> {
-                UaPropertyNode propertyNode = createPropertyNode(NODE_VERSION);
-
-                propertyNode.setDataType(Identifiers.String);
-
-                addPropertyNode(propertyNode);
-
-                return propertyNode;
-            });
-
-            node.setValue(new DataValue(new Variant(nodeVersion.get())));
-        } else {
-            removePropertyNode(NODE_VERSION);
-        }
-    }
-
-    @Override
-    public void setLocalTime(Optional<TimeZoneDataType> localTime) {
-        if (localTime.isPresent()) {
-            VariableNode node = getPropertyNode(LOCAL_TIME).orElseGet(() -> {
-                UaPropertyNode propertyNode = createPropertyNode(LOCAL_TIME);
-
-                propertyNode.setDataType(Identifiers.TimeZoneDataType);
-
-                addPropertyNode(propertyNode);
-
-                return propertyNode;
-            });
-
-            node.setValue(new DataValue(new Variant(localTime.get())));
-        } else {
-            removePropertyNode(LOCAL_TIME);
-        }
-    }
-
-    @Override
-    public void setDataTypeVersion(Optional<String> dataTypeVersion) {
-        if (dataTypeVersion.isPresent()) {
-            VariableNode node = getPropertyNode(DATA_TYPE_VERSION).orElseGet(() -> {
-                UaPropertyNode propertyNode = createPropertyNode(DATA_TYPE_VERSION);
-
-                propertyNode.setDataType(Identifiers.String);
-
-                addPropertyNode(propertyNode);
-
-                return propertyNode;
-            });
-
-            node.setValue(new DataValue(new Variant(dataTypeVersion.get())));
-        } else {
-            removePropertyNode(DATA_TYPE_VERSION);
-        }
-    }
-
-    @Override
-    public void setDictionaryFragment(Optional<ByteString> dictionaryFragment) {
-        if (dictionaryFragment.isPresent()) {
-            VariableNode node = getPropertyNode(DICTIONARY_FRAGMENT).orElseGet(() -> {
-                UaPropertyNode propertyNode = createPropertyNode(DICTIONARY_FRAGMENT);
-
-                propertyNode.setDataType(Identifiers.ByteString);
-
-                addPropertyNode(propertyNode);
-
-                return propertyNode;
-            });
-
-            node.setValue(new DataValue(new Variant(dictionaryFragment.get())));
-        } else {
-            removePropertyNode(DICTIONARY_FRAGMENT);
-        }
-    }
-
-    @Override
-    public void setAllowNulls(Optional<Boolean> allowNulls) {
-        if (allowNulls.isPresent()) {
-            VariableNode node = getPropertyNode(ALLOW_NULLS).orElseGet(() -> {
-                UaPropertyNode propertyNode = createPropertyNode(ALLOW_NULLS);
-
-                propertyNode.setDataType(Identifiers.Boolean);
-
-                addPropertyNode(propertyNode);
-
-                return propertyNode;
-            });
-
-            node.setValue(new DataValue(new Variant(allowNulls.get())));
-        } else {
-            removePropertyNode(ALLOW_NULLS);
-        }
-    }
-
-    @Override
-    public void setValueAsText(Optional<LocalizedText> valueAsText) {
-        if (valueAsText.isPresent()) {
-            VariableNode node = getPropertyNode(VALUE_AS_TEXT).orElseGet(() -> {
-                UaPropertyNode propertyNode = createPropertyNode(VALUE_AS_TEXT);
-
-                propertyNode.setDataType(Identifiers.LocalizedText);
-
-                addPropertyNode(propertyNode);
-
-                return propertyNode;
-            });
-
-            node.setValue(new DataValue(new Variant(valueAsText.get())));
-        } else {
-            removePropertyNode(VALUE_AS_TEXT);
-        }
-    }
-
-    @Override
-    public void setMaxStringLength(Optional<UInteger> maxStringLength) {
-        if (maxStringLength.isPresent()) {
-            VariableNode node = getPropertyNode(MAX_STRING_LENGTH).orElseGet(() -> {
-                UaPropertyNode propertyNode = createPropertyNode(MAX_STRING_LENGTH);
-
-                propertyNode.setDataType(Identifiers.UInt32);
-
-                addPropertyNode(propertyNode);
-
-                return propertyNode;
-            });
-
-            node.setValue(new DataValue(new Variant(maxStringLength.get())));
-        } else {
-            removePropertyNode(MAX_STRING_LENGTH);
-        }
-    }
-
-    @Override
-    public void setMaxArrayLength(Optional<UInteger> maxArrayLength) {
-        if (maxArrayLength.isPresent()) {
-            VariableNode node = getPropertyNode(MAX_ARRAY_LENGTH).orElseGet(() -> {
-                UaPropertyNode propertyNode = createPropertyNode(MAX_ARRAY_LENGTH);
-
-                propertyNode.setDataType(Identifiers.UInt32);
-
-                addPropertyNode(propertyNode);
-
-                return propertyNode;
-            });
-
-            node.setValue(new DataValue(new Variant(maxArrayLength.get())));
-        } else {
-            removePropertyNode(MAX_ARRAY_LENGTH);
-        }
-    }
-
-    @Override
-    public void setEngineeringUnits(Optional<EUInformation> engineeringUnits) {
-        if (engineeringUnits.isPresent()) {
-            VariableNode node = getPropertyNode(ENGINEERING_UNITS).orElseGet(() -> {
-                UaPropertyNode propertyNode = createPropertyNode(ENGINEERING_UNITS);
-
-                propertyNode.setDataType(Identifiers.EUInformation);
-
-                addPropertyNode(propertyNode);
-
-                return propertyNode;
-            });
-
-            node.setValue(new DataValue(new Variant(engineeringUnits.get())));
-        } else {
-            removePropertyNode(ENGINEERING_UNITS);
-        }
-    }
+    public static final Property<EUInformation> EngineeringUnits = new BasicProperty<>(
+            new QualifiedName(0, "EngineeringUnits"),
+            Identifiers.EUInformation,
+            ValueRank.Scalar,
+            EUInformation.class
+    );
 
     public static UaVariableNodeBuilder builder(UaNodeManager nodeManager) {
         return new UaVariableNodeBuilder(nodeManager);

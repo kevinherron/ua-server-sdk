@@ -19,21 +19,19 @@ package com.inductiveautomation.opcua.sdk.server.nodes;
 import java.util.Optional;
 
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
-import com.inductiveautomation.opcua.sdk.core.nodes.VariableNode;
+import com.inductiveautomation.opcua.sdk.core.ValueRank;
 import com.inductiveautomation.opcua.sdk.core.nodes.VariableTypeNode;
 import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.nodes.Property.BasicProperty;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
-import com.inductiveautomation.opcua.stack.core.types.builtin.Variant;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
 
 public class UaVariableTypeNode extends UaNode implements VariableTypeNode {
-
-    public static final QualifiedName NODE_VERSION = new QualifiedName(0, "NodeVersion");
 
     private volatile Optional<DataValue> value;
     private volatile NodeId dataType;
@@ -123,28 +121,11 @@ public class UaVariableTypeNode extends UaNode implements VariableTypeNode {
         fireAttributeChanged(AttributeIds.IsAbstract, isAbstract);
     }
 
-    @Override
-    public Optional<String> getNodeVersion() {
-        return getProperty(NODE_VERSION);
-    }
-
-    @Override
-    public void setNodeVersion(Optional<String> nodeVersion) {
-        if (nodeVersion.isPresent()) {
-            VariableNode node = getPropertyNode(NODE_VERSION).orElseGet(() -> {
-                UaPropertyNode propertyNode = createPropertyNode(NODE_VERSION);
-
-                propertyNode.setDataType(Identifiers.String);
-
-                addPropertyNode(propertyNode);
-
-                return propertyNode;
-            });
-
-            node.setValue(new DataValue(new Variant(nodeVersion.get())));
-        } else {
-            removePropertyNode(NODE_VERSION);
-        }
-    }
+    public static final Property<String> NodeVersion = new BasicProperty<>(
+            new QualifiedName(0, "NodeVersion"),
+            Identifiers.String,
+            ValueRank.Scalar,
+            String.class
+    );
 
 }

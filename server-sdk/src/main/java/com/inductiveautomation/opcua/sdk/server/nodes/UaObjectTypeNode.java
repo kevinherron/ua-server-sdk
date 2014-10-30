@@ -19,23 +19,19 @@ package com.inductiveautomation.opcua.sdk.server.nodes;
 import java.util.Optional;
 
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
+import com.inductiveautomation.opcua.sdk.core.ValueRank;
 import com.inductiveautomation.opcua.sdk.core.nodes.ObjectTypeNode;
-import com.inductiveautomation.opcua.sdk.core.nodes.VariableNode;
 import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.nodes.Property.BasicProperty;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
-import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
-import com.inductiveautomation.opcua.stack.core.types.builtin.Variant;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
 
 public class UaObjectTypeNode extends UaNode implements ObjectTypeNode {
-
-    public static final QualifiedName NODE_VERSION = new QualifiedName(0, "NodeVersion");
-    public static final QualifiedName ICON = new QualifiedName(0, "Icon");
 
     private volatile boolean isAbstract;
 
@@ -65,52 +61,18 @@ public class UaObjectTypeNode extends UaNode implements ObjectTypeNode {
         fireAttributeChanged(AttributeIds.IsAbstract, isAbstract);
     }
 
-    @Override
-    public Optional<String> getNodeVersion() {
-        return getProperty(NODE_VERSION);
-    }
+    public static final Property<String> NodeVersion = new BasicProperty<>(
+            new QualifiedName(0, "NodeVersion"),
+            Identifiers.String,
+            ValueRank.Scalar,
+            String.class
+    );
 
-    @Override
-    public Optional<ByteString> getIcon() {
-        return getProperty(ICON);
-    }
-
-    @Override
-    public void setNodeVersion(Optional<String> nodeVersion) {
-        if (nodeVersion.isPresent()) {
-            VariableNode node = getPropertyNode(NODE_VERSION).orElseGet(() -> {
-                UaPropertyNode propertyNode = createPropertyNode(NODE_VERSION);
-
-                propertyNode.setDataType(Identifiers.String);
-
-                addPropertyNode(propertyNode);
-
-                return propertyNode;
-            });
-
-            node.setValue(new DataValue(new Variant(nodeVersion.get())));
-        } else {
-            removePropertyNode(NODE_VERSION);
-        }
-    }
-
-    @Override
-    public void setIcon(Optional<ByteString> icon) {
-        if (icon.isPresent()) {
-            VariableNode node = getPropertyNode(ICON).orElseGet(() -> {
-                UaPropertyNode propertyNode = createPropertyNode(ICON);
-
-                propertyNode.setDataType(Identifiers.ByteString);
-
-                addPropertyNode(propertyNode);
-
-                return propertyNode;
-            });
-
-            node.setValue(new DataValue(new Variant(icon.get())));
-        } else {
-            removePropertyNode(ICON);
-        }
-    }
+    public static final Property<ByteString> Icon = new BasicProperty<>(
+            new QualifiedName(0, "Icon"),
+            Identifiers.Image,
+            ValueRank.Scalar,
+            ByteString.class
+    );
 
 }

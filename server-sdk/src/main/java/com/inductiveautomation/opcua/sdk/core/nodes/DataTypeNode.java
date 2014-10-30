@@ -16,11 +16,6 @@
 
 package com.inductiveautomation.opcua.sdk.core.nodes;
 
-import java.util.Optional;
-
-import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
-import com.inductiveautomation.opcua.stack.core.types.structured.EnumValueType;
-
 public interface DataTypeNode extends Node {
 
     /**
@@ -40,17 +35,5 @@ public interface DataTypeNode extends Node {
      * @param isAbstract {@code true} if this
      */
     void setIsAbstract(boolean isAbstract);
-
-    Optional<String> getNodeVersion();
-
-    Optional<LocalizedText[]> getEnumStrings();
-
-    Optional<EnumValueType[]> getEnumValues();
-
-    void setNodeVersion(Optional<String> nodeVersion);
-
-    void setEnumStrings(Optional<LocalizedText[]> enumStrings);
-
-    void setEnumValues(Optional<EnumValueType[]> enumValues);
 
 }

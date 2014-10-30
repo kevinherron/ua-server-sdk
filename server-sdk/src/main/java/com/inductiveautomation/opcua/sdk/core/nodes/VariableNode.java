@@ -18,14 +18,10 @@ package com.inductiveautomation.opcua.sdk.core.nodes;
 
 import java.util.Optional;
 
-import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
-import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
-import com.inductiveautomation.opcua.stack.core.types.structured.EUInformation;
-import com.inductiveautomation.opcua.stack.core.types.structured.TimeZoneDataType;
 
 public interface VariableNode extends Node {
 
@@ -70,41 +66,5 @@ public interface VariableNode extends Node {
     void setMinimumSamplingInterval(Optional<Double> minimumSamplingInterval);
 
     void setHistorizing(boolean historizing);
-
-    Optional<String> getNodeVersion();
-
-    Optional<TimeZoneDataType> getLocalTime();
-
-    Optional<String> getDataTypeVersion();
-
-    Optional<ByteString> getDictionaryFragment();
-
-    Optional<Boolean> getAllowNulls();
-
-    Optional<LocalizedText> getValueAsText();
-
-    Optional<UInteger> getMaxStringLength();
-
-    Optional<UInteger> getMaxArrayLength();
-
-    Optional<EUInformation> getEngineeringUnits();
-
-    void setNodeVersion(Optional<String> nodeVersion);
-
-    void setLocalTime(Optional<TimeZoneDataType> localTime);
-
-    void setDataTypeVersion(Optional<String> dataTypeVersion);
-
-    void setDictionaryFragment(Optional<ByteString> dictionaryFragment);
-
-    void setAllowNulls(Optional<Boolean> allowNulls);
-
-    void setValueAsText(Optional<LocalizedText> valueAsText);
-
-    void setMaxStringLength(Optional<UInteger> maxStringLength);
-
-    void setMaxArrayLength(Optional<UInteger> maxArrayLength);
-
-    void setEngineeringUnits(Optional<EUInformation> engineeringUnits);
 
 }

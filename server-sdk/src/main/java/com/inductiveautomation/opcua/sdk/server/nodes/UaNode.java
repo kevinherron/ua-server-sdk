@@ -32,10 +32,12 @@ import com.inductiveautomation.opcua.sdk.core.nodes.ObjectNode;
 import com.inductiveautomation.opcua.sdk.core.nodes.VariableNode;
 import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
+import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ExpandedNodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
+import com.inductiveautomation.opcua.stack.core.types.builtin.Variant;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
 
@@ -203,6 +205,11 @@ public abstract class UaNode implements Node {
         references.removeAll(c);
     }
 
+
+    public <T> Optional<T> getProperty(Property<T> property) {
+        return getProperty(property.getBrowseName());
+    }
+
     public <T> Optional<T> getProperty(String browseName) {
         return getProperty(new QualifiedName(getNodeId().getNamespaceIndex(), browseName));
     }
@@ -215,6 +222,21 @@ public abstract class UaNode implements Node {
         } catch (Throwable t) {
             return Optional.empty();
         }
+    }
+
+    public <T> void setProperty(Property<T> property, T value) {
+        VariableNode node = getPropertyNode(property.getBrowseName()).orElseGet(() -> {
+            UaPropertyNode propertyNode = createPropertyNode(property.getBrowseName());
+
+            propertyNode.setDataType(property.getDataType());
+            propertyNode.setValueRank(property.getValueRank());
+
+            addPropertyNode(propertyNode);
+
+            return propertyNode;
+        });
+
+        node.setValue(new DataValue(new Variant(value)));
     }
 
     public Optional<VariableNode> getPropertyNode(String browseName) {

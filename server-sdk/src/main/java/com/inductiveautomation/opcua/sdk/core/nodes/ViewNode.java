@@ -16,12 +16,7 @@
 
 package com.inductiveautomation.opcua.sdk.core.nodes;
 
-import java.util.Optional;
-
-import com.inductiveautomation.opcua.stack.core.StatusCodes;
-import com.inductiveautomation.opcua.stack.core.UaException;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UByte;
-import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 
 public interface ViewNode extends Node {
 
@@ -32,13 +27,5 @@ public interface ViewNode extends Node {
     void setContainsNoLoops(boolean containsNoLoops);
 
     void setEventNotifier(UByte eventNotifier);
-
-    Optional<String> getNodeVersion();
-
-    Optional<UInteger> getViewVersion();
-
-    void setNodeVersion(Optional<String> nodeVersion);
-
-    void setViewVersion(Optional<UInteger> viewVersion);
 
 }

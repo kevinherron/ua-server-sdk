@@ -22,25 +22,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.ValueRank;
 import com.inductiveautomation.opcua.sdk.core.nodes.DataTypeNode;
-import com.inductiveautomation.opcua.sdk.core.nodes.VariableNode;
 import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.nodes.Property.BasicProperty;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
-import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
-import com.inductiveautomation.opcua.stack.core.types.builtin.Variant;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
 import com.inductiveautomation.opcua.stack.core.types.structured.EnumValueType;
 
-import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint_a;
-
 public class UaDataTypeNode extends UaNode implements DataTypeNode {
-
-    public static final QualifiedName NODE_VERSION = new QualifiedName(0, "NodeVersion");
-    public static final QualifiedName ENUM_STRINGS = new QualifiedName(0, "EnumStrings");
-    public static final QualifiedName ENUM_VALUES = new QualifiedName(0, "EnumValues");
 
     private final AtomicBoolean isAbstract;
 
@@ -70,81 +62,25 @@ public class UaDataTypeNode extends UaNode implements DataTypeNode {
         fireAttributeChanged(AttributeIds.IsAbstract, isAbstract);
     }
 
-    @Override
-    public Optional<String> getNodeVersion() {
-        return getProperty(NODE_VERSION);
-    }
+    public static final Property<String> NodeVersion = new BasicProperty<>(
+            new QualifiedName(0, "NodeVersion"),
+            Identifiers.String,
+            ValueRank.Scalar,
+            String.class
+    );
 
-    @Override
-    public Optional<LocalizedText[]> getEnumStrings() {
-        return getProperty(ENUM_STRINGS);
-    }
+    public static final Property<LocalizedText[]> EnumStrings = new BasicProperty<>(
+            new QualifiedName(0, "EnumStrings"),
+            Identifiers.LocalizedText,
+            ValueRank.OneDimension,
+            LocalizedText[].class
+    );
 
-    @Override
-    public Optional<EnumValueType[]> getEnumValues() {
-        return getProperty(ENUM_VALUES);
-    }
-
-    @Override
-    public void setNodeVersion(Optional<String> nodeVersion) {
-        if (nodeVersion.isPresent()) {
-            VariableNode node = getPropertyNode(NODE_VERSION).orElseGet(() -> {
-                UaPropertyNode propertyNode = createPropertyNode(NODE_VERSION);
-
-                propertyNode.setDataType(Identifiers.String);
-
-                addPropertyNode(propertyNode);
-
-                return propertyNode;
-            });
-
-            node.setValue(new DataValue(new Variant(nodeVersion.get())));
-        } else {
-            removePropertyNode(NODE_VERSION);
-        }
-    }
-
-    @Override
-    public void setEnumStrings(Optional<LocalizedText[]> enumStrings) {
-        if (enumStrings.isPresent()) {
-            VariableNode node = getPropertyNode(ENUM_STRINGS).orElseGet(() -> {
-                UaPropertyNode propertyNode = createPropertyNode(ENUM_STRINGS);
-
-                propertyNode.setDataType(Identifiers.LocalizedText);
-                propertyNode.setValueRank(ValueRank.OneDimension);
-                propertyNode.setArrayDimensions(Optional.of(uint_a(0)));
-
-                addPropertyNode(propertyNode);
-
-                return propertyNode;
-            });
-
-            node.setValue(new DataValue(new Variant(enumStrings.get())));
-        } else {
-            removePropertyNode(ENUM_STRINGS);
-        }
-    }
-
-
-    @Override
-    public void setEnumValues(Optional<EnumValueType[]> enumValues) {
-        if (enumValues.isPresent()) {
-            VariableNode node = getPropertyNode(ENUM_VALUES).orElseGet(() -> {
-                UaPropertyNode propertyNode = createPropertyNode(ENUM_VALUES);
-
-                propertyNode.setDataType(Identifiers.EnumValueType);
-                propertyNode.setValueRank(ValueRank.OneDimension);
-                propertyNode.setArrayDimensions(Optional.of(uint_a(0)));
-
-                addPropertyNode(propertyNode);
-
-                return propertyNode;
-            });
-
-            node.setValue(new DataValue(new Variant(enumValues.get())));
-        } else {
-            removePropertyNode(ENUM_VALUES);
-        }
-    }
+    public static final Property<EnumValueType[]> EnumValues = new BasicProperty<>(
+            new QualifiedName(0, "EnumValues"),
+            Identifiers.EnumValueType,
+            ValueRank.OneDimension,
+            EnumValueType[].class
+    );
 
 }

@@ -16,12 +16,6 @@
 
 package com.inductiveautomation.opcua.sdk.core.nodes;
 
-import java.util.List;
-import java.util.Optional;
-
-import com.inductiveautomation.opcua.stack.core.UaException;
-import com.inductiveautomation.opcua.stack.core.types.structured.Argument;
-
 public interface MethodNode extends Node {
 
     /**
@@ -59,17 +53,5 @@ public interface MethodNode extends Node {
      * @param userExecutable {@code true} if the method is executable, taking access rights into account.
      */
     void setUserExecutable(boolean userExecutable);
-
-    Optional<String> getNodeVersion();
-
-    Optional<Argument[]> getInputArguments();
-
-    Optional<Argument[]> getOutputArguments();
-
-    void setNodeVersion(Optional<String> nodeVersion);
-
-    void setInputArguments(Optional<Argument[]> inputArguments);
-
-    void setOutputArguments(Optional<Argument[]> outputArguments);
 
 }

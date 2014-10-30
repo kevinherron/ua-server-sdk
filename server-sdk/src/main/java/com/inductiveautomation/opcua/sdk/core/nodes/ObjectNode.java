@@ -16,11 +16,7 @@
 
 package com.inductiveautomation.opcua.sdk.core.nodes;
 
-import java.util.Optional;
-
-import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UByte;
-import com.inductiveautomation.opcua.stack.core.types.structured.EnumValueType;
 
 public interface ObjectNode extends Node {
 
@@ -38,17 +34,5 @@ public interface ObjectNode extends Node {
      * @param eventNotifier the EventNotifier attribute to set.
      */
     void setEventNotifier(UByte eventNotifier);
-
-    Optional<String> getNodeVersion();
-
-    Optional<LocalizedText[]> getEnumStrings();
-
-    Optional<EnumValueType[]> getEnumValues();
-
-    void setNodeVersion(Optional<String> nodeVersion);
-
-    void setEnumStrings(Optional<LocalizedText[]> enumStrings);
-
-    void setEnumValues(Optional<EnumValueType[]> enumValues);
 
 }

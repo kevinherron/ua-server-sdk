@@ -37,12 +37,12 @@ public interface ObjectTypeNode extends Node {
      */
     void setIsAbstract(boolean isAbstract);
 
-    Optional<String> getNodeVersion();
-
-    Optional<ByteString> getIcon();
-
-    void setNodeVersion(Optional<String> nodeVersion);
-
-    void setIcon(Optional<ByteString> icon);
+//    Optional<String> getNodeVersion();
+//
+//    Optional<ByteString> getIcon();
+//
+//    void setNodeVersion(Optional<String> nodeVersion);
+//
+//    void setIcon(Optional<ByteString> icon);
 
 }

@@ -44,8 +44,4 @@ public interface VariableTypeNode extends Node {
 
     void setIsAbstract(boolean isAbstract);
 
-    Optional<String> getNodeVersion();
-
-    void setNodeVersion(Optional<String> nodeVersion);
-
 }
