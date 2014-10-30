@@ -6,11 +6,7 @@ public interface OptionSetType extends BaseDataVariableType {
 
     LocalizedText[] getOptionSetValues();
 
-    Boolean[] getBitMask();
-
     void setOptionSetValues(LocalizedText[] optionSetValues);
-
-    void setBitMask(Boolean[] bitMask);
 
     void atomicSet(Runnable runnable);
 

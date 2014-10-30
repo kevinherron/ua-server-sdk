@@ -7,8 +7,6 @@ import com.inductiveautomation.opcua.stack.core.types.structured.Range;
 
 public interface ArrayItemType extends DataItemType {
 
-    Range getInstrumentRange();
-
     Range getEURange();
 
     EUInformation getEngineeringUnits();
@@ -16,8 +14,6 @@ public interface ArrayItemType extends DataItemType {
     LocalizedText getTitle();
 
     AxisScaleEnumeration getAxisScaleType();
-
-    void setInstrumentRange(Range instrumentRange);
 
     void setEURange(Range eURange);
 
