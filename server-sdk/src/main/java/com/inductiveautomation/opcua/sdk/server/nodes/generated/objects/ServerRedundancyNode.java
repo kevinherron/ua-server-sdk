@@ -32,14 +32,16 @@ public class ServerRedundancyNode extends BaseObjectNode implements ServerRedund
     }
 
     public RedundancySupport getRedundancySupport() {
-        Optional<RedundancySupport> redundancySupport = getProperty("RedundancySupport");
+        Optional<Integer> redundancySupport = getProperty("RedundancySupport");
 
-        return redundancySupport.orElse(null);
+        return redundancySupport.map(RedundancySupport::from).orElse(null);
     }
 
     public synchronized void setRedundancySupport(RedundancySupport redundancySupport) {
         getPropertyNode("RedundancySupport").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(redundancySupport)));
+            Integer value = redundancySupport.getValue();
+
+            n.setValue(new DataValue(new Variant(value)));
         });
     }
 

@@ -77,9 +77,9 @@ public class HistoricalDataConfigurationNode extends BaseObjectNode implements H
     }
 
     public ExceptionDeviationFormat getExceptionDeviationFormat() {
-        Optional<ExceptionDeviationFormat> exceptionDeviationFormat = getProperty("ExceptionDeviationFormat");
+        Optional<Integer> exceptionDeviationFormat = getProperty("ExceptionDeviationFormat");
 
-        return exceptionDeviationFormat.orElse(null);
+        return exceptionDeviationFormat.map(ExceptionDeviationFormat::from).orElse(null);
     }
 
     public DateTime getStartOfArchive() {
@@ -126,7 +126,9 @@ public class HistoricalDataConfigurationNode extends BaseObjectNode implements H
 
     public synchronized void setExceptionDeviationFormat(ExceptionDeviationFormat exceptionDeviationFormat) {
         getPropertyNode("ExceptionDeviationFormat").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(exceptionDeviationFormat)));
+            Integer value = exceptionDeviationFormat.getValue();
+
+            n.setValue(new DataValue(new Variant(value)));
         });
     }
 

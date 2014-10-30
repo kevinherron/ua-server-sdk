@@ -32,14 +32,16 @@ public class ModellingRuleNode extends BaseObjectNode implements ModellingRuleTy
     }
 
     public NamingRuleType getNamingRule() {
-        Optional<NamingRuleType> namingRule = getProperty("NamingRule");
+        Optional<Integer> namingRule = getProperty("NamingRule");
 
-        return namingRule.orElse(null);
+        return namingRule.map(NamingRuleType::from).orElse(null);
     }
 
     public synchronized void setNamingRule(NamingRuleType namingRule) {
         getPropertyNode("NamingRule").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(namingRule)));
+            Integer value = namingRule.getValue();
+
+            n.setValue(new DataValue(new Variant(value)));
         });
     }
 
