@@ -72,42 +72,36 @@ public class BuildInfoNode extends BaseDataVariableNode implements BuildInfoType
     @Override
     public String getProductUri() {
         Optional<VariableNode> node = getVariableComponent("ProductUri");
-
         return node.map(n -> (String) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public String getManufacturerName() {
         Optional<VariableNode> node = getVariableComponent("ManufacturerName");
-
         return node.map(n -> (String) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public String getProductName() {
         Optional<VariableNode> node = getVariableComponent("ProductName");
-
         return node.map(n -> (String) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public String getSoftwareVersion() {
         Optional<VariableNode> node = getVariableComponent("SoftwareVersion");
-
         return node.map(n -> (String) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public String getBuildNumber() {
         Optional<VariableNode> node = getVariableComponent("BuildNumber");
-
         return node.map(n -> (String) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public DateTime getBuildDate() {
         Optional<VariableNode> node = getVariableComponent("BuildDate");
-
         return node.map(n -> (DateTime) n.getValue().getValue().getValue()).orElse(null);
     }
 

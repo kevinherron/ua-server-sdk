@@ -83,84 +83,72 @@ public class ServerDiagnosticsSummaryNode extends BaseDataVariableNode implement
     @Override
     public UInteger getServerViewCount() {
         Optional<VariableNode> node = getVariableComponent("ServerViewCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getCurrentSessionCount() {
         Optional<VariableNode> node = getVariableComponent("CurrentSessionCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getCumulatedSessionCount() {
         Optional<VariableNode> node = getVariableComponent("CumulatedSessionCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getSecurityRejectedSessionCount() {
         Optional<VariableNode> node = getVariableComponent("SecurityRejectedSessionCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getRejectedSessionCount() {
         Optional<VariableNode> node = getVariableComponent("RejectedSessionCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getSessionTimeoutCount() {
         Optional<VariableNode> node = getVariableComponent("SessionTimeoutCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getSessionAbortCount() {
         Optional<VariableNode> node = getVariableComponent("SessionAbortCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getPublishingIntervalCount() {
         Optional<VariableNode> node = getVariableComponent("PublishingIntervalCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getCurrentSubscriptionCount() {
         Optional<VariableNode> node = getVariableComponent("CurrentSubscriptionCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getCumulatedSubscriptionCount() {
         Optional<VariableNode> node = getVariableComponent("CumulatedSubscriptionCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getSecurityRejectedRequestsCount() {
         Optional<VariableNode> node = getVariableComponent("SecurityRejectedRequestsCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getRejectedRequestsCount() {
         Optional<VariableNode> node = getVariableComponent("RejectedRequestsCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 

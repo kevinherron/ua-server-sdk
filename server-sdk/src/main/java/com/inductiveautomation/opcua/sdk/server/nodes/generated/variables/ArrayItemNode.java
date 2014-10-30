@@ -63,9 +63,9 @@ public class ArrayItemNode extends DataItemNode implements ArrayItemType {
 
     @Override
     public AxisScaleEnumeration getAxisScaleType() {
-        Optional<AxisScaleEnumeration> axisScaleType = getProperty("AxisScaleType");
+        Optional<Integer> axisScaleType = getProperty("AxisScaleType");
 
-        return axisScaleType.orElse(null);
+        return axisScaleType.map(AxisScaleEnumeration::from).orElse(null);
     }
 
     @Override
@@ -92,7 +92,9 @@ public class ArrayItemNode extends DataItemNode implements ArrayItemType {
     @Override
     public void setAxisScaleType(AxisScaleEnumeration axisScaleType) {
         getPropertyNode("AxisScaleType").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(axisScaleType)));
+            Integer value = axisScaleType.getValue();
+
+            n.setValue(new DataValue(new Variant(value)));
         });
     }
 

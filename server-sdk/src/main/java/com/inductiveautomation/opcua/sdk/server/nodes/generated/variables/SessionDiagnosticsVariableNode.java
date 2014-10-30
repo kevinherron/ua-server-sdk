@@ -148,301 +148,258 @@ public class SessionDiagnosticsVariableNode extends BaseDataVariableNode impleme
     @Override
     public NodeId getSessionId() {
         Optional<VariableNode> node = getVariableComponent("SessionId");
-
         return node.map(n -> (NodeId) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public String getSessionName() {
         Optional<VariableNode> node = getVariableComponent("SessionName");
-
         return node.map(n -> (String) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ApplicationDescription getClientDescription() {
         Optional<VariableNode> node = getVariableComponent("ClientDescription");
-
         return node.map(n -> (ApplicationDescription) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public String getServerUri() {
         Optional<VariableNode> node = getVariableComponent("ServerUri");
-
         return node.map(n -> (String) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public String getEndpointUrl() {
         Optional<VariableNode> node = getVariableComponent("EndpointUrl");
-
         return node.map(n -> (String) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public String[] getLocaleIds() {
         Optional<VariableNode> node = getVariableComponent("LocaleIds");
-
         return node.map(n -> (String[]) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public Double getActualSessionTimeout() {
         Optional<VariableNode> node = getVariableComponent("ActualSessionTimeout");
-
         return node.map(n -> (Double) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getMaxResponseMessageSize() {
         Optional<VariableNode> node = getVariableComponent("MaxResponseMessageSize");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public DateTime getClientConnectionTime() {
         Optional<VariableNode> node = getVariableComponent("ClientConnectionTime");
-
         return node.map(n -> (DateTime) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public DateTime getClientLastContactTime() {
         Optional<VariableNode> node = getVariableComponent("ClientLastContactTime");
-
         return node.map(n -> (DateTime) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getCurrentSubscriptionsCount() {
         Optional<VariableNode> node = getVariableComponent("CurrentSubscriptionsCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getCurrentMonitoredItemsCount() {
         Optional<VariableNode> node = getVariableComponent("CurrentMonitoredItemsCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getCurrentPublishRequestsInQueue() {
         Optional<VariableNode> node = getVariableComponent("CurrentPublishRequestsInQueue");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ServiceCounterDataType getTotalRequestCount() {
         Optional<VariableNode> node = getVariableComponent("TotalRequestCount");
-
         return node.map(n -> (ServiceCounterDataType) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getUnauthorizedRequestCount() {
         Optional<VariableNode> node = getVariableComponent("UnauthorizedRequestCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ServiceCounterDataType getReadCount() {
         Optional<VariableNode> node = getVariableComponent("ReadCount");
-
         return node.map(n -> (ServiceCounterDataType) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ServiceCounterDataType getHistoryReadCount() {
         Optional<VariableNode> node = getVariableComponent("HistoryReadCount");
-
         return node.map(n -> (ServiceCounterDataType) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ServiceCounterDataType getWriteCount() {
         Optional<VariableNode> node = getVariableComponent("WriteCount");
-
         return node.map(n -> (ServiceCounterDataType) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ServiceCounterDataType getHistoryUpdateCount() {
         Optional<VariableNode> node = getVariableComponent("HistoryUpdateCount");
-
         return node.map(n -> (ServiceCounterDataType) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ServiceCounterDataType getCallCount() {
         Optional<VariableNode> node = getVariableComponent("CallCount");
-
         return node.map(n -> (ServiceCounterDataType) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ServiceCounterDataType getCreateMonitoredItemsCount() {
         Optional<VariableNode> node = getVariableComponent("CreateMonitoredItemsCount");
-
         return node.map(n -> (ServiceCounterDataType) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ServiceCounterDataType getModifyMonitoredItemsCount() {
         Optional<VariableNode> node = getVariableComponent("ModifyMonitoredItemsCount");
-
         return node.map(n -> (ServiceCounterDataType) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ServiceCounterDataType getSetMonitoringModeCount() {
         Optional<VariableNode> node = getVariableComponent("SetMonitoringModeCount");
-
         return node.map(n -> (ServiceCounterDataType) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ServiceCounterDataType getSetTriggeringCount() {
         Optional<VariableNode> node = getVariableComponent("SetTriggeringCount");
-
         return node.map(n -> (ServiceCounterDataType) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ServiceCounterDataType getDeleteMonitoredItemsCount() {
         Optional<VariableNode> node = getVariableComponent("DeleteMonitoredItemsCount");
-
         return node.map(n -> (ServiceCounterDataType) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ServiceCounterDataType getCreateSubscriptionCount() {
         Optional<VariableNode> node = getVariableComponent("CreateSubscriptionCount");
-
         return node.map(n -> (ServiceCounterDataType) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ServiceCounterDataType getModifySubscriptionCount() {
         Optional<VariableNode> node = getVariableComponent("ModifySubscriptionCount");
-
         return node.map(n -> (ServiceCounterDataType) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ServiceCounterDataType getSetPublishingModeCount() {
         Optional<VariableNode> node = getVariableComponent("SetPublishingModeCount");
-
         return node.map(n -> (ServiceCounterDataType) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ServiceCounterDataType getPublishCount() {
         Optional<VariableNode> node = getVariableComponent("PublishCount");
-
         return node.map(n -> (ServiceCounterDataType) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ServiceCounterDataType getRepublishCount() {
         Optional<VariableNode> node = getVariableComponent("RepublishCount");
-
         return node.map(n -> (ServiceCounterDataType) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ServiceCounterDataType getTransferSubscriptionsCount() {
         Optional<VariableNode> node = getVariableComponent("TransferSubscriptionsCount");
-
         return node.map(n -> (ServiceCounterDataType) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ServiceCounterDataType getDeleteSubscriptionsCount() {
         Optional<VariableNode> node = getVariableComponent("DeleteSubscriptionsCount");
-
         return node.map(n -> (ServiceCounterDataType) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ServiceCounterDataType getAddNodesCount() {
         Optional<VariableNode> node = getVariableComponent("AddNodesCount");
-
         return node.map(n -> (ServiceCounterDataType) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ServiceCounterDataType getAddReferencesCount() {
         Optional<VariableNode> node = getVariableComponent("AddReferencesCount");
-
         return node.map(n -> (ServiceCounterDataType) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ServiceCounterDataType getDeleteNodesCount() {
         Optional<VariableNode> node = getVariableComponent("DeleteNodesCount");
-
         return node.map(n -> (ServiceCounterDataType) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ServiceCounterDataType getDeleteReferencesCount() {
         Optional<VariableNode> node = getVariableComponent("DeleteReferencesCount");
-
         return node.map(n -> (ServiceCounterDataType) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ServiceCounterDataType getBrowseCount() {
         Optional<VariableNode> node = getVariableComponent("BrowseCount");
-
         return node.map(n -> (ServiceCounterDataType) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ServiceCounterDataType getBrowseNextCount() {
         Optional<VariableNode> node = getVariableComponent("BrowseNextCount");
-
         return node.map(n -> (ServiceCounterDataType) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ServiceCounterDataType getTranslateBrowsePathsToNodeIdsCount() {
         Optional<VariableNode> node = getVariableComponent("TranslateBrowsePathsToNodeIdsCount");
-
         return node.map(n -> (ServiceCounterDataType) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ServiceCounterDataType getQueryFirstCount() {
         Optional<VariableNode> node = getVariableComponent("QueryFirstCount");
-
         return node.map(n -> (ServiceCounterDataType) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ServiceCounterDataType getQueryNextCount() {
         Optional<VariableNode> node = getVariableComponent("QueryNextCount");
-
         return node.map(n -> (ServiceCounterDataType) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ServiceCounterDataType getRegisterNodesCount() {
         Optional<VariableNode> node = getVariableComponent("RegisterNodesCount");
-
         return node.map(n -> (ServiceCounterDataType) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ServiceCounterDataType getUnregisterNodesCount() {
         Optional<VariableNode> node = getVariableComponent("UnregisterNodesCount");
-
         return node.map(n -> (ServiceCounterDataType) n.getValue().getValue().getValue()).orElse(null);
     }
 

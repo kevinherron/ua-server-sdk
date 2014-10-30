@@ -121,217 +121,186 @@ public class SubscriptionDiagnosticsNode extends BaseDataVariableNode implements
     @Override
     public NodeId getSessionId() {
         Optional<VariableNode> node = getVariableComponent("SessionId");
-
         return node.map(n -> (NodeId) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getSubscriptionId() {
         Optional<VariableNode> node = getVariableComponent("SubscriptionId");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UByte getPriority() {
         Optional<VariableNode> node = getVariableComponent("Priority");
-
         return node.map(n -> (UByte) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public Double getPublishingInterval() {
         Optional<VariableNode> node = getVariableComponent("PublishingInterval");
-
         return node.map(n -> (Double) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getMaxKeepAliveCount() {
         Optional<VariableNode> node = getVariableComponent("MaxKeepAliveCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getMaxLifetimeCount() {
         Optional<VariableNode> node = getVariableComponent("MaxLifetimeCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getMaxNotificationsPerPublish() {
         Optional<VariableNode> node = getVariableComponent("MaxNotificationsPerPublish");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public Boolean getPublishingEnabled() {
         Optional<VariableNode> node = getVariableComponent("PublishingEnabled");
-
         return node.map(n -> (Boolean) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getModifyCount() {
         Optional<VariableNode> node = getVariableComponent("ModifyCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getEnableCount() {
         Optional<VariableNode> node = getVariableComponent("EnableCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getDisableCount() {
         Optional<VariableNode> node = getVariableComponent("DisableCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getRepublishRequestCount() {
         Optional<VariableNode> node = getVariableComponent("RepublishRequestCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getRepublishMessageRequestCount() {
         Optional<VariableNode> node = getVariableComponent("RepublishMessageRequestCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getRepublishMessageCount() {
         Optional<VariableNode> node = getVariableComponent("RepublishMessageCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getTransferRequestCount() {
         Optional<VariableNode> node = getVariableComponent("TransferRequestCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getTransferredToAltClientCount() {
         Optional<VariableNode> node = getVariableComponent("TransferredToAltClientCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getTransferredToSameClientCount() {
         Optional<VariableNode> node = getVariableComponent("TransferredToSameClientCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getPublishRequestCount() {
         Optional<VariableNode> node = getVariableComponent("PublishRequestCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getDataChangeNotificationsCount() {
         Optional<VariableNode> node = getVariableComponent("DataChangeNotificationsCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getEventNotificationsCount() {
         Optional<VariableNode> node = getVariableComponent("EventNotificationsCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getNotificationsCount() {
         Optional<VariableNode> node = getVariableComponent("NotificationsCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getLatePublishRequestCount() {
         Optional<VariableNode> node = getVariableComponent("LatePublishRequestCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getCurrentKeepAliveCount() {
         Optional<VariableNode> node = getVariableComponent("CurrentKeepAliveCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getCurrentLifetimeCount() {
         Optional<VariableNode> node = getVariableComponent("CurrentLifetimeCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getUnacknowledgedMessageCount() {
         Optional<VariableNode> node = getVariableComponent("UnacknowledgedMessageCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getDiscardedMessageCount() {
         Optional<VariableNode> node = getVariableComponent("DiscardedMessageCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getMonitoredItemCount() {
         Optional<VariableNode> node = getVariableComponent("MonitoredItemCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getDisabledMonitoredItemCount() {
         Optional<VariableNode> node = getVariableComponent("DisabledMonitoredItemCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getMonitoringQueueOverflowCount() {
         Optional<VariableNode> node = getVariableComponent("MonitoringQueueOverflowCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getNextSequenceNumber() {
         Optional<VariableNode> node = getVariableComponent("NextSequenceNumber");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getEventQueueOverFlowCount() {
         Optional<VariableNode> node = getVariableComponent("EventQueueOverFlowCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 

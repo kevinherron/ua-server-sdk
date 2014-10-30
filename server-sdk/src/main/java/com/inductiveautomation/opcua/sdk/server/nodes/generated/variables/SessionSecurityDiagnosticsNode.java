@@ -79,63 +79,58 @@ public class SessionSecurityDiagnosticsNode extends BaseDataVariableNode impleme
     @Override
     public NodeId getSessionId() {
         Optional<VariableNode> node = getVariableComponent("SessionId");
-
         return node.map(n -> (NodeId) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public String getClientUserIdOfSession() {
         Optional<VariableNode> node = getVariableComponent("ClientUserIdOfSession");
-
         return node.map(n -> (String) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public String[] getClientUserIdHistory() {
         Optional<VariableNode> node = getVariableComponent("ClientUserIdHistory");
-
         return node.map(n -> (String[]) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public String getAuthenticationMechanism() {
         Optional<VariableNode> node = getVariableComponent("AuthenticationMechanism");
-
         return node.map(n -> (String) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public String getEncoding() {
         Optional<VariableNode> node = getVariableComponent("Encoding");
-
         return node.map(n -> (String) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public String getTransportProtocol() {
         Optional<VariableNode> node = getVariableComponent("TransportProtocol");
-
         return node.map(n -> (String) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public MessageSecurityMode getSecurityMode() {
         Optional<VariableNode> node = getVariableComponent("SecurityMode");
+        return node.map(n -> {
+            Integer value = (Integer) n.getValue().getValue().getValue();
 
-        return node.map(n -> (MessageSecurityMode) n.getValue().getValue().getValue()).orElse(null);
+            return MessageSecurityMode.from(value);
+        }).orElse(null);
     }
 
     @Override
     public String getSecurityPolicyUri() {
         Optional<VariableNode> node = getVariableComponent("SecurityPolicyUri");
-
         return node.map(n -> (String) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ByteString getClientCertificate() {
         Optional<VariableNode> node = getVariableComponent("ClientCertificate");
-
         return node.map(n -> (ByteString) n.getValue().getValue().getValue()).orElse(null);
     }
 
@@ -190,7 +185,9 @@ public class SessionSecurityDiagnosticsNode extends BaseDataVariableNode impleme
     @Override
     public void setSecurityMode(MessageSecurityMode securityMode) {
         getVariableComponent("SecurityMode").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(securityMode)));
+            Integer value = securityMode.getValue();
+
+            n.setValue(new DataValue(new Variant(value)));
             fireAttributeChanged(AttributeIds.Value, getValue());
         });
     }

@@ -74,42 +74,40 @@ public class ServerStatusNode extends BaseDataVariableNode implements ServerStat
     @Override
     public DateTime getStartTime() {
         Optional<VariableNode> node = getVariableComponent("StartTime");
-
         return node.map(n -> (DateTime) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public DateTime getCurrentTime() {
         Optional<VariableNode> node = getVariableComponent("CurrentTime");
-
         return node.map(n -> (DateTime) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public ServerState getState() {
         Optional<VariableNode> node = getVariableComponent("State");
+        return node.map(n -> {
+            Integer value = (Integer) n.getValue().getValue().getValue();
 
-        return node.map(n -> (ServerState) n.getValue().getValue().getValue()).orElse(null);
+            return ServerState.from(value);
+        }).orElse(null);
     }
 
     @Override
     public BuildInfo getBuildInfo() {
         Optional<VariableNode> node = getVariableComponent("BuildInfo");
-
         return node.map(n -> (BuildInfo) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getSecondsTillShutdown() {
         Optional<VariableNode> node = getVariableComponent("SecondsTillShutdown");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public LocalizedText getShutdownReason() {
         Optional<VariableNode> node = getVariableComponent("ShutdownReason");
-
         return node.map(n -> (LocalizedText) n.getValue().getValue().getValue()).orElse(null);
     }
 
@@ -132,7 +130,9 @@ public class ServerStatusNode extends BaseDataVariableNode implements ServerStat
     @Override
     public void setState(ServerState state) {
         getVariableComponent("State").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(state)));
+            Integer value = state.getValue();
+
+            n.setValue(new DataValue(new Variant(value)));
             fireAttributeChanged(AttributeIds.Value, getValue());
         });
     }

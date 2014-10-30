@@ -67,28 +67,24 @@ public class SamplingIntervalDiagnosticsNode extends BaseDataVariableNode implem
     @Override
     public Double getSamplingInterval() {
         Optional<VariableNode> node = getVariableComponent("SamplingInterval");
-
         return node.map(n -> (Double) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getSampledMonitoredItemsCount() {
         Optional<VariableNode> node = getVariableComponent("SampledMonitoredItemsCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getMaxSampledMonitoredItemsCount() {
         Optional<VariableNode> node = getVariableComponent("MaxSampledMonitoredItemsCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
     public UInteger getDisabledMonitoredItemsSamplingCount() {
         Optional<VariableNode> node = getVariableComponent("DisabledMonitoredItemsSamplingCount");
-
         return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
     }
 
