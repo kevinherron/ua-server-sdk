@@ -22,7 +22,11 @@ import java.util.concurrent.CompletableFuture;
 
 import com.google.common.collect.Lists;
 import com.inductiveautomation.opcua.sdk.server.api.MethodInvocationHandler.NodeIdUnknownHandler;
+import com.inductiveautomation.opcua.stack.core.StatusCodes;
+import com.inductiveautomation.opcua.stack.core.types.builtin.DiagnosticInfo;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
+import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
+import com.inductiveautomation.opcua.stack.core.types.builtin.Variant;
 import com.inductiveautomation.opcua.stack.core.types.structured.CallMethodRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.CallMethodResult;
 import org.slf4j.LoggerFactory;
@@ -44,18 +48,21 @@ public interface MethodManager {
             MethodInvocationHandler handler = getInvocationHandler(request.getMethodId())
                     .orElse(new NodeIdUnknownHandler());
 
-            CompletableFuture<CallMethodResult> result = new CompletableFuture<>();
+            CompletableFuture<CallMethodResult> resultFuture = new CompletableFuture<>();
 
             try {
-                handler.invoke(request, result);
+                handler.invoke(request, resultFuture);
             } catch (Throwable t) {
                 LoggerFactory.getLogger(getClass())
                         .error("Uncaught Throwable invoking method handler for methodId={}.", request.getMethodId(), t);
 
-                result.completeExceptionally(t);
+                resultFuture.complete(new CallMethodResult(
+                        new StatusCode(StatusCodes.Bad_InternalError),
+                        new StatusCode[0], new DiagnosticInfo[0], new Variant[0]
+                ));
             }
 
-            results.add(result);
+            results.add(resultFuture);
         }
 
         sequence(results).thenAccept(future::complete);

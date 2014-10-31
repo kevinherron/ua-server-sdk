@@ -1,19 +1,26 @@
 package com.inductiveautomation.opcua.sdk.core.model.variables;
 
+import com.inductiveautomation.opcua.sdk.core.model.UaMandatory;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
 
 public interface BuildInfoType extends BaseDataVariableType {
 
+    @UaMandatory("ProductUri")
     String getProductUri();
 
+    @UaMandatory("ManufacturerName")
     String getManufacturerName();
 
+    @UaMandatory("ProductName")
     String getProductName();
 
+    @UaMandatory("SoftwareVersion")
     String getSoftwareVersion();
 
+    @UaMandatory("BuildNumber")
     String getBuildNumber();
 
+    @UaMandatory("BuildDate")
     DateTime getBuildDate();
 
     void setProductUri(String productUri);
@@ -28,6 +35,6 @@ public interface BuildInfoType extends BaseDataVariableType {
 
     void setBuildDate(DateTime buildDate);
 
-    void atomicSet(Runnable runnable);
+    void atomicAction(Runnable runnable);
 
 }

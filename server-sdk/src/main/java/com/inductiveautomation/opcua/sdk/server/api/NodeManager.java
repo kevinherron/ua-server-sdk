@@ -21,7 +21,7 @@ import java.util.Optional;
 
 import com.inductiveautomation.opcua.sdk.core.Reference;
 import com.inductiveautomation.opcua.sdk.core.nodes.Node;
-import com.inductiveautomation.opcua.sdk.server.nodes.UaNode;
+import com.inductiveautomation.opcua.sdk.server.model.UaNode;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.UaException;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ExpandedNodeId;

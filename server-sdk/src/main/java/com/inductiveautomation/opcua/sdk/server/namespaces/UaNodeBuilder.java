@@ -33,15 +33,15 @@ import com.inductiveautomation.opcua.nodeset.attributes.VariableTypeNodeAttribut
 import com.inductiveautomation.opcua.nodeset.attributes.ViewNodeAttributes;
 import com.inductiveautomation.opcua.sdk.core.Reference;
 import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
-import com.inductiveautomation.opcua.sdk.server.nodes.UaDataTypeNode;
-import com.inductiveautomation.opcua.sdk.server.nodes.UaMethodNode;
-import com.inductiveautomation.opcua.sdk.server.nodes.UaNode;
-import com.inductiveautomation.opcua.sdk.server.nodes.UaObjectNode;
-import com.inductiveautomation.opcua.sdk.server.nodes.UaObjectTypeNode;
-import com.inductiveautomation.opcua.sdk.server.nodes.UaReferenceTypeNode;
-import com.inductiveautomation.opcua.sdk.server.nodes.UaVariableNode;
-import com.inductiveautomation.opcua.sdk.server.nodes.UaVariableTypeNode;
-import com.inductiveautomation.opcua.sdk.server.nodes.UaViewNode;
+import com.inductiveautomation.opcua.sdk.server.model.UaDataTypeNode;
+import com.inductiveautomation.opcua.sdk.server.model.UaMethodNode;
+import com.inductiveautomation.opcua.sdk.server.model.UaNode;
+import com.inductiveautomation.opcua.sdk.server.model.UaObjectNode;
+import com.inductiveautomation.opcua.sdk.server.model.UaObjectTypeNode;
+import com.inductiveautomation.opcua.sdk.server.model.UaReferenceTypeNode;
+import com.inductiveautomation.opcua.sdk.server.model.UaVariableNode;
+import com.inductiveautomation.opcua.sdk.server.model.UaVariableTypeNode;
+import com.inductiveautomation.opcua.sdk.server.model.UaViewNode;
 import com.inductiveautomation.opcua.sdk.server.util.UaObjectType;
 import com.inductiveautomation.opcua.sdk.server.util.UaVariableType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
@@ -54,10 +54,10 @@ public class UaNodeBuilder implements NodeBuilder<UaNode, Reference> {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final Reflections objectReflections =
-            new Reflections("com.inductiveautomation.opcua.sdk.server.nodes.generated.objects");
+            new Reflections("com.inductiveautomation.opcua.sdk.server.model.objects");
 
     private final Reflections variableReflections =
-            new Reflections("com.inductiveautomation.opcua.sdk.server.nodes.generated.variables");
+            new Reflections("com.inductiveautomation.opcua.sdk.server.model.variables");
 
     private final UaNodeManager nodeManager;
 

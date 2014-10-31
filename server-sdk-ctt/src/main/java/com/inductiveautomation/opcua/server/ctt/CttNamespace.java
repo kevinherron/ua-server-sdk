@@ -38,13 +38,14 @@ import com.inductiveautomation.opcua.sdk.server.api.MethodInvocationHandler;
 import com.inductiveautomation.opcua.sdk.server.api.MonitoredItem;
 import com.inductiveautomation.opcua.sdk.server.api.Namespace;
 import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
-import com.inductiveautomation.opcua.sdk.server.nodes.UaMethodNode;
-import com.inductiveautomation.opcua.sdk.server.nodes.UaNode;
-import com.inductiveautomation.opcua.sdk.server.nodes.UaObjectNode;
-import com.inductiveautomation.opcua.sdk.server.nodes.UaVariableNode;
-import com.inductiveautomation.opcua.sdk.server.nodes.UaVariableNode.UaVariableNodeBuilder;
+import com.inductiveautomation.opcua.sdk.server.model.UaMethodNode;
+import com.inductiveautomation.opcua.sdk.server.model.UaNode;
+import com.inductiveautomation.opcua.sdk.server.model.UaObjectNode;
+import com.inductiveautomation.opcua.sdk.server.model.UaVariableNode;
+import com.inductiveautomation.opcua.sdk.server.model.UaVariableNode.UaVariableNodeBuilder;
+import com.inductiveautomation.opcua.sdk.server.util.AnnotationBasedInvocationHandler;
 import com.inductiveautomation.opcua.sdk.server.util.SubscriptionModel;
-import com.inductiveautomation.opcua.server.ctt.methods.SqrtInvocationHandler;
+import com.inductiveautomation.opcua.server.ctt.methods.SqrtMethod;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.UaException;
@@ -62,7 +63,6 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UShort;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.TimestampsToReturn;
-import com.inductiveautomation.opcua.stack.core.types.structured.Argument;
 import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
 import com.inductiveautomation.opcua.stack.core.types.structured.WriteValue;
 import org.slf4j.Logger;
@@ -248,29 +248,26 @@ public class CttNamespace implements Namespace, UaNodeManager {
                 .setDescription(LocalizedText.english("Returns the correctly rounded positive square root of a double value."))
                 .build();
 
-        Argument input = new Argument(
-                "x", Identifiers.Double,
-                ValueRank.Scalar, new UInteger[0],
-                LocalizedText.english("A value."));
+        try {
+            AnnotationBasedInvocationHandler invocationHandler =
+                    AnnotationBasedInvocationHandler.fromAnnotatedObject(this, new SqrtMethod());
 
-        Argument output = new Argument(
-                "x_sqrt", Identifiers.Double,
-                ValueRank.Scalar, new UInteger[0],
-                LocalizedText.english("The positive square root of x. If the argument is NaN or less than zero, the result is NaN."));
+            methodNode.setProperty(UaMethodNode.InputArguments, invocationHandler.getInputArguments());
+            methodNode.setProperty(UaMethodNode.OutputArguments, invocationHandler.getOutputArguments());
+            methodNode.setInvocationHandler(invocationHandler);
 
-        methodNode.setInvocationHandler(new SqrtInvocationHandler());
-        methodNode.setProperty(UaMethodNode.InputArguments, new Argument[]{input});
-        methodNode.setProperty(UaMethodNode.OutputArguments, new Argument[]{output});
+            nodes.put(methodNode.getNodeId(), methodNode);
 
-        nodes.put(methodNode.getNodeId(), methodNode);
-
-        folder.addReference(new Reference(
-                folder.getNodeId(),
-                Identifiers.HasComponent,
-                methodNode.getNodeId().expanded(),
-                methodNode.getNodeClass(),
-                true
-        ));
+            folder.addReference(new Reference(
+                    folder.getNodeId(),
+                    Identifiers.HasComponent,
+                    methodNode.getNodeId().expanded(),
+                    methodNode.getNodeClass(),
+                    true
+            ));
+        } catch (Exception e) {
+            logger.error("Error creating sqrt() method.", e);
+        }
     }
 
     private UaObjectNode addFoldersToRoot(UaNode root, String path) {

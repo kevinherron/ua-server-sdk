@@ -23,7 +23,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.Lists;
@@ -39,12 +38,19 @@ import com.inductiveautomation.opcua.sdk.core.nodes.Node;
 import com.inductiveautomation.opcua.sdk.server.OpcUaServer;
 import com.inductiveautomation.opcua.sdk.server.api.DataItem;
 import com.inductiveautomation.opcua.sdk.server.api.EventItem;
+import com.inductiveautomation.opcua.sdk.server.api.MethodInvocationHandler;
 import com.inductiveautomation.opcua.sdk.server.api.MonitoredItem;
 import com.inductiveautomation.opcua.sdk.server.api.Namespace;
 import com.inductiveautomation.opcua.sdk.server.api.OpcUaServerConfigLimits;
 import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
-import com.inductiveautomation.opcua.sdk.server.nodes.UaNode;
-import com.inductiveautomation.opcua.sdk.server.nodes.generated.objects.ServerNode;
+import com.inductiveautomation.opcua.sdk.server.model.DerivedVariableNode;
+import com.inductiveautomation.opcua.sdk.server.model.UaMethodNode;
+import com.inductiveautomation.opcua.sdk.server.model.UaNode;
+import com.inductiveautomation.opcua.sdk.server.model.UaObjectNode;
+import com.inductiveautomation.opcua.sdk.server.model.UaVariableNode;
+import com.inductiveautomation.opcua.sdk.server.model.methods.GetMonitoredItems;
+import com.inductiveautomation.opcua.sdk.server.model.objects.ServerNode;
+import com.inductiveautomation.opcua.sdk.server.util.AnnotationBasedInvocationHandler;
 import com.inductiveautomation.opcua.sdk.server.util.SubscriptionModel;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
@@ -55,6 +61,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.ExpandedNodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
+import com.inductiveautomation.opcua.stack.core.types.builtin.Variant;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UShort;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.RedundancySupport;
@@ -253,6 +260,21 @@ public class OpcUaNamespace implements Namespace, UaNodeManager {
         }
     }
 
+    @Override
+    public Optional<MethodInvocationHandler> getInvocationHandler(NodeId methodId) {
+        return Optional.ofNullable(nodes.get(methodId))
+                .filter(n -> n instanceof UaMethodNode)
+                .flatMap(n -> ((UaMethodNode) n).getInvocationHandler());
+    }
+
+    public UaObjectNode getObjectsFolder() {
+        return (UaObjectNode) nodes.get(Identifiers.ObjectsFolder);
+    }
+
+    public ServerNode getServerNode() {
+        return (ServerNode) nodes.get(Identifiers.Server);
+    }
+
     private void parseNodes() throws JAXBException {
         logger.info("Parsing Opc.Ua.NodeSet2.xml...");
         InputStream nodeSetXml = getClass().getClassLoader().getResourceAsStream("Opc.Ua.NodeSet2.xml");
@@ -274,8 +296,8 @@ public class OpcUaNamespace implements Namespace, UaNodeManager {
 
         ServerNode serverNode = (ServerNode) nodes.get(Identifiers.Server);
 
-        swapServerArrayNode();
-        swapNamespaceArrayNode();
+        replaceServerArrayNode();
+        replaceNamespaceArrayNode();
 
         serverNode.setAuditing(false);
         serverNode.getServerDiagnostics().setEnabledFlag(false);
@@ -287,10 +309,14 @@ public class OpcUaNamespace implements Namespace, UaNodeManager {
         serverStatus.setShutdownReason(LocalizedText.NullValue);
         serverStatus.setState(ServerState.Running);
 
-        server.getScheduledExecutorService().scheduleAtFixedRate(
-                () -> serverStatus.setCurrentTime(DateTime.now()),
-                250, 250, TimeUnit.MILLISECONDS
-        );
+        UaVariableNode currentTime = (UaVariableNode) nodes.get(Identifiers.Server_ServerStatus_CurrentTime);
+        DerivedVariableNode derivedCurrentTime = new DerivedVariableNode(this, currentTime) {
+            @Override
+            public DataValue getValue() {
+                return new DataValue(new Variant(DateTime.now()));
+            }
+        };
+        nodes.put(Identifiers.Server_ServerStatus_CurrentTime, derivedCurrentTime);
 
         ServerCapabilitiesType serverCapabilities = serverNode.getServerCapabilities();
         serverCapabilities.setLocaleIdArray(new String[]{Locale.ENGLISH.getLanguage()});
@@ -299,6 +325,7 @@ public class OpcUaNamespace implements Namespace, UaNodeManager {
         serverCapabilities.setMaxHistoryContinuationPoints(limits.getMaxHistoryContinuationPoints());
         serverCapabilities.setMaxQueryContinuationPoints(limits.getMaxQueryContinuationPoints());
         serverCapabilities.setMaxStringLength(limits.getMaxStringLength());
+        serverCapabilities.setMinSupportedSampleRate(limits.getMinSupportedSampleRate());
 
         OperationLimitsType operationLimits = serverCapabilities.getOperationLimits();
         operationLimits.setMaxMonitoredItemsPerCall(limits.getMaxMonitoredItemsPerCall());
@@ -315,28 +342,45 @@ public class OpcUaNamespace implements Namespace, UaNodeManager {
         operationLimits.setMaxNodesPerWrite(limits.getMaxNodesPerWrite());
 
         serverNode.getServerRedundancy().setRedundancySupport(RedundancySupport.None);
+
+        try {
+            UaMethodNode getMonitoredItems = (UaMethodNode) nodes.get(Identifiers.Server_GetMonitoredItems);
+
+            AnnotationBasedInvocationHandler invocationHandler =
+                    AnnotationBasedInvocationHandler.fromAnnotatedObject(this, new GetMonitoredItems(server));
+
+            getMonitoredItems.setProperty(UaMethodNode.InputArguments, invocationHandler.getInputArguments());
+            getMonitoredItems.setProperty(UaMethodNode.OutputArguments, invocationHandler.getOutputArguments());
+            getMonitoredItems.setInvocationHandler(invocationHandler);
+        } catch (Exception e) {
+            logger.error("Error setting up GetMonitoredItems Method.", e);
+        }
     }
 
-    private void swapServerArrayNode() {
-        UaNode originalNode = nodes.get(Identifiers.Server_ServerArray);
+    private void replaceServerArrayNode() {
+        UaVariableNode originalNode = (UaVariableNode) nodes.get(Identifiers.Server_ServerArray);
 
-        ServerArrayNode serverArrayNode = new ServerArrayNode(
-                this, server.getServerTable());
+        UaVariableNode derived = new DerivedVariableNode(this, originalNode) {
+            @Override
+            public DataValue getValue() {
+                return new DataValue(new Variant(server.getServerTable().toArray()));
+            }
+        };
 
-        serverArrayNode.addReferences(originalNode.getReferences());
-
-        nodes.put(serverArrayNode.getNodeId(), serverArrayNode);
+        nodes.put(derived.getNodeId(), derived);
     }
 
-    private void swapNamespaceArrayNode() {
-        UaNode originalNode = nodes.get(Identifiers.Server_NamespaceArray);
+    private void replaceNamespaceArrayNode() {
+        UaVariableNode originalNode = (UaVariableNode) nodes.get(Identifiers.Server_NamespaceArray);
 
-        NamespaceArrayNode namespaceArrayNode = new NamespaceArrayNode(
-                this, server.getNamespaceManager().getNamespaceTable());
+        UaVariableNode derived = new DerivedVariableNode(this, originalNode) {
+            @Override
+            public DataValue getValue() {
+                return new DataValue(new Variant(server.getNamespaceManager().getNamespaceTable().toArray()));
+            }
+        };
 
-        namespaceArrayNode.addReferences(originalNode.getReferences());
-
-        nodes.put(namespaceArrayNode.getNodeId(), namespaceArrayNode);
+        nodes.put(derived.getNodeId(), derived);
     }
 
 }

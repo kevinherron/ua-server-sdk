@@ -1,71 +1,103 @@
 package com.inductiveautomation.opcua.sdk.core.model.variables;
 
+import com.inductiveautomation.opcua.sdk.core.model.UaMandatory;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 
 public interface SubscriptionDiagnosticsType extends BaseDataVariableType {
 
+    @UaMandatory("SessionId")
     NodeId getSessionId();
 
+    @UaMandatory("SubscriptionId")
     UInteger getSubscriptionId();
 
+    @UaMandatory("Priority")
     UByte getPriority();
 
+    @UaMandatory("PublishingInterval")
     Double getPublishingInterval();
 
+    @UaMandatory("MaxKeepAliveCount")
     UInteger getMaxKeepAliveCount();
 
+    @UaMandatory("MaxLifetimeCount")
     UInteger getMaxLifetimeCount();
 
+    @UaMandatory("MaxNotificationsPerPublish")
     UInteger getMaxNotificationsPerPublish();
 
+    @UaMandatory("PublishingEnabled")
     Boolean getPublishingEnabled();
 
+    @UaMandatory("ModifyCount")
     UInteger getModifyCount();
 
+    @UaMandatory("EnableCount")
     UInteger getEnableCount();
 
+    @UaMandatory("DisableCount")
     UInteger getDisableCount();
 
+    @UaMandatory("RepublishRequestCount")
     UInteger getRepublishRequestCount();
 
+    @UaMandatory("RepublishMessageRequestCount")
     UInteger getRepublishMessageRequestCount();
 
+    @UaMandatory("RepublishMessageCount")
     UInteger getRepublishMessageCount();
 
+    @UaMandatory("TransferRequestCount")
     UInteger getTransferRequestCount();
 
+    @UaMandatory("TransferredToAltClientCount")
     UInteger getTransferredToAltClientCount();
 
+    @UaMandatory("TransferredToSameClientCount")
     UInteger getTransferredToSameClientCount();
 
+    @UaMandatory("PublishRequestCount")
     UInteger getPublishRequestCount();
 
+    @UaMandatory("DataChangeNotificationsCount")
     UInteger getDataChangeNotificationsCount();
 
+    @UaMandatory("EventNotificationsCount")
     UInteger getEventNotificationsCount();
 
+    @UaMandatory("NotificationsCount")
     UInteger getNotificationsCount();
 
+    @UaMandatory("LatePublishRequestCount")
     UInteger getLatePublishRequestCount();
 
+    @UaMandatory("CurrentKeepAliveCount")
     UInteger getCurrentKeepAliveCount();
 
+    @UaMandatory("CurrentLifetimeCount")
     UInteger getCurrentLifetimeCount();
 
+    @UaMandatory("UnacknowledgedMessageCount")
     UInteger getUnacknowledgedMessageCount();
 
+    @UaMandatory("DiscardedMessageCount")
     UInteger getDiscardedMessageCount();
 
+    @UaMandatory("MonitoredItemCount")
     UInteger getMonitoredItemCount();
 
+    @UaMandatory("DisabledMonitoredItemCount")
     UInteger getDisabledMonitoredItemCount();
 
+    @UaMandatory("MonitoringQueueOverflowCount")
     UInteger getMonitoringQueueOverflowCount();
 
+    @UaMandatory("NextSequenceNumber")
     UInteger getNextSequenceNumber();
 
+    @UaMandatory("EventQueueOverFlowCount")
     UInteger getEventQueueOverFlowCount();
 
     void setSessionId(NodeId sessionId);
@@ -130,6 +162,6 @@ public interface SubscriptionDiagnosticsType extends BaseDataVariableType {
 
     void setEventQueueOverFlowCount(UInteger eventQueueOverFlowCount);
 
-    void atomicSet(Runnable runnable);
+    void atomicAction(Runnable runnable);
 
 }

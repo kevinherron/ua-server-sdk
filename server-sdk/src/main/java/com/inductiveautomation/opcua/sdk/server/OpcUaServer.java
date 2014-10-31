@@ -22,18 +22,21 @@ import java.net.UnknownHostException;
 import java.security.KeyPair;
 import java.security.cert.Certificate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 
+import com.google.common.collect.Maps;
 import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.inductiveautomation.opcua.sdk.core.ServerTable;
 import com.inductiveautomation.opcua.sdk.server.api.OpcUaServerConfig;
 import com.inductiveautomation.opcua.sdk.server.namespaces.OpcUaNamespace;
+import com.inductiveautomation.opcua.sdk.server.subscriptions.Subscription;
 import com.inductiveautomation.opcua.stack.core.application.UaServer;
 import com.inductiveautomation.opcua.stack.core.application.services.AttributeServiceSet;
 import com.inductiveautomation.opcua.stack.core.application.services.MethodServiceSet;
@@ -46,6 +49,7 @@ import com.inductiveautomation.opcua.stack.core.channel.ChannelConfig;
 import com.inductiveautomation.opcua.stack.core.channel.ServerSecureChannel;
 import com.inductiveautomation.opcua.stack.core.security.SecurityPolicy;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.MessageSecurityMode;
 import com.inductiveautomation.opcua.stack.core.types.structured.ApplicationDescription;
 import com.inductiveautomation.opcua.stack.core.types.structured.EndpointDescription;
@@ -65,6 +69,8 @@ public class OpcUaServer {
             Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors(), THREAD_FACTORY);
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    private final Map<UInteger, Subscription> subscriptions = Maps.newConcurrentMap();
 
     private final NamespaceManager namespaceManager = new NamespaceManager();
     private final SessionManager sessionManager = new SessionManager(this);
@@ -178,6 +184,10 @@ public class OpcUaServer {
 
     public EventBus getEventBus() {
         return eventBus;
+    }
+
+    public Map<UInteger, Subscription> getSubscriptions() {
+        return subscriptions;
     }
 
     public Optional<KeyPair> getKeyPair(ByteString thumbprint) {

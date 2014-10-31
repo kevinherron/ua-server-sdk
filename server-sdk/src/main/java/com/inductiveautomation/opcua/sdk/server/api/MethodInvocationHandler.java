@@ -27,18 +27,26 @@ import com.inductiveautomation.opcua.stack.core.types.structured.CallMethodResul
 
 public interface MethodInvocationHandler {
 
-    void invoke(CallMethodRequest request, CompletableFuture<CallMethodResult> result);
+    /**
+     * Invoke the given {@link CallMethodRequest} and complete {@code future} when finished.
+     * <p>
+     * Under no circumstances should the future be completed exceptionally.
+     *
+     * @param request the {@link CallMethodRequest}.
+     * @param future  the {@link CompletableFuture} to complete.
+     */
+    void invoke(CallMethodRequest request, CompletableFuture<CallMethodResult> future);
 
     public static final class NodeIdUnknownHandler implements MethodInvocationHandler {
         @Override
-        public void invoke(CallMethodRequest request, CompletableFuture<CallMethodResult> result) {
+        public void invoke(CallMethodRequest request, CompletableFuture<CallMethodResult> future) {
             CallMethodResult nodeIdUnknown = new CallMethodResult(
                     new StatusCode(StatusCodes.Bad_NodeIdUnknown),
                     new StatusCode[0],
                     new DiagnosticInfo[0],
                     new Variant[0]);
 
-            result.complete(nodeIdUnknown);
+            future.complete(nodeIdUnknown);
         }
     }
 

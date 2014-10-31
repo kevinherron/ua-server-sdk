@@ -135,10 +135,12 @@ public class SubscriptionManager {
         );
 
         subscriptions.put(subscriptionId, subscription);
+        server.getSubscriptions().put(subscriptionId, subscription);
 
         subscription.addStateListener((s, ps, cs) -> {
             if (cs == State.Closed) {
                 subscriptions.remove(s.getId());
+                server.getSubscriptions().remove(s.getId());
             }
         });
 

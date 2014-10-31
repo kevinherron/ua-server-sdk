@@ -1,5 +1,6 @@
 package com.inductiveautomation.opcua.sdk.core.model.variables;
 
+import com.inductiveautomation.opcua.sdk.core.model.UaMandatory;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
@@ -8,90 +9,133 @@ import com.inductiveautomation.opcua.stack.core.types.structured.ServiceCounterD
 
 public interface SessionDiagnosticsVariableType extends BaseDataVariableType {
 
+    @UaMandatory("SessionId")
     NodeId getSessionId();
 
+    @UaMandatory("SessionName")
     String getSessionName();
 
+    @UaMandatory("ClientDescription")
     ApplicationDescription getClientDescription();
 
+    @UaMandatory("ServerUri")
     String getServerUri();
 
+    @UaMandatory("EndpointUrl")
     String getEndpointUrl();
 
+    @UaMandatory("LocaleIds")
     String[] getLocaleIds();
 
+    @UaMandatory("ActualSessionTimeout")
     Double getActualSessionTimeout();
 
+    @UaMandatory("MaxResponseMessageSize")
     UInteger getMaxResponseMessageSize();
 
+    @UaMandatory("ClientConnectionTime")
     DateTime getClientConnectionTime();
 
+    @UaMandatory("ClientLastContactTime")
     DateTime getClientLastContactTime();
 
+    @UaMandatory("CurrentSubscriptionsCount")
     UInteger getCurrentSubscriptionsCount();
 
+    @UaMandatory("CurrentMonitoredItemsCount")
     UInteger getCurrentMonitoredItemsCount();
 
+    @UaMandatory("CurrentPublishRequestsInQueue")
     UInteger getCurrentPublishRequestsInQueue();
 
+    @UaMandatory("TotalRequestCount")
     ServiceCounterDataType getTotalRequestCount();
 
+    @UaMandatory("UnauthorizedRequestCount")
     UInteger getUnauthorizedRequestCount();
 
+    @UaMandatory("ReadCount")
     ServiceCounterDataType getReadCount();
 
+    @UaMandatory("HistoryReadCount")
     ServiceCounterDataType getHistoryReadCount();
 
+    @UaMandatory("WriteCount")
     ServiceCounterDataType getWriteCount();
 
+    @UaMandatory("HistoryUpdateCount")
     ServiceCounterDataType getHistoryUpdateCount();
 
+    @UaMandatory("CallCount")
     ServiceCounterDataType getCallCount();
 
+    @UaMandatory("CreateMonitoredItemsCount")
     ServiceCounterDataType getCreateMonitoredItemsCount();
 
+    @UaMandatory("ModifyMonitoredItemsCount")
     ServiceCounterDataType getModifyMonitoredItemsCount();
 
+    @UaMandatory("SetMonitoringModeCount")
     ServiceCounterDataType getSetMonitoringModeCount();
 
+    @UaMandatory("SetTriggeringCount")
     ServiceCounterDataType getSetTriggeringCount();
 
+    @UaMandatory("DeleteMonitoredItemsCount")
     ServiceCounterDataType getDeleteMonitoredItemsCount();
 
+    @UaMandatory("CreateSubscriptionCount")
     ServiceCounterDataType getCreateSubscriptionCount();
 
+    @UaMandatory("ModifySubscriptionCount")
     ServiceCounterDataType getModifySubscriptionCount();
 
+    @UaMandatory("SetPublishingModeCount")
     ServiceCounterDataType getSetPublishingModeCount();
 
+    @UaMandatory("PublishCount")
     ServiceCounterDataType getPublishCount();
 
+    @UaMandatory("RepublishCount")
     ServiceCounterDataType getRepublishCount();
 
+    @UaMandatory("TransferSubscriptionsCount")
     ServiceCounterDataType getTransferSubscriptionsCount();
 
+    @UaMandatory("DeleteSubscriptionsCount")
     ServiceCounterDataType getDeleteSubscriptionsCount();
 
+    @UaMandatory("AddNodesCount")
     ServiceCounterDataType getAddNodesCount();
 
+    @UaMandatory("AddReferencesCount")
     ServiceCounterDataType getAddReferencesCount();
 
+    @UaMandatory("DeleteNodesCount")
     ServiceCounterDataType getDeleteNodesCount();
 
+    @UaMandatory("DeleteReferencesCount")
     ServiceCounterDataType getDeleteReferencesCount();
 
+    @UaMandatory("BrowseCount")
     ServiceCounterDataType getBrowseCount();
 
+    @UaMandatory("BrowseNextCount")
     ServiceCounterDataType getBrowseNextCount();
 
+    @UaMandatory("TranslateBrowsePathsToNodeIdsCount")
     ServiceCounterDataType getTranslateBrowsePathsToNodeIdsCount();
 
+    @UaMandatory("QueryFirstCount")
     ServiceCounterDataType getQueryFirstCount();
 
+    @UaMandatory("QueryNextCount")
     ServiceCounterDataType getQueryNextCount();
 
+    @UaMandatory("RegisterNodesCount")
     ServiceCounterDataType getRegisterNodesCount();
 
+    @UaMandatory("UnregisterNodesCount")
     ServiceCounterDataType getUnregisterNodesCount();
 
     void setSessionId(NodeId sessionId);
@@ -180,6 +224,6 @@ public interface SessionDiagnosticsVariableType extends BaseDataVariableType {
 
     void setUnregisterNodesCount(ServiceCounterDataType unregisterNodesCount);
 
-    void atomicSet(Runnable runnable);
+    void atomicAction(Runnable runnable);
 
 }
