@@ -21,8 +21,8 @@ import java.util.List;
 import com.google.common.collect.Lists;
 import com.inductiveautomation.opcua.sdk.server.OpcUaServer;
 import com.inductiveautomation.opcua.sdk.server.items.BaseMonitoredItem;
-import com.inductiveautomation.opcua.sdk.server.model.UaObjectNode;
 import com.inductiveautomation.opcua.sdk.server.subscriptions.Subscription;
+import com.inductiveautomation.opcua.sdk.server.util.AnnotationBasedInvocationHandler.InvocationContext;
 import com.inductiveautomation.opcua.sdk.server.util.AnnotationBasedInvocationHandler.Out;
 import com.inductiveautomation.opcua.sdk.server.util.UaInputArgument;
 import com.inductiveautomation.opcua.sdk.server.util.UaMethod;
@@ -44,7 +44,7 @@ public class GetMonitoredItems {
 
     @UaMethod
     public void invoke(
-            UaObjectNode objectNode,
+            InvocationContext context,
 
             @UaInputArgument(name = "subscriptionId")
             UInteger subscriptionId,

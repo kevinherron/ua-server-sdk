@@ -31,6 +31,7 @@ import com.google.common.collect.Lists;
 import com.inductiveautomation.opcua.sdk.core.ValueRank;
 import com.inductiveautomation.opcua.sdk.server.api.MethodInvocationHandler;
 import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.model.UaObjectNode;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.UaException;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DiagnosticInfo;
@@ -133,23 +134,32 @@ public class AnnotationBasedInvocationHandler implements MethodInvocationHandler
         new Thread(() -> {
             try {
                 Object[] parameters = new Object[1 + inputs.length + outputs.length];
-                parameters[0] = nodeManager.getUaNode(objectId)
+
+                UaObjectNode objectNode = (UaObjectNode) nodeManager.getUaNode(objectId)
                         .orElseThrow(() -> new Exception("owner Object node found"));
+
+                InvocationContext context = new InvocationContextImpl(objectNode, future, inputArgumentResults, latch);
+
+                parameters[0] = context;
+
                 System.arraycopy(inputs, 0, parameters, 1, inputs.length);
                 System.arraycopy(outputs, 0, parameters, 1 + inputs.length, outputs.length);
 
                 annotatedMethod.invoke(annotatedObject, parameters);
                 latch.await();
 
-                Variant[] values = new Variant[outputCount];
-                for (int i = 0; i < outputCount; i++) {
-                    values[i] = new Variant(((OutImpl<?>) outputs[i]).get());
-                }
+                // Check if they called context.setFailure(...)
+                if (!future.isDone()) {
+                    Variant[] values = new Variant[outputCount];
+                    for (int i = 0; i < outputCount; i++) {
+                        values[i] = new Variant(((OutImpl<?>) outputs[i]).get());
+                    }
 
-                future.complete(new CallMethodResult(
-                        StatusCode.Good, inputArgumentResults,
-                        new DiagnosticInfo[0], values
-                ));
+                    future.complete(new CallMethodResult(
+                            StatusCode.Good, inputArgumentResults,
+                            new DiagnosticInfo[0], values
+                    ));
+                }
             } catch (InvocationTargetException e) {
                 Throwable targetException = e.getTargetException();
 
@@ -258,6 +268,11 @@ public class AnnotationBasedInvocationHandler implements MethodInvocationHandler
         void set(T value);
     }
 
+    public static interface InvocationContext {
+        UaObjectNode getObjectNode();
+        void setFailure(UaException failure);
+    }
+
     private static class OutImpl<T> implements Out<T> {
 
         private final AtomicReference<T> value = new AtomicReference<>();
@@ -283,6 +298,41 @@ public class AnnotationBasedInvocationHandler implements MethodInvocationHandler
             return value.get();
         }
 
+    }
+
+    private static class InvocationContextImpl implements InvocationContext {
+        private final UaObjectNode objectNode;
+        private final CompletableFuture<CallMethodResult> future;
+        private final StatusCode[] inputArgumentResults;
+        private final CountDownLatch latch;
+
+        private InvocationContextImpl(UaObjectNode objectNode,
+                                      CompletableFuture<CallMethodResult> future,
+                                      StatusCode[] inputArgumentResults,
+                                      CountDownLatch latch) {
+
+            this.objectNode = objectNode;
+            this.inputArgumentResults = inputArgumentResults;
+            this.future = future;
+            this.latch = latch;
+        }
+
+        @Override
+        public UaObjectNode getObjectNode() {
+            return objectNode;
+        }
+
+        @Override
+        public void setFailure(UaException failure) {
+            StatusCode statusCode = failure.getStatusCode();
+
+            future.complete(new CallMethodResult(
+                    statusCode, inputArgumentResults,
+                    new DiagnosticInfo[0], new Variant[0]
+            ));
+
+            while (latch.getCount() > 0) latch.countDown();
+        }
     }
 
 }

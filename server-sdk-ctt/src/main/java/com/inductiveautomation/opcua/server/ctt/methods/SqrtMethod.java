@@ -16,7 +16,7 @@
 
 package com.inductiveautomation.opcua.server.ctt.methods;
 
-import com.inductiveautomation.opcua.sdk.server.model.UaObjectNode;
+import com.inductiveautomation.opcua.sdk.server.util.AnnotationBasedInvocationHandler.InvocationContext;
 import com.inductiveautomation.opcua.sdk.server.util.AnnotationBasedInvocationHandler.Out;
 import com.inductiveautomation.opcua.sdk.server.util.UaInputArgument;
 import com.inductiveautomation.opcua.sdk.server.util.UaMethod;
@@ -30,7 +30,7 @@ public class SqrtMethod {
 
     @UaMethod
     public void invoke(
-            UaObjectNode objectNode,
+            InvocationContext context,
 
             @UaInputArgument(
                     name = "x",
@@ -42,7 +42,7 @@ public class SqrtMethod {
                     description = "The positive square root of x. If the argument is NaN or less than zero, the result is NaN.")
             Out<Double> xSqrt) {
 
-        logger.debug(String.format("Invoking sqrt() method of Object '%s'", objectNode.getBrowseName().getName()));
+        logger.debug(String.format("Invoking sqrt() method of Object '%s'", context.getObjectNode().getBrowseName().getName()));
 
         xSqrt.set(Math.sqrt(x));
     }
