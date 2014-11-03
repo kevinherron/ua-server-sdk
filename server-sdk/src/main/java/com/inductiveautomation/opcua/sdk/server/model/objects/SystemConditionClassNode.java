@@ -3,7 +3,7 @@ package com.inductiveautomation.opcua.sdk.server.model.objects;
 import java.util.Optional;
 
 import com.inductiveautomation.opcua.sdk.core.model.objects.SystemConditionClassType;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.util.UaObjectType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
@@ -16,7 +16,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 public class SystemConditionClassNode extends BaseConditionClassNode implements SystemConditionClassType {
 
     public SystemConditionClassNode(
-            UaNodeManager nodeManager,
+            UaNamespace nodeManager,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,

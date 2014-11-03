@@ -25,16 +25,15 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.NumericRange;
+import com.inductiveautomation.opcua.sdk.server.NamespaceManager;
 import com.inductiveautomation.opcua.sdk.server.OpcUaServer;
 import com.inductiveautomation.opcua.sdk.server.Session;
 import com.inductiveautomation.opcua.sdk.server.api.DataItem;
 import com.inductiveautomation.opcua.sdk.server.api.EventItem;
 import com.inductiveautomation.opcua.sdk.server.api.MonitoredItem;
-import com.inductiveautomation.opcua.sdk.core.nodes.Node;
-import com.inductiveautomation.opcua.sdk.core.nodes.ObjectNode;
 import com.inductiveautomation.opcua.sdk.server.items.BaseMonitoredItem;
-import com.inductiveautomation.opcua.sdk.server.items.MonitoredEventItem;
 import com.inductiveautomation.opcua.sdk.server.items.MonitoredDataItem;
+import com.inductiveautomation.opcua.sdk.server.items.MonitoredEventItem;
 import com.inductiveautomation.opcua.sdk.server.subscriptions.Subscription.State;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.UaException;
@@ -80,6 +79,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.SubscriptionAck
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.ubyte;
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
 public class SubscriptionManager {
@@ -305,68 +305,73 @@ public class SubscriptionManager {
                     UInteger attributeId = createRequest.getItemToMonitor().getAttributeId();
 
                     try {
-                        Node node = server.getNamespaceManager().getNode(nodeId)
-                                .orElseThrow(() -> new UaException(StatusCodes.Bad_NodeIdUnknown));
+                        NamespaceManager namespaceManager = server.getNamespaceManager();
 
-                        if (node.hasAttribute(attributeId)) {
-                            MonitoringParameters parameters = createRequest.getRequestedParameters();
+                        if (!namespaceManager.containsNodeId(nodeId)) {
+                            throw new UaException(StatusCodes.Bad_NodeIdUnknown);
+                        }
 
-                            BaseMonitoredItem<?> item;
+                        if (!namespaceManager.attributeExists(nodeId, attributeId)) {
+                            throw new UaException(StatusCodes.Bad_AttributeIdInvalid);
+                        }
 
-                            if (attributeId.intValue() == AttributeIds.EventNotifier) {
-                                UByte eventNotifier = ((ObjectNode) node).getEventNotifier();
+                        MonitoringParameters parameters = createRequest.getRequestedParameters();
 
-                                if ((eventNotifier.intValue() & 1) == 1) {
-                                    item = new MonitoredEventItem(
-                                            uint(subscription.nextItemId()),
-                                            createRequest.getItemToMonitor(),
-                                            createRequest.getMonitoringMode(),
-                                            timestamps,
-                                            parameters.getClientHandle(),
-                                            0.0,
-                                            parameters.getQueueSize(),
-                                            parameters.getDiscardOldest(),
-                                            parameters.getFilter()
-                                    );
-                                } else {
-                                    throw new UaException(StatusCodes.Bad_AttributeIdInvalid);
-                                }
-                            } else {
-                                double samplingInterval = parameters.getSamplingInterval();
-                                if (samplingInterval < 0) samplingInterval = subscription.getPublishingInterval();
-                                if (samplingInterval < MIN_SAMPLING_INTERVAL) samplingInterval = MIN_SAMPLING_INTERVAL;
-                                if (samplingInterval > MAX_SAMPLING_INTERVAL) samplingInterval = MAX_SAMPLING_INTERVAL;
+                        BaseMonitoredItem<?> item;
 
-                                String indexRange = createRequest.getItemToMonitor().getIndexRange();
-                                if (indexRange != null) {
-                                    NumericRange.parse(indexRange);
-                                }
+                        if (attributeId.intValue() == AttributeIds.EventNotifier) {
+                            // TODO Why would this be not present?
+                            UByte eventNotifier = namespaceManager
+                                    .<UByte>getAttribute(nodeId, AttributeIds.EventNotifier).orElse(ubyte(0));
 
-                                item = new MonitoredDataItem(
+                            if ((eventNotifier.intValue() & 1) == 1) {
+                                item = new MonitoredEventItem(
                                         uint(subscription.nextItemId()),
                                         createRequest.getItemToMonitor(),
                                         createRequest.getMonitoringMode(),
                                         timestamps,
                                         parameters.getClientHandle(),
-                                        samplingInterval,
-                                        parameters.getFilter(),
+                                        0.0,
                                         parameters.getQueueSize(),
-                                        parameters.getDiscardOldest()
+                                        parameters.getDiscardOldest(),
+                                        parameters.getFilter()
                                 );
+                            } else {
+                                throw new UaException(StatusCodes.Bad_AttributeIdInvalid);
+                            }
+                        } else {
+                            double samplingInterval = parameters.getSamplingInterval();
+                            if (samplingInterval < 0) samplingInterval = subscription.getPublishingInterval();
+                            if (samplingInterval < MIN_SAMPLING_INTERVAL) samplingInterval = MIN_SAMPLING_INTERVAL;
+                            if (samplingInterval > MAX_SAMPLING_INTERVAL) samplingInterval = MAX_SAMPLING_INTERVAL;
+
+                            String indexRange = createRequest.getItemToMonitor().getIndexRange();
+                            if (indexRange != null) {
+                                NumericRange.parse(indexRange);
                             }
 
-                            createdItems.add(item);
-
-                            createResults[i] = new MonitoredItemCreateResult(
-                                    StatusCode.Good,
-                                    item.getId(),
-                                    item.getSamplingInterval(),
-                                    uint(item.getQueueSize()),
-                                    item.getFilterResult()
+                            item = new MonitoredDataItem(
+                                    uint(subscription.nextItemId()),
+                                    createRequest.getItemToMonitor(),
+                                    createRequest.getMonitoringMode(),
+                                    timestamps,
+                                    parameters.getClientHandle(),
+                                    samplingInterval,
+                                    parameters.getFilter(),
+                                    parameters.getQueueSize(),
+                                    parameters.getDiscardOldest()
                             );
-                        } else {
-                            throw new UaException(StatusCodes.Bad_AttributeIdInvalid);
                         }
+
+                        createdItems.add(item);
+
+                        createResults[i] = new MonitoredItemCreateResult(
+                                StatusCode.Good,
+                                item.getId(),
+                                item.getSamplingInterval(),
+                                uint(item.getQueueSize()),
+                                item.getFilterResult()
+                        );
                     } catch (UaException e) {
                         createResults[i] = new MonitoredItemCreateResult(e.getStatusCode(), uint(0), 0d, uint(0), null);
                     }

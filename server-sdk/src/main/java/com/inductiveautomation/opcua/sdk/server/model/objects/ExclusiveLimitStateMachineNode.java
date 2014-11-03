@@ -5,7 +5,7 @@ import java.util.Optional;
 import com.inductiveautomation.opcua.sdk.core.model.objects.ExclusiveLimitStateMachineType;
 import com.inductiveautomation.opcua.sdk.core.model.objects.StateType;
 import com.inductiveautomation.opcua.sdk.core.model.objects.TransitionType;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.util.UaObjectType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
@@ -18,7 +18,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 public class ExclusiveLimitStateMachineNode extends FiniteStateMachineNode implements ExclusiveLimitStateMachineType {
 
     public ExclusiveLimitStateMachineNode(
-            UaNodeManager nodeManager,
+            UaNamespace nodeManager,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,

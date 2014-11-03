@@ -6,7 +6,7 @@ import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.model.UaMandatory;
 import com.inductiveautomation.opcua.sdk.core.model.variables.SessionSecurityDiagnosticsType;
 import com.inductiveautomation.opcua.sdk.core.nodes.VariableNode;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.util.UaVariableType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
@@ -22,7 +22,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.SessionSecurity
 @UaVariableType(name = "SessionSecurityDiagnosticsType")
 public class SessionSecurityDiagnosticsNode extends BaseDataVariableNode implements SessionSecurityDiagnosticsType {
 
-    public SessionSecurityDiagnosticsNode(UaNodeManager nodeManager,
+    public SessionSecurityDiagnosticsNode(UaNamespace nodeManager,
                                           NodeId nodeId,
                                           QualifiedName browseName,
                                           LocalizedText displayName,

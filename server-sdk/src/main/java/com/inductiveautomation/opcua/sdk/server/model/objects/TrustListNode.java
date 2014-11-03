@@ -3,7 +3,7 @@ package com.inductiveautomation.opcua.sdk.server.model.objects;
 import java.util.Optional;
 
 import com.inductiveautomation.opcua.sdk.core.model.objects.TrustListType;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.util.UaObjectType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
@@ -19,7 +19,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 public class TrustListNode extends FileNode implements TrustListType {
 
     public TrustListNode(
-            UaNodeManager nodeManager,
+            UaNamespace nodeManager,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,

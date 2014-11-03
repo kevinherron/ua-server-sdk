@@ -6,7 +6,7 @@ import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.model.UaMandatory;
 import com.inductiveautomation.opcua.sdk.core.model.variables.ServerStatusType;
 import com.inductiveautomation.opcua.sdk.core.nodes.VariableNode;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.util.UaVariableType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
@@ -23,7 +23,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.ServerStatusDat
 @UaVariableType(name = "ServerStatusType")
 public class ServerStatusNode extends BaseDataVariableNode implements ServerStatusType {
 
-    public ServerStatusNode(UaNodeManager nodeManager,
+    public ServerStatusNode(UaNamespace nodeManager,
                             NodeId nodeId,
                             QualifiedName browseName,
                             LocalizedText displayName,

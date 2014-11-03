@@ -9,7 +9,7 @@ import com.inductiveautomation.opcua.sdk.core.model.objects.ServerRedundancyType
 import com.inductiveautomation.opcua.sdk.core.model.objects.ServerType;
 import com.inductiveautomation.opcua.sdk.core.model.objects.VendorServerInfoType;
 import com.inductiveautomation.opcua.sdk.core.model.variables.ServerStatusType;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.util.UaObjectType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
@@ -24,7 +24,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 public class ServerNode extends BaseObjectNode implements ServerType {
 
     public ServerNode(
-            UaNodeManager nodeManager,
+            UaNamespace nodeManager,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,

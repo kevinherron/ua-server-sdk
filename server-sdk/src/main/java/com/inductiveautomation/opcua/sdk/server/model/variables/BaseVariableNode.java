@@ -3,7 +3,7 @@ package com.inductiveautomation.opcua.sdk.server.model.variables;
 import java.util.Optional;
 
 import com.inductiveautomation.opcua.sdk.core.model.variables.BaseVariableType;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.model.UaVariableNode;
 import com.inductiveautomation.opcua.sdk.server.util.UaVariableType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
@@ -16,7 +16,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 @UaVariableType(name = "BaseVariableType")
 public class BaseVariableNode extends UaVariableNode implements BaseVariableType {
 
-    public BaseVariableNode(UaNodeManager nodeManager,
+    public BaseVariableNode(UaNamespace nodeManager,
                             NodeId nodeId,
                             QualifiedName browseName,
                             LocalizedText displayName,

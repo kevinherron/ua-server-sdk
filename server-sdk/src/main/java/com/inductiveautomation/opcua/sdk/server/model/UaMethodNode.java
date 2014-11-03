@@ -28,7 +28,7 @@ import com.inductiveautomation.opcua.sdk.core.nodes.MethodNode;
 import com.inductiveautomation.opcua.sdk.core.nodes.Node;
 import com.inductiveautomation.opcua.sdk.core.nodes.ObjectNode;
 import com.inductiveautomation.opcua.sdk.server.api.MethodInvocationHandler;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.model.Property.BasicProperty;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
@@ -51,7 +51,7 @@ public class UaMethodNode extends UaNode implements MethodNode {
     private volatile boolean executable;
     private volatile boolean userExecutable;
 
-    public UaMethodNode(UaNodeManager nodeManager,
+    public UaMethodNode(UaNamespace nodeManager,
                         NodeId nodeId,
                         QualifiedName browseName,
                         LocalizedText displayName,
@@ -149,7 +149,7 @@ public class UaMethodNode extends UaNode implements MethodNode {
     /**
      * @return a new {@link UaMethodNodeBuilder}.
      */
-    public static UaMethodNodeBuilder builder(UaNodeManager nodeManager) {
+    public static UaMethodNodeBuilder builder(UaNamespace nodeManager) {
         return new UaMethodNodeBuilder(nodeManager);
     }
 
@@ -165,9 +165,9 @@ public class UaMethodNode extends UaNode implements MethodNode {
         private boolean executable = true;
         private boolean userExecutable = true;
 
-        private final UaNodeManager nodeManager;
+        private final UaNamespace nodeManager;
 
-        public UaMethodNodeBuilder(UaNodeManager nodeManager) {
+        public UaMethodNodeBuilder(UaNamespace nodeManager) {
             this.nodeManager = nodeManager;
         }
 

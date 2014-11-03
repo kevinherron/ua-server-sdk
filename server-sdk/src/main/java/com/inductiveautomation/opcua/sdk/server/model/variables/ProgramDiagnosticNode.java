@@ -5,7 +5,7 @@ import java.util.Optional;
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.model.UaMandatory;
 import com.inductiveautomation.opcua.sdk.core.model.variables.ProgramDiagnosticType;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.util.UaVariableType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
@@ -22,7 +22,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.StatusResult;
 @UaVariableType(name = "ProgramDiagnosticType")
 public class ProgramDiagnosticNode extends BaseDataVariableNode implements ProgramDiagnosticType {
 
-    public ProgramDiagnosticNode(UaNodeManager nodeManager,
+    public ProgramDiagnosticNode(UaNamespace nodeManager,
                                  NodeId nodeId,
                                  QualifiedName browseName,
                                  LocalizedText displayName,

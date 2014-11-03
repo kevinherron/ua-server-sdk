@@ -31,13 +31,11 @@ import com.google.common.collect.PeekingIterator;
 import com.inductiveautomation.opcua.sdk.core.AccessLevel;
 import com.inductiveautomation.opcua.sdk.core.Reference;
 import com.inductiveautomation.opcua.sdk.core.ValueRank;
-import com.inductiveautomation.opcua.sdk.core.nodes.Node;
 import com.inductiveautomation.opcua.sdk.server.OpcUaServer;
 import com.inductiveautomation.opcua.sdk.server.api.DataItem;
 import com.inductiveautomation.opcua.sdk.server.api.MethodInvocationHandler;
 import com.inductiveautomation.opcua.sdk.server.api.MonitoredItem;
-import com.inductiveautomation.opcua.sdk.server.api.Namespace;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.model.UaMethodNode;
 import com.inductiveautomation.opcua.sdk.server.model.UaNode;
 import com.inductiveautomation.opcua.sdk.server.model.UaObjectNode;
@@ -73,7 +71,7 @@ import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Un
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.ulong;
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.ushort;
 
-public class CttNamespace implements Namespace, UaNodeManager {
+public class CttNamespace implements UaNamespace {
 
     public static final String NamespaceUri = "ctt";
     public static final UShort NamespaceIndex = ushort(2);
@@ -376,8 +374,22 @@ public class CttNamespace implements Namespace, UaNodeManager {
     }
 
     @Override
-    public Optional<Node> getNode(NodeId nodeId) {
-        return Optional.ofNullable(nodes.get(nodeId));
+    public <T> T getAttribute(NodeId nodeId, int attributeId) {
+        UaNode node = nodes.get(nodeId);
+        if (node != null) {
+            try {
+                return (T) node.readAttribute(attributeId).getValue().getValue();
+            } catch (Throwable t) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public boolean attributeExists(NodeId nodeId, int attributeId) {
+        UaNode node = nodes.get(nodeId);
+        return node != null && node.hasAttribute(attributeId);
     }
 
     @Override
@@ -392,22 +404,22 @@ public class CttNamespace implements Namespace, UaNodeManager {
     }
 
     @Override
-    public void addUaNode(UaNode node) {
+    public void addNode(UaNode node) {
         nodes.put(node.getNodeId(), node);
     }
 
     @Override
-    public Optional<UaNode> getUaNode(NodeId nodeId) {
+    public Optional<UaNode> getNode(NodeId nodeId) {
         return Optional.ofNullable(nodes.get(nodeId));
     }
 
     @Override
-    public Optional<UaNode> getUaNode(ExpandedNodeId nodeId) {
-        return nodeId.local().flatMap(this::getUaNode);
+    public Optional<UaNode> getNode(ExpandedNodeId nodeId) {
+        return nodeId.local().flatMap(this::getNode);
     }
 
     @Override
-    public Optional<UaNode> removeUaNode(NodeId nodeId) {
+    public Optional<UaNode> removeNode(NodeId nodeId) {
         return Optional.ofNullable(nodes.remove(nodeId));
     }
 

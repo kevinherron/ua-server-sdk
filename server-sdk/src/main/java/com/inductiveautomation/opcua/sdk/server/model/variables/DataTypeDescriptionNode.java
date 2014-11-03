@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import com.inductiveautomation.opcua.sdk.core.model.UaOptional;
 import com.inductiveautomation.opcua.sdk.core.model.variables.DataTypeDescriptionType;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.util.UaVariableType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
@@ -18,7 +18,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 @UaVariableType(name = "DataTypeDescriptionType")
 public class DataTypeDescriptionNode extends BaseDataVariableNode implements DataTypeDescriptionType {
 
-    public DataTypeDescriptionNode(UaNodeManager nodeManager,
+    public DataTypeDescriptionNode(UaNamespace nodeManager,
                                    NodeId nodeId,
                                    QualifiedName browseName,
                                    LocalizedText displayName,

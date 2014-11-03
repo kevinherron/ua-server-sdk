@@ -6,7 +6,7 @@ import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.model.UaMandatory;
 import com.inductiveautomation.opcua.sdk.core.model.variables.SamplingIntervalDiagnosticsType;
 import com.inductiveautomation.opcua.sdk.core.nodes.VariableNode;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.util.UaVariableType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
@@ -20,7 +20,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.SamplingInterva
 @UaVariableType(name = "SamplingIntervalDiagnosticsType")
 public class SamplingIntervalDiagnosticsNode extends BaseDataVariableNode implements SamplingIntervalDiagnosticsType {
 
-    public SamplingIntervalDiagnosticsNode(UaNodeManager nodeManager,
+    public SamplingIntervalDiagnosticsNode(UaNamespace nodeManager,
                                            NodeId nodeId,
                                            QualifiedName browseName,
                                            LocalizedText displayName,

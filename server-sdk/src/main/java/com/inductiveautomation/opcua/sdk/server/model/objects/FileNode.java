@@ -3,7 +3,7 @@ package com.inductiveautomation.opcua.sdk.server.model.objects;
 import java.util.Optional;
 
 import com.inductiveautomation.opcua.sdk.core.model.objects.FileType;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.util.UaObjectType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
@@ -20,7 +20,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UShort;
 public class FileNode extends BaseObjectNode implements FileType {
 
     public FileNode(
-            UaNodeManager nodeManager,
+            UaNamespace nodeManager,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,

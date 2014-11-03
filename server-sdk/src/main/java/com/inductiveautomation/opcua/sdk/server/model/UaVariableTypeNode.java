@@ -21,7 +21,7 @@ import java.util.Optional;
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.ValueRank;
 import com.inductiveautomation.opcua.sdk.core.nodes.VariableTypeNode;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.model.Property.BasicProperty;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
@@ -39,7 +39,7 @@ public class UaVariableTypeNode extends UaNode implements VariableTypeNode {
     private volatile Optional<UInteger[]> arrayDimensions;
     private volatile boolean isAbstract;
 
-    public UaVariableTypeNode(UaNodeManager nodeManager,
+    public UaVariableTypeNode(UaNamespace nodeManager,
                               NodeId nodeId,
                               QualifiedName browseName,
                               LocalizedText displayName,

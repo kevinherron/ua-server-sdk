@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import com.inductiveautomation.opcua.sdk.core.model.UaMandatory;
 import com.inductiveautomation.opcua.sdk.core.model.variables.ConditionVariableType;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.util.UaVariableType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
@@ -18,7 +18,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 @UaVariableType(name = "ConditionVariableType")
 public class ConditionVariableNode extends BaseDataVariableNode implements ConditionVariableType {
 
-    public ConditionVariableNode(UaNodeManager nodeManager,
+    public ConditionVariableNode(UaNamespace nodeManager,
                                  NodeId nodeId,
                                  QualifiedName browseName,
                                  LocalizedText displayName,

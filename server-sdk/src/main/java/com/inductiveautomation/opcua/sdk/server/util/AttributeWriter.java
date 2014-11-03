@@ -26,10 +26,9 @@ import com.inductiveautomation.opcua.sdk.core.AccessLevel;
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.DataType;
 import com.inductiveautomation.opcua.sdk.core.NumericRange;
+import com.inductiveautomation.opcua.sdk.core.Reference;
 import com.inductiveautomation.opcua.sdk.core.ValueRank;
 import com.inductiveautomation.opcua.sdk.core.WriteMask;
-import com.inductiveautomation.opcua.sdk.server.NamespaceManager;
-import com.inductiveautomation.opcua.sdk.core.Reference;
 import com.inductiveautomation.opcua.sdk.core.nodes.DataTypeNode;
 import com.inductiveautomation.opcua.sdk.core.nodes.MethodNode;
 import com.inductiveautomation.opcua.sdk.core.nodes.Node;
@@ -38,6 +37,7 @@ import com.inductiveautomation.opcua.sdk.core.nodes.ObjectTypeNode;
 import com.inductiveautomation.opcua.sdk.core.nodes.ReferenceTypeNode;
 import com.inductiveautomation.opcua.sdk.core.nodes.VariableNode;
 import com.inductiveautomation.opcua.sdk.core.nodes.VariableTypeNode;
+import com.inductiveautomation.opcua.sdk.server.NamespaceManager;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.UaException;
@@ -443,10 +443,12 @@ public class AttributeWriter {
     }
 
     private static ExpandedNodeId findBuiltinSuperType(NamespaceManager ns, ExpandedNodeId dataType) throws UaException {
-        Node node = ns.getNode(dataType).orElseThrow(() -> new UaException(StatusCodes.Bad_TypeMismatch));
+        if (!ns.containsNodeId(dataType)) {
+            throw new UaException(StatusCodes.Bad_TypeMismatch);
+        }
 
         List<Reference> references = ns
-                .getReferences(node.getNodeId())
+                .getReferences(dataType)
                 .orElse(Collections.emptyList());
 
         for (Reference reference : references) {

@@ -6,7 +6,7 @@ import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.model.UaMandatory;
 import com.inductiveautomation.opcua.sdk.core.model.variables.SessionDiagnosticsVariableType;
 import com.inductiveautomation.opcua.sdk.core.nodes.VariableNode;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.util.UaVariableType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
@@ -23,7 +23,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.SessionDiagnost
 @UaVariableType(name = "SessionDiagnosticsVariableType")
 public class SessionDiagnosticsVariableNode extends BaseDataVariableNode implements SessionDiagnosticsVariableType {
 
-    public SessionDiagnosticsVariableNode(UaNodeManager nodeManager,
+    public SessionDiagnosticsVariableNode(UaNamespace nodeManager,
                                           NodeId nodeId,
                                           QualifiedName browseName,
                                           LocalizedText displayName,

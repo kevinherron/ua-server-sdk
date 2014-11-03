@@ -76,17 +76,15 @@ public class Reference {
         return checkType(superTypeId, new ExpandedNodeId(getReferenceTypeId()), namespaceManager);
     }
 
-    private boolean checkType(NodeId superTypeId, ExpandedNodeId typeId, NamespaceManager namespaceManager) {
-        List<Reference> references = namespaceManager.getNode(typeId)
-                .flatMap(n -> namespaceManager.getReferences(n.getNodeId()))
-                .orElse(Collections.emptyList());
+    private boolean checkType(NodeId superTypeId, ExpandedNodeId typeId, NamespaceManager ns) {
+        List<Reference> references = ns.getReferences(typeId).orElse(Collections.emptyList());
 
         Optional<ExpandedNodeId> parentTypeId = references.stream()
                 .filter(r -> r.isInverse() && r.getReferenceTypeId().equals(Identifiers.HasSubtype))
                 .findFirst()
                 .map(r -> r.targetNodeId);
 
-        return parentTypeId.map(id -> superTypeId.expanded().equals(id) || checkType(superTypeId, id, namespaceManager)).orElse(false);
+        return parentTypeId.map(id -> superTypeId.expanded().equals(id) || checkType(superTypeId, id, ns)).orElse(false);
     }
 
     @Override

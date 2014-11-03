@@ -22,7 +22,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import com.inductiveautomation.opcua.sdk.core.Reference;
-import com.inductiveautomation.opcua.sdk.core.nodes.Node;
 import com.inductiveautomation.opcua.sdk.server.api.DataItem;
 import com.inductiveautomation.opcua.sdk.server.api.EventItem;
 import com.inductiveautomation.opcua.sdk.server.api.MonitoredItem;
@@ -56,13 +55,18 @@ public class NoOpNamespace implements Namespace {
     }
 
     @Override
-    public Optional<Node> getNode(NodeId nodeId) {
+    public Optional<List<Reference>> getReferences(NodeId nodeId) {
         return Optional.empty();
     }
 
     @Override
-    public Optional<List<Reference>> getReferences(NodeId nodeId) {
-        return Optional.empty();
+    public <T> T getAttribute(NodeId nodeId, int attributeId) {
+        return null;
+    }
+
+    @Override
+    public boolean attributeExists(NodeId nodeId, int attributeId) {
+        return false;
     }
 
     @Override

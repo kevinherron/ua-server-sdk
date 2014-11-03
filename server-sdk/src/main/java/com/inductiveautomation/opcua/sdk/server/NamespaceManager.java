@@ -25,7 +25,6 @@ import java.util.function.Function;
 import com.google.common.collect.Maps;
 import com.inductiveautomation.opcua.sdk.core.NamespaceTable;
 import com.inductiveautomation.opcua.sdk.core.Reference;
-import com.inductiveautomation.opcua.sdk.core.nodes.Node;
 import com.inductiveautomation.opcua.sdk.server.api.Namespace;
 import com.inductiveautomation.opcua.sdk.server.util.NoOpNamespace;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
@@ -113,18 +112,28 @@ public class NamespaceManager {
         return toNodeId(expandedNodeId).map(this::containsNodeId).orElse(false);
     }
 
-    public Optional<Node> getNode(NodeId nodeId) {
+    public <T> Optional<T> getAttribute(NodeId nodeId, int attributeId) {
         Namespace namespace = namespaces.get(nodeId.getNamespaceIndex());
 
-        if (namespace == null) {
-            return Optional.empty();
-        } else {
-            return namespace.getNode(nodeId);
-        }
+        if (namespace == null) namespace = NO_OP_NAMESPACE;
+
+        return Optional.ofNullable(namespace.getAttribute(nodeId, attributeId));
     }
 
-    public Optional<Node> getNode(ExpandedNodeId expandedNodeId) {
-        return toNodeId(expandedNodeId).flatMap(this::getNode);
+    public <T> Optional<T> getAttribute(ExpandedNodeId nodeId, int attributeId) {
+        return nodeId.local().flatMap(id -> getAttribute(id, attributeId));
+    }
+
+    public boolean attributeExists(NodeId nodeId, int attribute) {
+        Namespace namespace = namespaces.get(nodeId.getNamespaceIndex());
+
+        if (namespace == null) namespace = NO_OP_NAMESPACE;
+
+        return namespace.attributeExists(nodeId, attribute);
+    }
+
+    public boolean attributeExists(NodeId nodeId, UInteger attributeId) {
+        return attributeExists(nodeId, attributeId.intValue());
     }
 
     public Optional<List<Reference>> getReferences(NodeId nodeId) {
@@ -135,6 +144,10 @@ public class NamespaceManager {
         } else {
             return namespace.getReferences(nodeId);
         }
+    }
+
+    public Optional<List<Reference>> getReferences(ExpandedNodeId nodeId) {
+        return nodeId.local().flatMap(this::getReferences);
     }
 
     public NamespaceTable getNamespaceTable() {

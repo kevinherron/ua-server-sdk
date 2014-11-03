@@ -5,7 +5,7 @@ import java.util.Optional;
 import com.inductiveautomation.opcua.sdk.core.model.UaMandatory;
 import com.inductiveautomation.opcua.sdk.core.model.UaOptional;
 import com.inductiveautomation.opcua.sdk.core.model.variables.AnalogItemType;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.util.UaVariableType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
@@ -20,7 +20,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.Range;
 @UaVariableType(name = "AnalogItemType")
 public class AnalogItemNode extends DataItemNode implements AnalogItemType {
 
-    public AnalogItemNode(UaNodeManager nodeManager,
+    public AnalogItemNode(UaNamespace nodeManager,
                           NodeId nodeId,
                           QualifiedName browseName,
                           LocalizedText displayName,

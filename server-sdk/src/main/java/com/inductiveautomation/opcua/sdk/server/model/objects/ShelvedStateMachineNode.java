@@ -5,7 +5,7 @@ import java.util.Optional;
 import com.inductiveautomation.opcua.sdk.core.model.objects.ShelvedStateMachineType;
 import com.inductiveautomation.opcua.sdk.core.model.objects.StateType;
 import com.inductiveautomation.opcua.sdk.core.model.objects.TransitionType;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.util.UaObjectType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
@@ -20,7 +20,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 public class ShelvedStateMachineNode extends FiniteStateMachineNode implements ShelvedStateMachineType {
 
     public ShelvedStateMachineNode(
-            UaNodeManager nodeManager,
+            UaNamespace nodeManager,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,

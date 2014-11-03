@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import com.inductiveautomation.opcua.sdk.core.model.UaMandatory;
 import com.inductiveautomation.opcua.sdk.core.model.variables.CubeItemType;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.util.UaVariableType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
@@ -18,7 +18,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.AxisInformation
 @UaVariableType(name = "CubeItemType")
 public class CubeItemNode extends ArrayItemNode implements CubeItemType {
 
-    public CubeItemNode(UaNodeManager nodeManager,
+    public CubeItemNode(UaNamespace nodeManager,
                         NodeId nodeId,
                         QualifiedName browseName,
                         LocalizedText displayName,

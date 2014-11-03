@@ -22,14 +22,14 @@ import com.inductiveautomation.opcua.sdk.server.model.UaNode;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ExpandedNodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 
-public interface UaNodeManager extends NodeManager {
+public interface UaNamespace extends Namespace {
 
-    void addUaNode(UaNode node);
+    void addNode(UaNode node);
 
-    Optional<UaNode> getUaNode(NodeId nodeId);
+    Optional<UaNode> getNode(NodeId nodeId);
 
-    Optional<UaNode> getUaNode(ExpandedNodeId nodeId);
+    Optional<UaNode> getNode(ExpandedNodeId nodeId);
 
-    Optional<UaNode> removeUaNode(NodeId nodeId);
+    Optional<UaNode> removeNode(NodeId nodeId);
 
 }

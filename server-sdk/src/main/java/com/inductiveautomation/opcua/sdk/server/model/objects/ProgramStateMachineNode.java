@@ -9,7 +9,7 @@ import com.inductiveautomation.opcua.sdk.core.model.objects.TransitionType;
 import com.inductiveautomation.opcua.sdk.core.model.variables.FiniteStateVariableType;
 import com.inductiveautomation.opcua.sdk.core.model.variables.FiniteTransitionVariableType;
 import com.inductiveautomation.opcua.sdk.core.model.variables.ProgramDiagnosticType;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.util.UaObjectType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
@@ -24,7 +24,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 public class ProgramStateMachineNode extends FiniteStateMachineNode implements ProgramStateMachineType {
 
     public ProgramStateMachineNode(
-            UaNodeManager nodeManager,
+            UaNamespace nodeManager,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,

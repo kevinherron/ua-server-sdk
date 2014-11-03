@@ -16,12 +16,8 @@
 
 package com.inductiveautomation.opcua.sdk.server.api;
 
-import java.util.List;
 import java.util.Optional;
 
-import com.inductiveautomation.opcua.sdk.core.Reference;
-import com.inductiveautomation.opcua.sdk.core.nodes.Node;
-import com.inductiveautomation.opcua.sdk.server.model.UaNode;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.UaException;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ExpandedNodeId;
@@ -31,33 +27,6 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
 
 public interface NodeManager {
-
-    /**
-     * Return <code>true</code> if this {@link NodeManager} contains a node for the requested {@link NodeId}.
-     *
-     * @param nodeId The requested {@link NodeId}.
-     * @return <code>true</code> if this {@link NodeManager} contains a node for the requested {@link NodeId}.
-     */
-    boolean containsNodeId(NodeId nodeId);
-
-    /**
-     * Get a {@link UaNode} for the given {@link NodeId}, or {@link Optional#EMPTY} if none exists.
-     *
-     * @param nodeId The {@link NodeId} of the requested {@link UaNode}.
-     * @return The {@link UaNode} for the given {@link NodeId}, or <code>null</code> if none exists.
-     */
-    Optional<Node> getNode(NodeId nodeId);
-
-    /**
-     * Get all {@link Reference}s for the requested node, or {@link Optional#EMPTY} if the node does not exist.
-     * <p>
-     * If the node exists but does not have any references return an empty list.
-     *
-     * @param nodeId The {@link NodeId} of the node the {@link Reference}s belong to.
-     * @return All {@link Reference}s belonging to the requested node.
-     */
-    Optional<List<Reference>> getReferences(NodeId nodeId);
-
 
     default NodeId addNode(Optional<ExpandedNodeId> requestedNodeId,
                            QualifiedName browseName,

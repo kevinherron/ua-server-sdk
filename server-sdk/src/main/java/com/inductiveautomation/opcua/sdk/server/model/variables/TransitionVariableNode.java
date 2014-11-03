@@ -5,7 +5,7 @@ import java.util.Optional;
 import com.inductiveautomation.opcua.sdk.core.model.UaMandatory;
 import com.inductiveautomation.opcua.sdk.core.model.UaOptional;
 import com.inductiveautomation.opcua.sdk.core.model.variables.TransitionVariableType;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.util.UaVariableType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
@@ -19,7 +19,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 @UaVariableType(name = "TransitionVariableType")
 public class TransitionVariableNode extends BaseDataVariableNode implements TransitionVariableType {
 
-    public TransitionVariableNode(UaNodeManager nodeManager,
+    public TransitionVariableNode(UaNamespace nodeManager,
                                   NodeId nodeId,
                                   QualifiedName browseName,
                                   LocalizedText displayName,

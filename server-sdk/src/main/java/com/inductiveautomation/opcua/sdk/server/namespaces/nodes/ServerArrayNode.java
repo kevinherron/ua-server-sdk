@@ -19,7 +19,7 @@ package com.inductiveautomation.opcua.sdk.server.namespaces.nodes;
 import java.util.Optional;
 
 import com.inductiveautomation.opcua.sdk.core.ServerTable;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.model.UaPropertyNode;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
@@ -33,7 +33,7 @@ public class ServerArrayNode extends UaPropertyNode {
 
     private final ServerTable serverTable;
 
-    public ServerArrayNode(UaNodeManager nodeManager, ServerTable serverTable) {
+    public ServerArrayNode(UaNamespace nodeManager, ServerTable serverTable) {
         super(nodeManager,
                 Identifiers.Server_ServerArray,
                 new QualifiedName(0, "ServerArray"),

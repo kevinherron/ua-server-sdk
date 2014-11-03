@@ -27,20 +27,22 @@ import com.google.common.collect.Lists;
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.Reference;
 import com.inductiveautomation.opcua.sdk.core.ValueRank;
+import com.inductiveautomation.opcua.sdk.core.model.UaOptional;
 import com.inductiveautomation.opcua.sdk.core.nodes.Node;
 import com.inductiveautomation.opcua.sdk.core.nodes.ObjectNode;
 import com.inductiveautomation.opcua.sdk.core.nodes.ObjectTypeNode;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.model.Property.BasicProperty;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
+import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ExpandedNodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
+import com.inductiveautomation.opcua.stack.core.types.enumerated.NamingRuleType;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
-import com.inductiveautomation.opcua.stack.core.types.structured.EnumValueType;
 
 import static com.inductiveautomation.opcua.sdk.core.Reference.HAS_COMPONENT_PREDICATE;
 import static com.inductiveautomation.opcua.sdk.core.Reference.HAS_DESCRIPTION_PREDICATE;
@@ -57,7 +59,7 @@ public class UaObjectNode extends UaNode implements ObjectNode {
 
     private volatile UByte eventNotifier = ubyte(0);
 
-    public UaObjectNode(UaNodeManager nodeManager,
+    public UaObjectNode(UaNamespace nodeManager,
                         NodeId nodeId,
                         QualifiedName browseName,
                         LocalizedText displayName) {
@@ -65,7 +67,7 @@ public class UaObjectNode extends UaNode implements ObjectNode {
         super(nodeManager, nodeId, NodeClass.Object, browseName, displayName);
     }
 
-    public UaObjectNode(UaNodeManager nodeManager,
+    public UaObjectNode(UaNamespace nodeManager,
                         NodeId nodeId,
                         QualifiedName browseName,
                         LocalizedText displayName,
@@ -145,6 +147,33 @@ public class UaObjectNode extends UaNode implements ObjectNode {
         return node.map(n -> n);
     }
 
+    @UaOptional("NodeVersion")
+    public String getNodeVersion() {
+        return getProperty(NodeVersion).orElse(null);
+    }
+
+    @UaOptional("Icon")
+    public ByteString getIcon() {
+        return getProperty(Icon).orElse(null);
+    }
+
+    @UaOptional("NamingRule")
+    public NamingRuleType getNamingRule() {
+        return getProperty(NamingRule).orElse(null);
+    }
+
+    public void setNodeVersion(String nodeVersion) {
+        setProperty(NodeVersion, nodeVersion);
+    }
+
+    public void setIcon(ByteString icon) {
+        setProperty(Icon, icon);
+    }
+
+    public void setNamingRule(NamingRuleType namingRule) {
+        setProperty(NamingRule, namingRule);
+    }
+
     public static final Property<String> NodeVersion = new BasicProperty<>(
             new QualifiedName(0, "NodeVersion"),
             Identifiers.String,
@@ -152,21 +181,21 @@ public class UaObjectNode extends UaNode implements ObjectNode {
             String.class
     );
 
-    public static final Property<LocalizedText[]> EnumStrings = new BasicProperty<>(
-            new QualifiedName(0, "EnumStrings"),
-            Identifiers.LocalizedText,
-            ValueRank.OneDimension,
-            LocalizedText[].class
+    public static final Property<ByteString> Icon = new BasicProperty<>(
+            new QualifiedName(0, "Icon"),
+            Identifiers.Image,
+            ValueRank.Scalar,
+            ByteString.class
     );
 
-    public static final Property<EnumValueType[]> EnumValues = new BasicProperty<>(
-            new QualifiedName(0, "EnumValues"),
-            Identifiers.EnumValueType,
-            ValueRank.OneDimension,
-            EnumValueType[].class
+    public static final Property<NamingRuleType> NamingRule = new BasicProperty<>(
+            new QualifiedName(0, "NamingRule"),
+            Identifiers.NamingRuleType,
+            ValueRank.Scalar,
+            NamingRuleType.class
     );
 
-    public static UaObjectNodeBuilder builder(UaNodeManager nodeManager) {
+    public static UaObjectNodeBuilder builder(UaNamespace nodeManager) {
         return new UaObjectNodeBuilder(nodeManager);
     }
 
@@ -182,9 +211,9 @@ public class UaObjectNode extends UaNode implements ObjectNode {
         private Optional<UInteger> userWriteMask = Optional.of(uint(0));
         private UByte eventNotifier = ubyte(0);
 
-        private final UaNodeManager nodeManager;
+        private final UaNamespace nodeManager;
 
-        public UaObjectNodeBuilder(UaNodeManager nodeManager) {
+        public UaObjectNodeBuilder(UaNamespace nodeManager) {
             this.nodeManager = nodeManager;
         }
 

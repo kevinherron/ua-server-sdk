@@ -6,7 +6,7 @@ import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.model.UaMandatory;
 import com.inductiveautomation.opcua.sdk.core.model.variables.BuildInfoType;
 import com.inductiveautomation.opcua.sdk.core.nodes.VariableNode;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.util.UaVariableType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
@@ -21,7 +21,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.BuildInfo;
 @UaVariableType(name = "BuildInfoType")
 public class BuildInfoNode extends BaseDataVariableNode implements BuildInfoType {
 
-    public BuildInfoNode(UaNodeManager nodeManager,
+    public BuildInfoNode(UaNamespace nodeManager,
                          NodeId nodeId,
                          QualifiedName browseName,
                          LocalizedText displayName,

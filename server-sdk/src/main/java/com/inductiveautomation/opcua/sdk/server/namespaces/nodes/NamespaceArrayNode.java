@@ -19,7 +19,7 @@ package com.inductiveautomation.opcua.sdk.server.namespaces.nodes;
 import java.util.Optional;
 
 import com.inductiveautomation.opcua.sdk.core.NamespaceTable;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.model.UaPropertyNode;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
@@ -33,7 +33,7 @@ public class NamespaceArrayNode extends UaPropertyNode {
 
     private final NamespaceTable namespaceTable;
 
-    public NamespaceArrayNode(UaNodeManager nodeManager, NamespaceTable namespaceTable) {
+    public NamespaceArrayNode(UaNamespace nodeManager, NamespaceTable namespaceTable) {
         super(nodeManager,
                 Identifiers.Server_NamespaceArray,
                 new QualifiedName(0, "NamespaceArray"),

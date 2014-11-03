@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import com.google.common.collect.Lists;
 import com.inductiveautomation.opcua.sdk.core.ValueRank;
 import com.inductiveautomation.opcua.sdk.server.api.MethodInvocationHandler;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.model.UaObjectNode;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.UaException;
@@ -51,12 +51,12 @@ public class AnnotationBasedInvocationHandler implements MethodInvocationHandler
 
     private final Method annotatedMethod;
 
-    private final UaNodeManager nodeManager;
+    private final UaNamespace nodeManager;
     private final List<Argument> inputArguments;
     private final List<Argument> outputArguments;
     private final Object annotatedObject;
 
-    public AnnotationBasedInvocationHandler(UaNodeManager nodeManager,
+    public AnnotationBasedInvocationHandler(UaNamespace nodeManager,
                                             Argument[] inputArguments,
                                             Argument[] outputArguments,
                                             Object annotatedObject) {
@@ -64,7 +64,7 @@ public class AnnotationBasedInvocationHandler implements MethodInvocationHandler
         this(nodeManager, Lists.newArrayList(inputArguments), Lists.newArrayList(outputArguments), annotatedObject);
     }
 
-    public AnnotationBasedInvocationHandler(UaNodeManager nodeManager,
+    public AnnotationBasedInvocationHandler(UaNamespace nodeManager,
                                             List<Argument> inputArguments,
                                             List<Argument> outputArguments,
                                             Object annotatedObject) {
@@ -135,7 +135,7 @@ public class AnnotationBasedInvocationHandler implements MethodInvocationHandler
             try {
                 Object[] parameters = new Object[1 + inputs.length + outputs.length];
 
-                UaObjectNode objectNode = (UaObjectNode) nodeManager.getUaNode(objectId)
+                UaObjectNode objectNode = (UaObjectNode) nodeManager.getNode(objectId)
                         .orElseThrow(() -> new Exception("owner Object node found"));
 
                 InvocationContext context = new InvocationContextImpl(objectNode, future, inputArgumentResults, latch);
@@ -186,7 +186,7 @@ public class AnnotationBasedInvocationHandler implements MethodInvocationHandler
     }
 
 
-    public static AnnotationBasedInvocationHandler fromAnnotatedObject(UaNodeManager nodeManager, Object annotatedObject) throws Exception {
+    public static AnnotationBasedInvocationHandler fromAnnotatedObject(UaNamespace nodeManager, Object annotatedObject) throws Exception {
         // TODO Make this work when parameter types are not built-in types
 
         Method annotatedMethod = Arrays.stream(annotatedObject.getClass().getMethods())

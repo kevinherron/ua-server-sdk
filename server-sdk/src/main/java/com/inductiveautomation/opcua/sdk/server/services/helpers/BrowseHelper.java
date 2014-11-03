@@ -29,8 +29,8 @@ import java.util.stream.Stream;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Ints;
+import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.Reference;
-import com.inductiveautomation.opcua.sdk.core.nodes.Node;
 import com.inductiveautomation.opcua.sdk.server.NamespaceManager;
 import com.inductiveautomation.opcua.sdk.server.OpcUaServer;
 import com.inductiveautomation.opcua.sdk.server.services.ServiceAttributes;
@@ -222,38 +222,42 @@ public class BrowseHelper {
         }
 
         private ReferenceDescription referenceDescription(Reference reference) {
+            NamespaceManager namespaceManager = server.getNamespaceManager();
+
             EnumSet<BrowseResultMask> resultMaskSet = browseResultMasks(description.getResultMask().longValue());
 
-            Optional<Node> targetNode = server.getNamespaceManager().getNode(reference.getTargetNodeId());
+            ExpandedNodeId targetNodeId = reference.getTargetNodeId();
 
             Optional<NodeId> referenceTypeId = resultMaskSet.contains(BrowseResultMask.ReferenceTypeId) ?
                     Optional.of(reference.getReferenceTypeId()) : Optional.empty();
 
             Optional<QualifiedName> browseName = resultMaskSet.contains(BrowseResultMask.BrowseName) ?
-                    targetNode.map(Node::getBrowseName) : Optional.empty();
+                    namespaceManager.getAttribute(targetNodeId, AttributeIds.BrowseName) : Optional.empty();
 
             Optional<LocalizedText> displayName = resultMaskSet.contains(BrowseResultMask.DisplayName) ?
-                    targetNode.map(Node::getDisplayName) : Optional.empty();
+                    namespaceManager.getAttribute(targetNodeId, AttributeIds.DisplayName) : Optional.empty();
 
             NodeClass nodeClass = resultMaskSet.contains(BrowseResultMask.NodeClass) ?
-                    targetNode.map(Node::getNodeClass).orElse(reference.getTargetNodeClass()) : NodeClass.Unspecified;
+                    namespaceManager.<NodeClass>getAttribute(targetNodeId, AttributeIds.NodeClass)
+                            .orElse(reference.getTargetNodeClass()) : NodeClass.Unspecified;
 
-            Optional<ExpandedNodeId> typeDefinition = resultMaskSet.contains(BrowseResultMask.TypeDefinition) ?
-                    targetNode.flatMap(n -> {
-                        Optional<List<Reference>> references = server.getNamespaceManager().getReferences(n.getNodeId());
+            Optional<ExpandedNodeId> typeDefinition = Optional.empty();
 
-                        Optional<Reference> typeReference = references.map(rs -> rs.stream())
-                                .orElse(Stream.empty())
-                                .filter(r -> r.getReferenceTypeId().equals(Identifiers.HasTypeDefinition))
-                                .findFirst();
+            if (resultMaskSet.contains(BrowseResultMask.TypeDefinition)) {
+                Optional<List<Reference>> references = namespaceManager.getReferences(targetNodeId);
 
-                        return typeReference.map(Reference::getTargetNodeId);
-                    }) : Optional.empty();
+                Optional<Reference> typeReference = references.map(rs -> rs.stream())
+                        .orElse(Stream.empty())
+                        .filter(r -> r.getReferenceTypeId().equals(Identifiers.HasTypeDefinition))
+                        .findFirst();
+
+                typeDefinition = typeReference.map(Reference::getTargetNodeId);
+            }
 
             return new ReferenceDescription(
                     referenceTypeId.orElse(NodeId.NullValue),
                     reference.isForward(),
-                    reference.getTargetNodeId(),
+                    targetNodeId,
                     browseName.orElse(QualifiedName.NullValue),
                     displayName.orElse(LocalizedText.NullValue),
                     nodeClass,

@@ -4,7 +4,7 @@ import java.util.Optional;
 
 import com.inductiveautomation.opcua.sdk.core.model.UaMandatory;
 import com.inductiveautomation.opcua.sdk.core.model.variables.XYArrayItemType;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.util.UaVariableType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
@@ -18,7 +18,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.AxisInformation
 @UaVariableType(name = "XYArrayItemType")
 public class XYArrayItemNode extends ArrayItemNode implements XYArrayItemType {
 
-    public XYArrayItemNode(UaNodeManager nodeManager,
+    public XYArrayItemNode(UaNamespace nodeManager,
                            NodeId nodeId,
                            QualifiedName browseName,
                            LocalizedText displayName,

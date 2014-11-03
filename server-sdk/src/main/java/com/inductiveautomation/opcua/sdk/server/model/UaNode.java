@@ -30,7 +30,7 @@ import com.inductiveautomation.opcua.sdk.core.Reference;
 import com.inductiveautomation.opcua.sdk.core.nodes.Node;
 import com.inductiveautomation.opcua.sdk.core.nodes.ObjectNode;
 import com.inductiveautomation.opcua.sdk.core.nodes.VariableNode;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ExpandedNodeId;
@@ -49,7 +49,7 @@ public abstract class UaNode implements Node {
 
     private List<WeakReference<AttributeObserver>> observers;
 
-    private final UaNodeManager nodeManager;
+    private final UaNamespace nodeManager;
 
     private volatile NodeId nodeId;
     private volatile NodeClass nodeClass;
@@ -59,7 +59,7 @@ public abstract class UaNode implements Node {
     private volatile Optional<UInteger> writeMask;
     private volatile Optional<UInteger> userWriteMask;
 
-    protected UaNode(UaNodeManager nodeManager,
+    protected UaNode(UaNamespace nodeManager,
                      NodeId nodeId,
                      NodeClass nodeClass,
                      QualifiedName browseName,
@@ -69,7 +69,7 @@ public abstract class UaNode implements Node {
                 Optional.empty(), Optional.empty(), Optional.empty());
     }
 
-    protected UaNode(UaNodeManager nodeManager,
+    protected UaNode(UaNamespace nodeManager,
                      NodeId nodeId,
                      NodeClass nodeClass,
                      QualifiedName browseName,
@@ -173,16 +173,16 @@ public abstract class UaNode implements Node {
         userWriteMask.ifPresent(v -> fireAttributeChanged(AttributeIds.UserWriteMask, v));
     }
 
-    public UaNodeManager getNodeManager() {
+    public UaNamespace getNodeManager() {
         return nodeManager;
     }
 
     protected Optional<UaNode> getNode(NodeId nodeId) {
-        return nodeManager.getUaNode(nodeId);
+        return nodeManager.getNode(nodeId);
     }
 
     protected Optional<UaNode> getNode(ExpandedNodeId nodeId) {
-        return nodeManager.getUaNode(nodeId);
+        return nodeManager.getNode(nodeId);
     }
 
     public ImmutableList<Reference> getReferences() {
@@ -271,7 +271,7 @@ public abstract class UaNode implements Node {
     }
 
     protected void addPropertyNode(UaPropertyNode node) {
-        nodeManager.addUaNode(node);
+        nodeManager.addNode(node);
 
         addReference(new Reference(
                 getNodeId(),
@@ -283,7 +283,7 @@ public abstract class UaNode implements Node {
     }
 
     protected Optional<UaNode> removePropertyNode(QualifiedName browseName) {
-        return getPropertyNode(browseName).flatMap(n -> getNodeManager().removeUaNode(n.getNodeId()));
+        return getPropertyNode(browseName).flatMap(n -> getNodeManager().removeNode(n.getNodeId()));
     }
 
     protected Optional<ObjectNode> getObjectComponent(String browseName) {

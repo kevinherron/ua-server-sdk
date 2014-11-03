@@ -17,7 +17,7 @@
 package com.inductiveautomation.opcua.sdk.server.model;
 
 import com.inductiveautomation.opcua.sdk.core.Reference;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
@@ -26,7 +26,7 @@ import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
 
 public class UaPropertyNode extends UaVariableNode {
 
-    public UaPropertyNode(UaNodeManager nodeManager,
+    public UaPropertyNode(UaNamespace nodeManager,
                           NodeId nodeId,
                           QualifiedName browseName,
                           LocalizedText displayName) {

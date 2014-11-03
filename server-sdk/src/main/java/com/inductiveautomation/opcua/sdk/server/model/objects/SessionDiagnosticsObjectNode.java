@@ -6,7 +6,7 @@ import com.inductiveautomation.opcua.sdk.core.model.objects.SessionDiagnosticsOb
 import com.inductiveautomation.opcua.sdk.core.model.variables.SessionDiagnosticsVariableType;
 import com.inductiveautomation.opcua.sdk.core.model.variables.SessionSecurityDiagnosticsType;
 import com.inductiveautomation.opcua.sdk.core.model.variables.SubscriptionDiagnosticsArrayType;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.util.UaObjectType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
@@ -21,7 +21,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 public class SessionDiagnosticsObjectNode extends BaseObjectNode implements SessionDiagnosticsObjectType {
 
     public SessionDiagnosticsObjectNode(
-            UaNodeManager nodeManager,
+            UaNamespace nodeManager,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,

@@ -3,7 +3,7 @@ package com.inductiveautomation.opcua.sdk.server.model.variables;
 import java.util.Optional;
 
 import com.inductiveautomation.opcua.sdk.core.model.variables.SessionDiagnosticsArrayType;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.util.UaVariableType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
@@ -15,7 +15,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 @UaVariableType(name = "SessionDiagnosticsArrayType")
 public class SessionDiagnosticsArrayNode extends BaseDataVariableNode implements SessionDiagnosticsArrayType {
 
-    public SessionDiagnosticsArrayNode(UaNodeManager nodeManager,
+    public SessionDiagnosticsArrayNode(UaNamespace nodeManager,
                                        NodeId nodeId,
                                        QualifiedName browseName,
                                        LocalizedText displayName,

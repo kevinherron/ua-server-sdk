@@ -16,11 +16,11 @@
 
 package com.inductiveautomation.opcua.sdk.server.model;
 
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 
 public abstract class DerivedVariableNode extends UaVariableNode {
 
-    public DerivedVariableNode(UaNodeManager nodeManager, UaVariableNode variableNode) {
+    public DerivedVariableNode(UaNamespace nodeManager, UaVariableNode variableNode) {
 
         super(nodeManager,
                 variableNode.getNodeId(),

@@ -32,7 +32,7 @@ import com.inductiveautomation.opcua.sdk.core.nodes.Node;
 import com.inductiveautomation.opcua.sdk.core.nodes.ObjectNode;
 import com.inductiveautomation.opcua.sdk.core.nodes.VariableNode;
 import com.inductiveautomation.opcua.sdk.core.nodes.VariableTypeNode;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.model.Property.BasicProperty;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
@@ -72,7 +72,7 @@ public class UaVariableNode extends UaNode implements VariableNode {
     private volatile Optional<Double> minimumSamplingInterval = Optional.empty();
     private volatile boolean historizing = false;
 
-    public UaVariableNode(UaNodeManager nodeManager,
+    public UaVariableNode(UaNamespace nodeManager,
                           NodeId nodeId,
                           QualifiedName browseName,
                           LocalizedText displayName) {
@@ -80,7 +80,7 @@ public class UaVariableNode extends UaNode implements VariableNode {
         super(nodeManager, nodeId, NodeClass.Variable, browseName, displayName);
     }
 
-    public UaVariableNode(UaNodeManager nodeManager,
+    public UaVariableNode(UaNamespace nodeManager,
                           NodeId nodeId,
                           QualifiedName browseName,
                           LocalizedText displayName,
@@ -303,7 +303,7 @@ public class UaVariableNode extends UaNode implements VariableNode {
             EUInformation.class
     );
 
-    public static UaVariableNodeBuilder builder(UaNodeManager nodeManager) {
+    public static UaVariableNodeBuilder builder(UaNamespace nodeManager) {
         return new UaVariableNodeBuilder(nodeManager);
     }
 
@@ -331,9 +331,9 @@ public class UaVariableNode extends UaNode implements VariableNode {
         private Optional<Double> minimumSamplingInterval = Optional.empty();
         private boolean historizing = false;
 
-        private final UaNodeManager nodeManager;
+        private final UaNamespace nodeManager;
 
-        public UaVariableNodeBuilder(UaNodeManager nodeManager) {
+        public UaVariableNodeBuilder(UaNamespace nodeManager) {
             this.nodeManager = nodeManager;
         }
 

@@ -3,7 +3,7 @@ package com.inductiveautomation.opcua.sdk.server.model.variables;
 import java.util.Optional;
 
 import com.inductiveautomation.opcua.sdk.core.model.variables.PropertyType;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.util.UaVariableType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
@@ -15,7 +15,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 @UaVariableType(name = "PropertyType")
 public class PropertyNode extends BaseVariableNode implements PropertyType {
 
-    public PropertyNode(UaNodeManager nodeManager,
+    public PropertyNode(UaNamespace nodeManager,
                         NodeId nodeId,
                         QualifiedName browseName,
                         LocalizedText displayName,

@@ -21,7 +21,7 @@ import java.util.Optional;
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.ValueRank;
 import com.inductiveautomation.opcua.sdk.core.nodes.ViewNode;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.model.Property.BasicProperty;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
@@ -36,7 +36,7 @@ public class UaViewNode extends UaNode implements ViewNode {
     private volatile boolean containsNoLoops;
     private volatile UByte eventNotifier;
 
-    public UaViewNode(UaNodeManager nodeManager,
+    public UaViewNode(UaNamespace nodeManager,
                       NodeId nodeId,
                       QualifiedName browseName,
                       LocalizedText displayName,

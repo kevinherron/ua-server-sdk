@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.Lists;
+import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.Reference;
 import com.inductiveautomation.opcua.sdk.server.NamespaceManager;
 import com.inductiveautomation.opcua.sdk.server.OpcUaServer;
@@ -135,7 +136,10 @@ public class TranslateBrowsePathsHelper {
                 .map(Reference::getTargetNodeId)
 
                 /* Filter on on targets that match the target name... */
-                .filter(id -> namespaceManager.getNode(id).filter(n -> n.getBrowseName().equals(targetName)).isPresent())
+                .filter(id -> {
+                    Optional<QualifiedName> browseName = namespaceManager.getAttribute(id, AttributeIds.BrowseName);
+                    return browseName.map(bn -> bn.equals(targetName)).orElse(false);
+                })
 
                 /* If we found one, return it. */
                 .findFirst().orElseThrow(() -> new UaException(StatusCodes.Bad_NoMatch));
@@ -161,7 +165,10 @@ public class TranslateBrowsePathsHelper {
                 .map(Reference::getTargetNodeId)
 
                 /* Filter on on targets that match the target name... */
-                .filter(id -> namespaceManager.getNode(id).filter(n -> matchesTarget(n.getBrowseName(), targetName)).isPresent())
+                .filter(id -> {
+                    Optional<QualifiedName> browseName = namespaceManager.getAttribute(id, AttributeIds.BrowseName);
+                    return browseName.map(bn -> matchesTarget(bn, targetName)).orElse(false);
+                })
 
                 /* Voila! */
                 .collect(Collectors.toList());

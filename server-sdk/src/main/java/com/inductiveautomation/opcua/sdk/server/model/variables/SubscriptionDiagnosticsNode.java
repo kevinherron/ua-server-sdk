@@ -6,7 +6,7 @@ import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.model.UaMandatory;
 import com.inductiveautomation.opcua.sdk.core.model.variables.SubscriptionDiagnosticsType;
 import com.inductiveautomation.opcua.sdk.core.nodes.VariableNode;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.util.UaVariableType;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
@@ -20,7 +20,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.SubscriptionDia
 @UaVariableType(name = "SubscriptionDiagnosticsType")
 public class SubscriptionDiagnosticsNode extends BaseDataVariableNode implements SubscriptionDiagnosticsType {
 
-    public SubscriptionDiagnosticsNode(UaNodeManager nodeManager,
+    public SubscriptionDiagnosticsNode(UaNamespace nodeManager,
                                        NodeId nodeId,
                                        QualifiedName browseName,
                                        LocalizedText displayName,

@@ -32,7 +32,7 @@ import com.inductiveautomation.opcua.nodeset.attributes.VariableNodeAttributes;
 import com.inductiveautomation.opcua.nodeset.attributes.VariableTypeNodeAttributes;
 import com.inductiveautomation.opcua.nodeset.attributes.ViewNodeAttributes;
 import com.inductiveautomation.opcua.sdk.core.Reference;
-import com.inductiveautomation.opcua.sdk.server.api.UaNodeManager;
+import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.model.UaDataTypeNode;
 import com.inductiveautomation.opcua.sdk.server.model.UaMethodNode;
 import com.inductiveautomation.opcua.sdk.server.model.UaNode;
@@ -59,9 +59,9 @@ public class UaNodeBuilder implements NodeBuilder<UaNode, Reference> {
     private final Reflections variableReflections =
             new Reflections("com.inductiveautomation.opcua.sdk.server.model.variables");
 
-    private final UaNodeManager nodeManager;
+    private final UaNamespace nodeManager;
 
-    public UaNodeBuilder(UaNodeManager nodeManager) {
+    public UaNodeBuilder(UaNamespace nodeManager) {
         this.nodeManager = nodeManager;
     }
 
