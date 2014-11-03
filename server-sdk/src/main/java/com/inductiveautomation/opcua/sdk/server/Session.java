@@ -16,6 +16,7 @@
 
 package com.inductiveautomation.opcua.sdk.server;
 
+import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -37,6 +38,7 @@ import com.inductiveautomation.opcua.stack.core.UaException;
 import com.inductiveautomation.opcua.stack.core.application.services.NodeManagementServiceSet;
 import com.inductiveautomation.opcua.stack.core.application.services.ServiceRequest;
 import com.inductiveautomation.opcua.stack.core.application.services.SessionServiceSet;
+import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.structured.ActivateSessionRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.ActivateSessionResponse;
@@ -48,6 +50,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.CreateSessionRe
 import com.inductiveautomation.opcua.stack.core.types.structured.CreateSessionResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.SessionDiagnosticsDataType;
 import com.inductiveautomation.opcua.stack.core.types.structured.SessionSecurityDiagnosticsDataType;
+import com.inductiveautomation.opcua.stack.core.types.structured.UserIdentityToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,6 +66,11 @@ public class Session implements SessionServiceSet {
 
     private final SubscriptionManager subscriptionManager;
 
+    private volatile long secureChannelId;
+
+    private volatile UserIdentityToken identityToken;
+    private volatile ByteString clientCertificateBytes;
+
     private volatile long lastActivity = System.nanoTime();
     private volatile ScheduledFuture<?> checkTimeoutFuture;
 
@@ -77,9 +85,14 @@ public class Session implements SessionServiceSet {
     private final NodeId sessionId;
     private final Duration sessionTimeout;
 
-    public Session(OpcUaServer server, NodeId sessionId, Duration sessionTimeout) {
+    public Session(OpcUaServer server,
+                   NodeId sessionId,
+                   Duration sessionTimeout,
+                   long secureChannelId) {
+
         this.sessionId = sessionId;
         this.sessionTimeout = sessionTimeout;
+        this.secureChannelId = secureChannelId;
 
         subscriptionManager = new SubscriptionManager(this, server);
 
@@ -93,6 +106,32 @@ public class Session implements SessionServiceSet {
 
         checkTimeoutFuture = ScheduledExecutor.schedule(
                 this::checkTimeout, sessionTimeout.toNanos(), TimeUnit.NANOSECONDS);
+    }
+
+    public long getSecureChannelId() {
+        return secureChannelId;
+    }
+
+    @Nullable
+    public UserIdentityToken getIdentityToken() {
+        return identityToken;
+    }
+
+    @Nullable
+    public ByteString getClientCertificateBytes() {
+        return clientCertificateBytes;
+    }
+
+    public void setSecureChannelId(long secureChannelId) {
+        this.secureChannelId = secureChannelId;
+    }
+
+    public void setIdentityToken(UserIdentityToken identityToken) {
+        this.identityToken = identityToken;
+    }
+
+    public void setClientCertificateBytes(ByteString clientCertificateBytes) {
+        this.clientCertificateBytes = clientCertificateBytes;
     }
 
     void addLifecycleListener(LifecycleListener listener) {

@@ -106,6 +106,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.RegisterNodesRe
 import com.inductiveautomation.opcua.stack.core.types.structured.RegisterNodesResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.RepublishRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.RepublishResponse;
+import com.inductiveautomation.opcua.stack.core.types.structured.ResponseHeader;
 import com.inductiveautomation.opcua.stack.core.types.structured.SetMonitoringModeRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.SetMonitoringModeResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.SetPublishingModeRequest;
@@ -120,6 +121,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.TranslateBrowse
 import com.inductiveautomation.opcua.stack.core.types.structured.TranslateBrowsePathsToNodeIdsResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.UnregisterNodesRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.UnregisterNodesResponse;
+import com.inductiveautomation.opcua.stack.core.types.structured.UserIdentityToken;
 import com.inductiveautomation.opcua.stack.core.types.structured.UserNameIdentityToken;
 import com.inductiveautomation.opcua.stack.core.types.structured.UserTokenPolicy;
 import com.inductiveautomation.opcua.stack.core.types.structured.WriteRequest;
@@ -127,6 +129,8 @@ import com.inductiveautomation.opcua.stack.core.types.structured.WriteResponse;
 import com.inductiveautomation.opcua.stack.core.util.CertificateUtil;
 import com.inductiveautomation.opcua.stack.core.util.NonceUtil;
 import com.inductiveautomation.opcua.stack.core.util.SignatureUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
@@ -139,6 +143,8 @@ public class SessionManager implements
         SessionServiceSet,
         SubscriptionServiceSet,
         ViewServiceSet {
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final Map<NodeId, Session> createdSessions = Maps.newConcurrentMap();
     private final Map<NodeId, Session> activeSessions = Maps.newConcurrentMap();
@@ -159,6 +165,7 @@ public class SessionManager implements
     }
 
     private Session session(ServiceRequest<?, ?> service) throws UaException {
+        long secureChannelId = service.getSecureChannel().getChannelId();
         NodeId authToken = service.getRequest().getRequestHeader().getAuthenticationToken();
 
         Session session = activeSessions.get(authToken);
@@ -169,8 +176,17 @@ public class SessionManager implements
             if (session == null) {
                 throw new UaException(StatusCodes.Bad_SessionIdInvalid);
             } else {
-                throw new UaException(StatusCodes.Bad_SessionNotActivated);
+                if (session.getSecureChannelId() != secureChannelId) {
+                    createdSessions.put(authToken, session);
+                    throw new UaException(StatusCodes.Bad_SecurityChecksFailed);
+                } else {
+                    throw new UaException(StatusCodes.Bad_SessionNotActivated);
+                }
             }
+        }
+
+        if (session.getSecureChannelId() != secureChannelId) {
+            throw new UaException(StatusCodes.Bad_SecurityChecksFailed);
         }
 
         session.updateLastActivity();
@@ -228,12 +244,12 @@ public class SessionManager implements
 
         NodeId sessionId = new NodeId(1, "Session:" + UUID.randomUUID());
         Duration sessionTimeout = Duration.ofMillis(DoubleMath.roundToLong(revisedSessionTimeout, RoundingMode.UP));
-        Session session = new Session(server, sessionId, sessionTimeout);
+        Session session = new Session(server, sessionId, sessionTimeout, secureChannel.getChannelId());
         createdSessions.put(authenticationToken, session);
 
         session.addLifecycleListener((s, remove) -> {
-            createdSessions.remove(s.getSessionId());
-            activeSessions.remove(s.getSessionId());
+            createdSessions.remove(authenticationToken);
+            activeSessions.remove(authenticationToken);
         });
 
         CreateSessionResponse response = new CreateSessionResponse(
@@ -289,21 +305,65 @@ public class SessionManager implements
     public void onActivateSession(ServiceRequest<ActivateSessionRequest, ActivateSessionResponse> serviceRequest) throws UaException {
         ActivateSessionRequest request = serviceRequest.getRequest();
 
+        long secureChannelId = serviceRequest.getSecureChannel().getChannelId();
+
         NodeId authToken = request.getRequestHeader().getAuthenticationToken();
         SignedSoftwareCertificate[] clientSoftwareCertificates = request.getClientSoftwareCertificates();
 
         Session session = createdSessions.get(authToken);
 
         if (session == null) {
-            ActivateSessionResponse response = new ActivateSessionResponse(
-                    serviceRequest.createResponseHeader(StatusCodes.Bad_SessionIdInvalid),
-                    NonceUtil.generateNonce(32),
-                    new StatusCode[0],
-                    new DiagnosticInfo[0]
-            );
+            session = activeSessions.get(authToken);
 
-            serviceRequest.setResponse(response);
+            if (session == null) {
+                throw new UaException(StatusCodes.Bad_SessionIdInvalid);
+            } else {
+                /*
+                 * Associate session with new secure channel if client certificate and identity token match.
+                 */
+
+                ByteString certificateBytes = serviceRequest.getSecureChannel().getRemoteCertificateBytes();
+
+                if (request.getUserIdentityToken() == null || request.getUserIdentityToken().getObject() == null) {
+                    throw new UaException(StatusCodes.Bad_IdentityTokenInvalid, "identity token not provided");
+                }
+
+                Object identityTokenObject = request.getUserIdentityToken().getObject();
+
+                if (!(identityTokenObject instanceof UserIdentityToken)) {
+                    throw new UaException(StatusCodes.Bad_IdentityTokenInvalid);
+                }
+
+                UserIdentityToken identityToken = (UserIdentityToken) request.getUserIdentityToken().getObject();
+
+                // TODO validate identityToken
+
+                if (certificateBytes.equals(session.getClientCertificateBytes())) {
+                    session.setSecureChannelId(secureChannelId);
+
+                    logger.debug("Session id={} is now associated with secureChannelId={}",
+                            session.getSessionId(), secureChannelId);
+
+                    StatusCode[] results = new StatusCode[clientSoftwareCertificates.length];
+                    Arrays.fill(results, StatusCode.Good);
+
+                    ActivateSessionResponse response = new ActivateSessionResponse(
+                            serviceRequest.createResponseHeader(),
+                            NonceUtil.generateNonce(32),
+                            results,
+                            new DiagnosticInfo[0]
+                    );
+
+                    serviceRequest.setResponse(response);
+                } else {
+                    throw new UaException(StatusCodes.Bad_SecurityChecksFailed);
+                }
+            }
         } else {
+            if (secureChannelId != session.getSecureChannelId()) {
+                throw new UaException(StatusCodes.Bad_SecurityChecksFailed);
+            }
+
             if (request.getUserIdentityToken() == null || request.getUserIdentityToken().getObject() == null) {
                 throw new UaException(StatusCodes.Bad_IdentityTokenInvalid, "identity token not provided");
             }
@@ -324,6 +384,9 @@ public class SessionManager implements
 
             createdSessions.remove(authToken);
             activeSessions.put(authToken, session);
+
+            session.setIdentityToken((UserIdentityToken) tokenObject);
+            session.setClientCertificateBytes(serviceRequest.getSecureChannel().getRemoteCertificateBytes());
 
             StatusCode[] results = new StatusCode[clientSoftwareCertificates.length];
             Arrays.fill(results, StatusCode.Good);
