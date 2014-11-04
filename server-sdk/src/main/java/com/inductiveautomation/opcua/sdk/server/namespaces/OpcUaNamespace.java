@@ -70,6 +70,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.WriteValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.ubyte;
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.ushort;
 
@@ -313,6 +314,7 @@ public class OpcUaNamespace implements UaNamespace {
 
         serverNode.setAuditing(false);
         serverNode.getServerDiagnostics().setEnabledFlag(false);
+        serverNode.setServiceLevel(ubyte(255));
 
         ServerStatusType serverStatus = serverNode.getServerStatus();
         serverStatus.setBuildInfo(server.getConfig().getBuildInfo());
@@ -361,8 +363,8 @@ public class OpcUaNamespace implements UaNamespace {
             AnnotationBasedInvocationHandler invocationHandler =
                     AnnotationBasedInvocationHandler.fromAnnotatedObject(this, new GetMonitoredItems(server));
 
-            getMonitoredItems.setProperty(UaMethodNode.InputArguments, invocationHandler.getInputArguments());
-            getMonitoredItems.setProperty(UaMethodNode.OutputArguments, invocationHandler.getOutputArguments());
+            getMonitoredItems.setInputArguments(invocationHandler.getInputArguments());
+            getMonitoredItems.setOutputArguments(invocationHandler.getOutputArguments());
             getMonitoredItems.setInvocationHandler(invocationHandler);
         } catch (Exception e) {
             logger.error("Error setting up GetMonitoredItems Method.", e);
