@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 import com.google.common.base.Preconditions;
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.ValueRank;
+import com.inductiveautomation.opcua.sdk.core.model.UaOptional;
 import com.inductiveautomation.opcua.sdk.core.nodes.MethodNode;
 import com.inductiveautomation.opcua.sdk.core.nodes.Node;
 import com.inductiveautomation.opcua.sdk.core.nodes.ObjectNode;
@@ -123,6 +124,33 @@ public class UaMethodNode extends UaNode implements MethodNode {
 
     public void setInvocationHandler(MethodInvocationHandler handler) {
         this.handler = Optional.of(handler);
+    }
+
+    @UaOptional("NodeVersion")
+    public String getNodeVersion() {
+        return getProperty(NodeVersion).orElse(null);
+    }
+
+    @UaOptional("InputArguments")
+    public Argument[] getInputArguments() {
+        return getProperty(InputArguments).orElse(null);
+    }
+
+    @UaOptional("OutputArguments")
+    public Argument[] getOutputArguments() {
+        return getProperty(OutputArguments).orElse(null);
+    }
+
+    public void setNodeVersion(String nodeVersion) {
+        setProperty(NodeVersion, nodeVersion);
+    }
+
+    public void setInputArguments(Argument[] inputArguments) {
+        setProperty(InputArguments, inputArguments);
+    }
+
+    public void setOutputArguments(Argument[] outputArguments) {
+        setProperty(OutputArguments, outputArguments);
     }
 
     public static final Property<Argument[]> InputArguments = new BasicProperty<>(
