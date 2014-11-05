@@ -22,8 +22,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -34,7 +32,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.PeekingIterator;
 import com.google.common.math.DoubleMath;
 import com.google.common.primitives.Ints;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.inductiveautomation.opcua.sdk.server.items.BaseMonitoredItem;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.application.services.ServiceRequest;
@@ -54,6 +51,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.PublishRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.PublishResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.ResponseHeader;
 import com.inductiveautomation.opcua.stack.core.types.structured.SetPublishingModeRequest;
+import com.inductiveautomation.opcua.stack.core.types.structured.SetTriggeringRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.StatusChangeNotification;
 import com.inductiveautomation.opcua.stack.core.util.ExecutionQueue;
 import org.slf4j.Logger;
@@ -184,8 +182,16 @@ public class Subscription {
         logger.debug("[id={}] deleted {} MonitoredItems.", subscriptionId, deletedItems.size());
     }
 
-    public Map<UInteger, BaseMonitoredItem<?>> getMonitoredItems() {
+    public synchronized void setTriggering(SetTriggeringRequest request) {
+
+    }
+
+    public synchronized Map<UInteger, BaseMonitoredItem<?>> getMonitoredItems() {
         return itemsById;
+    }
+
+    public synchronized Map<UInteger, TriggeringLinks> getTriggeringLinks() {
+        return linksById;
     }
 
     /**
@@ -310,8 +316,10 @@ public class Subscription {
     private void returnKeepAlive(ServiceRequest<PublishRequest, PublishResponse> service) {
         ResponseHeader header = service.createResponseHeader();
 
+        UInteger sequenceNumber = uint(currentSequenceNumber());
+
         NotificationMessage notificationMessage = new NotificationMessage(
-                uint(currentSequenceNumber()), DateTime.now(), new ExtensionObject[0]);
+                sequenceNumber, DateTime.now(), new ExtensionObject[0]);
 
         UInteger[] available = availableMessages.keySet().toArray(new UInteger[availableMessages.size()]);
 
@@ -325,15 +333,18 @@ public class Subscription {
 
         service.setResponse(response);
 
-        logger.debug("[id={}] returned keep-alive NotificationMessage.", subscriptionId);
+        logger.debug("[id={}] returned keep-alive NotificationMessage sequenceNumber={}.",
+                subscriptionId, sequenceNumber);
     }
 
     private void returnStatusChangeNotification(ServiceRequest<PublishRequest, PublishResponse> service) {
         StatusChangeNotification statusChange = new StatusChangeNotification(
                 new StatusCode(StatusCodes.Bad_Timeout), null);
 
+        UInteger sequenceNumber = uint(nextSequenceNumber());
+
         NotificationMessage notificationMessage = new NotificationMessage(
-                uint(nextSequenceNumber()),
+                sequenceNumber,
                 new DateTime(),
                 new ExtensionObject[]{new ExtensionObject(statusChange)}
         );
@@ -347,7 +358,7 @@ public class Subscription {
 
         service.setResponse(response);
 
-        logger.debug("[id={}] returned StatusChangeNotification.", subscriptionId);
+        logger.debug("[id={}] returned StatusChangeNotification sequenceNumber={}.", subscriptionId, sequenceNumber);
     }
 
     private void returnNotifications(ServiceRequest<PublishRequest, PublishResponse> service) {
@@ -447,8 +458,10 @@ public class Subscription {
             notificationData.add(new ExtensionObject(eventChange));
         }
 
+        UInteger sequenceNumber = uint(nextSequenceNumber());
+
         NotificationMessage notificationMessage = new NotificationMessage(
-                uint(nextSequenceNumber()),
+                sequenceNumber,
                 new DateTime(),
                 notificationData.toArray(new ExtensionObject[notificationData.size()])
         );
@@ -468,8 +481,8 @@ public class Subscription {
 
         service.setResponse(response);
 
-        logger.debug("[id={}] returning {} DataChangeNotification(s) and {} EventNotificationList(s)",
-                subscriptionId, dataNotifications.size(), eventNotifications.size());
+        logger.debug("[id={}] returning {} DataChangeNotification(s) and {} EventNotificationList(s) sequenceNumber={}.",
+                subscriptionId, dataNotifications.size(), eventNotifications.size(), sequenceNumber);
     }
 
     private boolean notificationsAvailable() {
@@ -478,12 +491,11 @@ public class Subscription {
 
     private void setState(State state) {
         State previousState = this.state.getAndSet(state);
-        State currentState = state;
 
-        logger.debug("[id={}] {} -> {}", subscriptionId, previousState, currentState);
+        logger.debug("[id={}] {} -> {}", subscriptionId, previousState, state);
 
         for (StateListener stateListener : stateListeners) {
-            stateListener.onStateChange(this, previousState, currentState);
+            stateListener.onStateChange(this, previousState, state);
         }
     }
 

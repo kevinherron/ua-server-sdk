@@ -16,6 +16,7 @@
 
 package com.inductiveautomation.opcua.sdk.server.subscriptions;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
@@ -745,8 +746,75 @@ public class SubscriptionManager {
     }
 
     public void setTriggering(ServiceRequest<SetTriggeringRequest, SetTriggeringResponse> service) {
-        // TODO
-        service.setServiceFault(StatusCodes.Bad_ServiceUnsupported);
+        SetTriggeringRequest request = service.getRequest();
+
+        UInteger subscriptionId = request.getSubscriptionId();
+        Subscription subscription = subscriptions.get(subscriptionId);
+
+        if (subscription == null) {
+            service.setServiceFault(StatusCodes.Bad_SubscriptionIdInvalid);
+            return;
+        }
+
+        if (request.getLinksToAdd().length == 0 && request.getLinksToRemove().length == 0) {
+            service.setServiceFault(StatusCodes.Bad_NothingToDo);
+            return;
+        }
+
+        UInteger triggerId = request.getTriggeringItemId();
+        UInteger[] linksToAdd = request.getLinksToAdd();
+        UInteger[] linksToRemove = request.getLinksToRemove();
+
+
+        synchronized (subscription) {
+            Map<UInteger, BaseMonitoredItem<?>> itemsById = subscription.getMonitoredItems();
+            Map<UInteger, TriggeringLinks> linksById = subscription.getTriggeringLinks();
+
+            BaseMonitoredItem<?> trigger = itemsById.get(triggerId);
+            if (trigger == null) {
+                service.setServiceFault(StatusCodes.Bad_MonitoredItemIdInvalid);
+                return;
+            }
+
+            TriggeringLinks links = linksById.computeIfAbsent(triggerId, id -> new TriggeringLinks(trigger));
+
+            List<StatusCode> addResults = Arrays.stream(linksToAdd)
+                    .map(id -> {
+                        BaseMonitoredItem<?> item = itemsById.get(id);
+                        if (item != null) {
+                            links.getTriggeredItems().put(id, item);
+                            return StatusCode.Good;
+                        } else {
+                            return new StatusCode(StatusCodes.Bad_MonitoredItemIdInvalid);
+                        }
+                    })
+                    .collect(Collectors.toList());
+
+            List<StatusCode> removeResults = Arrays.stream(linksToRemove)
+                    .map(id -> {
+                        BaseMonitoredItem<?> item = links.getTriggeredItems().remove(id);
+                        if (item != null) {
+                            return StatusCode.Good;
+                        } else {
+                            return new StatusCode(StatusCodes.Bad_MonitoredItemIdInvalid);
+                        }
+                    })
+                    .collect(Collectors.toList());
+
+            if (links.isEmpty()) {
+                linksById.remove(triggerId);
+            }
+
+            SetTriggeringResponse response = new SetTriggeringResponse(
+                    service.createResponseHeader(),
+                    addResults.toArray(new StatusCode[addResults.size()]),
+                    new DiagnosticInfo[0],
+                    removeResults.toArray(new StatusCode[removeResults.size()]),
+                    new DiagnosticInfo[0]
+            );
+
+            service.setResponse(response);
+        }
     }
 
     public void sessionClosed(boolean deleteSubscriptions) {
