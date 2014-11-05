@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.ValueRank;
+import com.inductiveautomation.opcua.sdk.core.model.UaOptional;
 import com.inductiveautomation.opcua.sdk.core.nodes.DataTypeNode;
 import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.model.Property.BasicProperty;
@@ -60,6 +61,33 @@ public class UaDataTypeNode extends UaNode implements DataTypeNode {
         this.isAbstract.set(isAbstract);
 
         fireAttributeChanged(AttributeIds.IsAbstract, isAbstract);
+    }
+
+    @UaOptional("NodeVersion")
+    public String getNodeVersion() {
+        return getProperty(NodeVersion).orElse(null);
+    }
+
+    @UaOptional("EnumStrings")
+    public LocalizedText[] getEnumStrings() {
+        return getProperty(EnumStrings).orElse(null);
+    }
+
+    @UaOptional("EnumValues")
+    public EnumValueType[] getEnumValues() {
+        return getProperty(EnumValues).orElse(null);
+    }
+
+    public void setNodeVersion(String nodeVersion) {
+        setProperty(NodeVersion, nodeVersion);
+    }
+
+    public void setEnumStrings(LocalizedText[] enumStrings) {
+        setProperty(EnumStrings, enumStrings);
+    }
+
+    public void setEnumValues(EnumValueType[] enumValues) {
+        setProperty(EnumValues, enumValues);
     }
 
     public static final Property<String> NodeVersion = new BasicProperty<>(

@@ -20,6 +20,7 @@ import java.util.Optional;
 
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.ValueRank;
+import com.inductiveautomation.opcua.sdk.core.model.UaOptional;
 import com.inductiveautomation.opcua.sdk.core.nodes.ViewNode;
 import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.model.Property.BasicProperty;
@@ -74,6 +75,24 @@ public class UaViewNode extends UaNode implements ViewNode {
         this.eventNotifier = eventNotifier;
 
         fireAttributeChanged(AttributeIds.EventNotifier, eventNotifier);
+    }
+
+    @UaOptional("NodeVersion")
+    public String getNodeVersion() {
+        return getProperty(NodeVersion).orElse(null);
+    }
+
+    @UaOptional("ViewVersion")
+    public UInteger getViewVersion() {
+        return getProperty(ViewVersion).orElse(null);
+    }
+
+    public void setNodeVersion(String nodeVersion) {
+        setProperty(NodeVersion, nodeVersion);
+    }
+
+    public void setViewVersion(UInteger viewVersion) {
+        setProperty(ViewVersion, viewVersion);
     }
 
     public static final Property<String> NodeVersion = new BasicProperty<>(

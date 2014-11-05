@@ -20,6 +20,7 @@ import java.util.Optional;
 
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.ValueRank;
+import com.inductiveautomation.opcua.sdk.core.model.UaOptional;
 import com.inductiveautomation.opcua.sdk.core.nodes.ObjectTypeNode;
 import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 import com.inductiveautomation.opcua.sdk.server.model.Property.BasicProperty;
@@ -59,6 +60,16 @@ public class UaObjectTypeNode extends UaNode implements ObjectTypeNode {
         this.isAbstract = isAbstract;
 
         fireAttributeChanged(AttributeIds.IsAbstract, isAbstract);
+    }
+
+    @UaOptional("NodeVersion")
+    public String getNodeVersion() {
+        return getProperty(NodeVersion).orElse(null);
+    }
+
+    @UaOptional("Icon")
+    public ByteString getIcon() {
+        return getProperty(Icon).orElse(null);
     }
 
     public static final Property<String> NodeVersion = new BasicProperty<>(

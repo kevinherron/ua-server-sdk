@@ -28,6 +28,7 @@ import com.inductiveautomation.opcua.sdk.core.AccessLevel;
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.core.Reference;
 import com.inductiveautomation.opcua.sdk.core.ValueRank;
+import com.inductiveautomation.opcua.sdk.core.model.UaOptional;
 import com.inductiveautomation.opcua.sdk.core.nodes.Node;
 import com.inductiveautomation.opcua.sdk.core.nodes.ObjectNode;
 import com.inductiveautomation.opcua.sdk.core.nodes.VariableNode;
@@ -238,6 +239,78 @@ public class UaVariableNode extends UaNode implements VariableNode {
                 .orElse(null);
 
         return (node instanceof VariableTypeNode) ? (VariableTypeNode) node : null;
+    }
+
+    @UaOptional("NodeVersion")
+    public String getNodeVersion() {
+        return getProperty(NodeVersion).orElse(null);
+    }
+
+    @UaOptional("LocalTime")
+    public TimeZoneDataType getLocalTime() {
+        return getProperty(LocalTime).orElse(null);
+    }
+
+    @UaOptional("DataTypeVersion")
+    public String getDataTypeVersion() {
+        return getProperty(DataTypeVersion).orElse(null);
+    }
+
+    @UaOptional("DictionaryFragment")
+    public ByteString getDictionaryFragment() {
+        return getProperty(DictionaryFragment).orElse(null);
+    }
+
+    @UaOptional("AllowNulls")
+    public Boolean getAllowNulls() {
+        return getProperty(AllowNulls).orElse(null);
+    }
+
+    @UaOptional("MaxStringLength")
+    public UInteger getMaxStringLength() {
+        return getProperty(MaxStringLength).orElse(null);
+    }
+
+    @UaOptional("MaxArrayLength")
+    public UInteger getMaxArrayLength() {
+        return getProperty(MaxArrayLength).orElse(null);
+    }
+
+    @UaOptional("EngineeringUnits")
+    public EUInformation getEngineeringUnits() {
+        return getProperty(EngineeringUnits).orElse(null);
+    }
+
+    public void setNodeVersion(String nodeVersion) {
+        setProperty(NodeVersion, nodeVersion);
+    }
+
+    public void setLocalTime(TimeZoneDataType localTime) {
+        setProperty(LocalTime, localTime);
+    }
+
+    public void setDataTypeVersion(String dataTypeVersion) {
+        setProperty(DataTypeVersion, dataTypeVersion);
+    }
+
+    public void setDictionaryFragment(ByteString dictionaryFragment) {
+        setProperty(DictionaryFragment, dictionaryFragment);
+    }
+
+    public void setAllowNulls(Boolean allowNulls) {
+        setProperty(AllowNulls, allowNulls);
+    }
+
+    public void setMaxStringLength(UInteger maxStringLength) {
+        setProperty(MaxStringLength, maxStringLength);
+    }
+
+    public void setMaxArrayLength(UInteger maxArrayLength) {
+        setProperty(MaxArrayLength, maxArrayLength);
+    }
+
+    public void setEngineeringUnits(EUInformation engineeringUnits) {
+        setProperty(EngineeringUnits, engineeringUnits);
     }
 
     public static final Property<String> NodeVersion = new BasicProperty<>(
