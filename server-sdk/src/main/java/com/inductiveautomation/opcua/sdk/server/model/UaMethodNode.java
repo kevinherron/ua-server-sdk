@@ -52,7 +52,7 @@ public class UaMethodNode extends UaNode implements MethodNode {
     private volatile boolean executable;
     private volatile boolean userExecutable;
 
-    public UaMethodNode(UaNamespace nodeManager,
+    public UaMethodNode(UaNamespace namespace,
                         NodeId nodeId,
                         QualifiedName browseName,
                         LocalizedText displayName,
@@ -62,7 +62,7 @@ public class UaMethodNode extends UaNode implements MethodNode {
                         boolean executable,
                         boolean userExecutable) {
 
-        super(nodeManager, nodeId, NodeClass.Method, browseName, displayName, description, writeMask, userWriteMask);
+        super(namespace, nodeId, NodeClass.Method, browseName, displayName, description, writeMask, userWriteMask);
 
         this.executable = executable;
         this.userExecutable = userExecutable;

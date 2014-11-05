@@ -39,7 +39,7 @@ public class UaVariableTypeNode extends UaNode implements VariableTypeNode {
     private volatile Optional<UInteger[]> arrayDimensions;
     private volatile boolean isAbstract;
 
-    public UaVariableTypeNode(UaNamespace nodeManager,
+    public UaVariableTypeNode(UaNamespace namespace,
                               NodeId nodeId,
                               QualifiedName browseName,
                               LocalizedText displayName,
@@ -52,7 +52,7 @@ public class UaVariableTypeNode extends UaNode implements VariableTypeNode {
                               Optional<UInteger[]> arrayDimensions,
                               boolean isAbstract) {
 
-        super(nodeManager, nodeId, NodeClass.VariableType, browseName, displayName, description, writeMask, userWriteMask);
+        super(namespace, nodeId, NodeClass.VariableType, browseName, displayName, description, writeMask, userWriteMask);
 
         this.value = value;
         this.dataType = dataType;

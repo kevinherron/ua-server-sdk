@@ -72,15 +72,15 @@ public class UaVariableNode extends UaNode implements VariableNode {
     private volatile Optional<Double> minimumSamplingInterval = Optional.empty();
     private volatile boolean historizing = false;
 
-    public UaVariableNode(UaNamespace nodeManager,
+    public UaVariableNode(UaNamespace namespace,
                           NodeId nodeId,
                           QualifiedName browseName,
                           LocalizedText displayName) {
 
-        super(nodeManager, nodeId, NodeClass.Variable, browseName, displayName);
+        super(namespace, nodeId, NodeClass.Variable, browseName, displayName);
     }
 
-    public UaVariableNode(UaNamespace nodeManager,
+    public UaVariableNode(UaNamespace namespace,
                           NodeId nodeId,
                           QualifiedName browseName,
                           LocalizedText displayName,
@@ -96,7 +96,7 @@ public class UaVariableNode extends UaNode implements VariableNode {
                           Optional<Double> minimumSamplingInterval,
                           boolean historizing) {
 
-        super(nodeManager, nodeId, NodeClass.Variable, browseName, displayName, description, writeMask, userWriteMask);
+        super(namespace, nodeId, NodeClass.Variable, browseName, displayName, description, writeMask, userWriteMask);
 
         this.value = value;
         this.dataType = dataType;

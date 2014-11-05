@@ -49,7 +49,7 @@ public abstract class UaNode implements Node {
 
     private List<WeakReference<AttributeObserver>> observers;
 
-    private final UaNamespace nodeManager;
+    private final UaNamespace namespace;
 
     private volatile NodeId nodeId;
     private volatile NodeClass nodeClass;
@@ -59,17 +59,17 @@ public abstract class UaNode implements Node {
     private volatile Optional<UInteger> writeMask;
     private volatile Optional<UInteger> userWriteMask;
 
-    protected UaNode(UaNamespace nodeManager,
+    protected UaNode(UaNamespace namespace,
                      NodeId nodeId,
                      NodeClass nodeClass,
                      QualifiedName browseName,
                      LocalizedText displayName) {
 
-        this(nodeManager, nodeId, nodeClass, browseName, displayName,
+        this(namespace, nodeId, nodeClass, browseName, displayName,
                 Optional.empty(), Optional.empty(), Optional.empty());
     }
 
-    protected UaNode(UaNamespace nodeManager,
+    protected UaNode(UaNamespace namespace,
                      NodeId nodeId,
                      NodeClass nodeClass,
                      QualifiedName browseName,
@@ -78,7 +78,7 @@ public abstract class UaNode implements Node {
                      Optional<UInteger> writeMask,
                      Optional<UInteger> userWriteMask) {
 
-        this.nodeManager = nodeManager;
+        this.namespace = namespace;
 
         this.nodeId = nodeId;
         this.nodeClass = nodeClass;
@@ -173,16 +173,16 @@ public abstract class UaNode implements Node {
         userWriteMask.ifPresent(v -> fireAttributeChanged(AttributeIds.UserWriteMask, v));
     }
 
-    public UaNamespace getNodeManager() {
-        return nodeManager;
+    public UaNamespace getNamespace() {
+        return namespace;
     }
 
     protected Optional<UaNode> getNode(NodeId nodeId) {
-        return nodeManager.getNode(nodeId);
+        return namespace.getNode(nodeId);
     }
 
     protected Optional<UaNode> getNode(ExpandedNodeId nodeId) {
-        return nodeManager.getNode(nodeId);
+        return namespace.getNode(nodeId);
     }
 
     public ImmutableList<Reference> getReferences() {
@@ -263,7 +263,7 @@ public abstract class UaNode implements Node {
         NodeId nodeId = new NodeId(getNodeId().getNamespaceIndex(), identifier);
 
         return new UaPropertyNode(
-                getNodeManager(),
+                getNamespace(),
                 nodeId,
                 browseName,
                 LocalizedText.english(browseName.getName())
@@ -271,7 +271,7 @@ public abstract class UaNode implements Node {
     }
 
     protected void addPropertyNode(UaPropertyNode node) {
-        nodeManager.addNode(node);
+        namespace.addNode(node);
 
         addReference(new Reference(
                 getNodeId(),
@@ -283,7 +283,7 @@ public abstract class UaNode implements Node {
     }
 
     protected Optional<UaNode> removePropertyNode(QualifiedName browseName) {
-        return getPropertyNode(browseName).flatMap(n -> getNodeManager().removeNode(n.getNodeId()));
+        return getPropertyNode(browseName).flatMap(n -> getNamespace().removeNode(n.getNodeId()));
     }
 
     protected Optional<ObjectNode> getObjectComponent(String browseName) {

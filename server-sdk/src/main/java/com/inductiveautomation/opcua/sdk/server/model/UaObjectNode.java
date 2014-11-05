@@ -59,15 +59,15 @@ public class UaObjectNode extends UaNode implements ObjectNode {
 
     private volatile UByte eventNotifier = ubyte(0);
 
-    public UaObjectNode(UaNamespace nodeManager,
+    public UaObjectNode(UaNamespace namespce,
                         NodeId nodeId,
                         QualifiedName browseName,
                         LocalizedText displayName) {
 
-        super(nodeManager, nodeId, NodeClass.Object, browseName, displayName);
+        super(namespce, nodeId, NodeClass.Object, browseName, displayName);
     }
 
-    public UaObjectNode(UaNamespace nodeManager,
+    public UaObjectNode(UaNamespace namespace,
                         NodeId nodeId,
                         QualifiedName browseName,
                         LocalizedText displayName,
@@ -76,7 +76,7 @@ public class UaObjectNode extends UaNode implements ObjectNode {
                         Optional<UInteger> userWriteMask,
                         UByte eventNotifier) {
 
-        super(nodeManager, nodeId, NodeClass.Object, browseName, displayName, description, writeMask, userWriteMask);
+        super(namespace, nodeId, NodeClass.Object, browseName, displayName, description, writeMask, userWriteMask);
 
         this.eventNotifier = eventNotifier;
     }

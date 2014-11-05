@@ -20,9 +20,9 @@ import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
 
 public abstract class DerivedVariableNode extends UaVariableNode {
 
-    public DerivedVariableNode(UaNamespace nodeManager, UaVariableNode variableNode) {
+    public DerivedVariableNode(UaNamespace namespace, UaVariableNode variableNode) {
 
-        super(nodeManager,
+        super(namespace,
                 variableNode.getNodeId(),
                 variableNode.getBrowseName(),
                 variableNode.getDisplayName(),

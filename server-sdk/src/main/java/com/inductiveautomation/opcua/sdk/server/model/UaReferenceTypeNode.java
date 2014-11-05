@@ -36,7 +36,7 @@ public class UaReferenceTypeNode extends UaNode implements ReferenceTypeNode {
     private volatile boolean symmetric;
     private volatile Optional<LocalizedText> inverseName;
 
-    public UaReferenceTypeNode(UaNamespace nodeManager,
+    public UaReferenceTypeNode(UaNamespace namespace,
                                NodeId nodeId,
                                QualifiedName browseName,
                                LocalizedText displayName,
@@ -47,7 +47,7 @@ public class UaReferenceTypeNode extends UaNode implements ReferenceTypeNode {
                                boolean symmetric,
                                Optional<LocalizedText> inverseName) {
 
-        super(nodeManager, nodeId, NodeClass.ReferenceType, browseName, displayName, description, writeMask, userWriteMask);
+        super(namespace, nodeId, NodeClass.ReferenceType, browseName, displayName, description, writeMask, userWriteMask);
 
         this.isAbstract = isAbstract;
         this.symmetric = symmetric;

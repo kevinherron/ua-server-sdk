@@ -36,7 +36,7 @@ public class UaViewNode extends UaNode implements ViewNode {
     private volatile boolean containsNoLoops;
     private volatile UByte eventNotifier;
 
-    public UaViewNode(UaNamespace nodeManager,
+    public UaViewNode(UaNamespace namespace,
                       NodeId nodeId,
                       QualifiedName browseName,
                       LocalizedText displayName,
@@ -46,7 +46,7 @@ public class UaViewNode extends UaNode implements ViewNode {
                       boolean containsNoLoops,
                       UByte eventNotifier) {
 
-        super(nodeManager, nodeId, NodeClass.View, browseName, displayName, description, writeMask, userWriteMask);
+        super(namespace, nodeId, NodeClass.View, browseName, displayName, description, writeMask, userWriteMask);
 
         this.containsNoLoops = containsNoLoops;
         this.eventNotifier = eventNotifier;

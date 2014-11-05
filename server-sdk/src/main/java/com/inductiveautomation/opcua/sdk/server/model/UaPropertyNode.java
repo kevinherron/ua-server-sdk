@@ -26,12 +26,12 @@ import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
 
 public class UaPropertyNode extends UaVariableNode {
 
-    public UaPropertyNode(UaNamespace nodeManager,
+    public UaPropertyNode(UaNamespace namespace,
                           NodeId nodeId,
                           QualifiedName browseName,
                           LocalizedText displayName) {
 
-        super(nodeManager, nodeId, browseName, displayName);
+        super(namespace, nodeId, browseName, displayName);
 
         addReference(new Reference(
                 nodeId,

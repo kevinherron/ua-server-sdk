@@ -35,7 +35,7 @@ public class UaObjectTypeNode extends UaNode implements ObjectTypeNode {
 
     private volatile boolean isAbstract;
 
-    public UaObjectTypeNode(UaNamespace nodeManager,
+    public UaObjectTypeNode(UaNamespace namespace,
                             NodeId nodeId,
                             QualifiedName browseName,
                             LocalizedText displayName,
@@ -44,7 +44,7 @@ public class UaObjectTypeNode extends UaNode implements ObjectTypeNode {
                             Optional<UInteger> userWriteMask,
                             boolean isAbstract) {
 
-        super(nodeManager, nodeId, NodeClass.ObjectType, browseName, displayName, description, writeMask, userWriteMask);
+        super(namespace, nodeId, NodeClass.ObjectType, browseName, displayName, description, writeMask, userWriteMask);
 
         this.isAbstract = isAbstract;
     }

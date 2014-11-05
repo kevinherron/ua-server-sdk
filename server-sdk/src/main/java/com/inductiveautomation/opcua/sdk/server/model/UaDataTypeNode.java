@@ -36,7 +36,7 @@ public class UaDataTypeNode extends UaNode implements DataTypeNode {
 
     private final AtomicBoolean isAbstract;
 
-    public UaDataTypeNode(UaNamespace nodeManager,
+    public UaDataTypeNode(UaNamespace namespace,
                           NodeId nodeId,
                           QualifiedName browseName,
                           LocalizedText displayName,
@@ -45,7 +45,7 @@ public class UaDataTypeNode extends UaNode implements DataTypeNode {
                           Optional<UInteger> userWriteMask,
                           boolean isAbstract) {
 
-        super(nodeManager, nodeId, NodeClass.DataType, browseName, displayName, description, writeMask, userWriteMask);
+        super(namespace, nodeId, NodeClass.DataType, browseName, displayName, description, writeMask, userWriteMask);
 
         this.isAbstract = new AtomicBoolean(isAbstract);
     }
