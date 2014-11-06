@@ -16,11 +16,22 @@
 
 package com.inductiveautomation.opcua.sdk.server.services;
 
+import java.util.List;
+import java.util.Objects;
+
+import com.google.common.collect.Lists;
 import com.inductiveautomation.opcua.sdk.server.OpcUaServer;
+import com.inductiveautomation.opcua.sdk.server.Session;
+import com.inductiveautomation.opcua.sdk.server.items.MonitoredDataItem;
+import com.inductiveautomation.opcua.sdk.server.subscriptions.Subscription;
 import com.inductiveautomation.opcua.sdk.server.subscriptions.SubscriptionManager;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.application.services.ServiceRequest;
 import com.inductiveautomation.opcua.stack.core.application.services.SubscriptionServiceSet;
+import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
+import com.inductiveautomation.opcua.stack.core.types.builtin.DiagnosticInfo;
+import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.structured.CreateSubscriptionRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.CreateSubscriptionResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.DeleteSubscriptionsRequest;
@@ -33,8 +44,12 @@ import com.inductiveautomation.opcua.stack.core.types.structured.RepublishReques
 import com.inductiveautomation.opcua.stack.core.types.structured.RepublishResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.SetPublishingModeRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.SetPublishingModeResponse;
+import com.inductiveautomation.opcua.stack.core.types.structured.TransferResult;
 import com.inductiveautomation.opcua.stack.core.types.structured.TransferSubscriptionsRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.TransferSubscriptionsResponse;
+import com.inductiveautomation.opcua.stack.core.types.structured.UserNameIdentityToken;
+
+import static com.inductiveautomation.opcua.sdk.server.util.ConversionUtil.a;
 
 public class SubscriptionServices implements SubscriptionServiceSet {
 
@@ -76,12 +91,71 @@ public class SubscriptionServices implements SubscriptionServiceSet {
 
     @Override
     public void onTransferSubscriptions(ServiceRequest<TransferSubscriptionsRequest, TransferSubscriptionsResponse> service) {
-        TransferSubscriptionsRequest request = service.getRequest();
-
         OpcUaServer server = service.attr(ServiceAttributes.ServerKey).get();
-        request.getSubscriptionIds();
+        Session session = service.attr(ServiceAttributes.SessionKey).get();
 
-        service.setServiceFault(StatusCodes.Bad_ServiceUnsupported);
+        TransferSubscriptionsRequest request = service.getRequest();
+        UInteger[] subscriptionIds = request.getSubscriptionIds();
+
+        if (subscriptionIds.length == 0) {
+            service.setServiceFault(StatusCodes.Bad_NothingToDo);
+            return;
+        }
+
+        List<TransferResult> results = Lists.newArrayList();
+
+        for (UInteger subscriptionId : subscriptionIds) {
+            Subscription subscription = server.getSubscriptions().get(subscriptionId);
+
+            Session otherSession = subscription.getSession();
+
+            if (!sessionsHaveSameUser(session, otherSession)) {
+                results.add(new TransferResult(new StatusCode(StatusCodes.Bad_UserAccessDenied), new UInteger[0]));
+            } else {
+                UInteger[] availableSequenceNumbers;
+
+                synchronized (subscription) {
+                    otherSession.getSubscriptionManager().removeSubscription(subscriptionId);
+
+                    subscription.setSubscriptionManager(session.getSubscriptionManager());
+                    subscriptionManager.addSubscription(subscription);
+
+                    availableSequenceNumbers = subscription.getAvailableSequenceNumbers();
+
+                    if (request.getSendInitialValues()) {
+                        subscription.getMonitoredItems().values().stream()
+                                .filter(item -> item instanceof MonitoredDataItem)
+                                .map(item -> (MonitoredDataItem) item)
+                                .forEach(MonitoredDataItem::clearLastValue);
+                    }
+                }
+
+                results.add(new TransferResult(StatusCode.Good, availableSequenceNumbers));
+            }
+        }
+
+        service.setResponse(new TransferSubscriptionsResponse(
+                service.createResponseHeader(),
+                a(results, TransferResult.class),
+                new DiagnosticInfo[0]
+        ));
+    }
+
+    private boolean sessionsHaveSameUser(Session s1, Session s2) {
+        Object t1 = s1.getIdentityToken();
+        Object t2 = s2.getIdentityToken();
+
+        if (t1 instanceof UserNameIdentityToken && t2 instanceof UserNameIdentityToken) {
+            ByteString c1 = s1.getClientCertificateBytes();
+            ByteString c2 = s2.getClientCertificateBytes();
+
+            String u1 = ((UserNameIdentityToken) t1).getUserName();
+            String u2 = ((UserNameIdentityToken) t2).getUserName();
+
+            return Objects.equals(c1, c2) && Objects.equals(u1, u2);
+        }
+
+        return false;
     }
 
 }

@@ -114,6 +114,10 @@ public class SubscriptionManager {
         return session;
     }
 
+    public PublishQueue getPublishQueue() {
+        return publishQueue;
+    }
+
     public OpcUaServer getServer() {
         return server;
     }
@@ -125,7 +129,6 @@ public class SubscriptionManager {
 
         Subscription subscription = new Subscription(
                 this,
-                publishQueue,
                 subscriptionId,
                 request.getRequestedPublishingInterval(),
                 request.getRequestedMaxKeepAliveCount().longValue(),
@@ -138,7 +141,7 @@ public class SubscriptionManager {
         subscriptions.put(subscriptionId, subscription);
         server.getSubscriptions().put(subscriptionId, subscription);
 
-        subscription.addStateListener((s, ps, cs) -> {
+        subscription.setStateListener((s, ps, cs) -> {
             if (cs == State.Closed) {
                 subscriptions.remove(s.getId());
                 server.getSubscriptions().remove(s.getId());
@@ -818,7 +821,24 @@ public class SubscriptionManager {
     }
 
     public void sessionClosed(boolean deleteSubscriptions) {
+        // TODO?
+    }
 
+    public Subscription removeSubscription(UInteger subscriptionId) {
+        Subscription subscription = subscriptions.remove(subscriptionId);
+        if (subscription != null) subscription.setStateListener(null);
+        return subscription;
+    }
+
+    public void addSubscription(Subscription subscription) {
+        subscriptions.put(subscription.getId(), subscription);
+
+        subscription.setStateListener((s, ps, cs) -> {
+            if (cs == State.Closed) {
+                subscriptions.remove(s.getId());
+                server.getSubscriptions().remove(s.getId());
+            }
+        });
     }
 
     StatusCode[] getAcknowledgeResults(UInteger requestHandle) {

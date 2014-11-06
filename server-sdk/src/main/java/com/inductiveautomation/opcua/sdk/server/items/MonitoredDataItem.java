@@ -16,6 +16,7 @@
 
 package com.inductiveautomation.opcua.sdk.server.items;
 
+import com.inductiveautomation.opcua.sdk.core.AttributeIds;
 import com.inductiveautomation.opcua.sdk.server.api.DataItem;
 import com.inductiveautomation.opcua.sdk.server.util.DataChangeMonitoringFilter;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
@@ -111,7 +112,7 @@ public class MonitoredDataItem extends BaseMonitoredItem<DataValue> implements D
     }
 
     @Override
-    public void setMonitoringMode(MonitoringMode monitoringMode) {
+    public synchronized void setMonitoringMode(MonitoringMode monitoringMode) {
         if (monitoringMode == MonitoringMode.Disabled) {
             lastValue = null;
         }
@@ -119,19 +120,34 @@ public class MonitoredDataItem extends BaseMonitoredItem<DataValue> implements D
         super.setMonitoringMode(monitoringMode);
     }
 
+    public synchronized void clearLastValue() {
+        lastValue = null;
+    }
+
     @Override
     protected void installFilter(ExtensionObject filterXo) throws UaException {
         if (filterXo == null || filterXo.getObject() == null) {
             this.filter = DefaultFilter;
         } else {
-            Object filter = filterXo.getObject();
+            Object filterObject = filterXo.getObject();
 
-            if (filter instanceof MonitoringFilter) {
-                if (filter instanceof DataChangeFilter) {
-                    this.filter = ((DataChangeFilter) filter);
-                } else if (filter instanceof AggregateFilter) {
+            if (filterObject instanceof MonitoringFilter) {
+                if (filterObject instanceof DataChangeFilter) {
+                    this.filter = ((DataChangeFilter) filterObject);
+
+                    DeadbandType deadbandType = DeadbandType.from(filter.getDeadbandType().intValue());
+
+                    if (deadbandType == null) {
+                        throw new UaException(StatusCodes.Bad_DeadbandFilterInvalid);
+                    }
+
+                    if (deadbandType != DeadbandType.None &&
+                            getReadValueId().getAttributeId().intValue() != AttributeIds.Value) {
+                        throw new UaException(StatusCodes.Bad_FilterNotAllowed);
+                    }
+                } else if (filterObject instanceof AggregateFilter) {
                     throw new UaException(StatusCodes.Bad_MonitoredItemFilterUnsupported);
-                } else if (filter instanceof EventFilter) {
+                } else if (filterObject instanceof EventFilter) {
                     throw new UaException(StatusCodes.Bad_FilterNotAllowed);
                 }
             } else {

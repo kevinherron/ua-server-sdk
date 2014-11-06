@@ -48,8 +48,6 @@ import com.inductiveautomation.opcua.stack.core.types.structured.CloseSessionReq
 import com.inductiveautomation.opcua.stack.core.types.structured.CloseSessionResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.CreateSessionRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.CreateSessionResponse;
-import com.inductiveautomation.opcua.stack.core.types.structured.SessionDiagnosticsDataType;
-import com.inductiveautomation.opcua.stack.core.types.structured.SessionSecurityDiagnosticsDataType;
 import com.inductiveautomation.opcua.stack.core.types.structured.UserIdentityToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -192,12 +190,8 @@ public class Session implements SessionServiceSet {
         return viewServices;
     }
 
-    public SessionDiagnosticsDataType getSessionDiagnostics() {
-        return null; // TODO
-    }
-
-    public SessionSecurityDiagnosticsDataType getSessionSecurityDiagnostics() {
-        return null; // TODO
+    public SubscriptionManager getSubscriptionManager() {
+        return subscriptionManager;
     }
 
     //region Session Services

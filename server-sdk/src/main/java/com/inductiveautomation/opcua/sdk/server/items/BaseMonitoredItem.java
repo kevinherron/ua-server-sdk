@@ -122,10 +122,6 @@ public abstract class BaseMonitoredItem<ValueType> implements MonitoredItem {
         }
     }
 
-    public void setSamplingInterval(double samplingInterval) {
-        this.samplingInterval = samplingInterval;
-    }
-
     @Override
     public UInteger getId() {
         return id;

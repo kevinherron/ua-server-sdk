@@ -22,6 +22,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -32,6 +33,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.PeekingIterator;
 import com.google.common.math.DoubleMath;
 import com.google.common.primitives.Ints;
+import com.inductiveautomation.opcua.sdk.server.Session;
 import com.inductiveautomation.opcua.sdk.server.items.BaseMonitoredItem;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.application.services.ServiceRequest;
@@ -78,7 +80,7 @@ public class Subscription {
     private final Map<UInteger, TriggeringLinks> linksById = Maps.newConcurrentMap();
 
     private final AtomicReference<State> state = new AtomicReference<>(State.Normal);
-    private final List<StateListener> stateListeners = Lists.newCopyOnWriteArrayList();
+    private final AtomicReference<StateListener> stateListener = new AtomicReference<>();
 
     private final AtomicLong sequenceNumber = new AtomicLong(1L);
 
@@ -99,12 +101,11 @@ public class Subscription {
     private volatile boolean publishingEnabled;
     private volatile int priority;
 
-    private final SubscriptionManager manager;
-    private final PublishQueue publishQueue;
+    private volatile SubscriptionManager subscriptionManager;
+
     private final UInteger subscriptionId;
 
-    public Subscription(SubscriptionManager manager,
-                        PublishQueue publishQueue,
+    public Subscription(SubscriptionManager subscriptionManager,
                         UInteger subscriptionId,
                         double publishingInterval,
                         long maxKeepAliveCount,
@@ -113,8 +114,7 @@ public class Subscription {
                         boolean publishingEnabled,
                         int priority) {
 
-        this.manager = manager;
-        this.publishQueue = publishQueue;
+        this.subscriptionManager = subscriptionManager;
         this.subscriptionId = subscriptionId;
 
         setPublishingInterval(publishingInterval);
@@ -292,6 +292,9 @@ public class Subscription {
         this.maxNotificationsPerPublish = Ints.saturatedCast(maxNotificationsPerPublish);
     }
 
+    private synchronized PublishQueue publishQueue() {
+        return subscriptionManager.getPublishQueue();
+    }
 
     private long currentSequenceNumber() {
         return sequenceNumber.get();
@@ -324,7 +327,7 @@ public class Subscription {
         UInteger[] available = availableMessages.keySet().toArray(new UInteger[availableMessages.size()]);
 
         UInteger requestHandle = service.getRequest().getRequestHeader().getRequestHandle();
-        StatusCode[] acknowledgeResults = manager.getAcknowledgeResults(requestHandle);
+        StatusCode[] acknowledgeResults = subscriptionManager.getAcknowledgeResults(requestHandle);
 
         PublishResponse response = new PublishResponse(
                 header, subscriptionId, available,
@@ -412,11 +415,11 @@ public class Subscription {
             sendNotifications(service.get(), notifications);
 
             if (moreNotifications) {
-                gatherAndSend(iterator, Optional.ofNullable(publishQueue.poll()));
+                gatherAndSend(iterator, Optional.ofNullable(publishQueue().poll()));
             }
         } else {
             if (moreNotifications) {
-                publishQueue.addSubscription(this);
+                publishQueue().addSubscription(this);
             }
         }
     }
@@ -470,7 +473,7 @@ public class Subscription {
         UInteger[] available = availableMessages.keySet().toArray(new UInteger[availableMessages.size()]);
 
         UInteger requestHandle = service.getRequest().getRequestHeader().getRequestHandle();
-        StatusCode[] acknowledgeResults = manager.getAcknowledgeResults(requestHandle);
+        StatusCode[] acknowledgeResults = subscriptionManager.getAcknowledgeResults(requestHandle);
 
         ResponseHeader header = service.createResponseHeader();
 
@@ -494,8 +497,10 @@ public class Subscription {
 
         logger.debug("[id={}] {} -> {}", subscriptionId, previousState, state);
 
-        for (StateListener stateListener : stateListeners) {
-            stateListener.onStateChange(this, previousState, state);
+        StateListener listener = stateListener.get();
+
+        if (listener != null) {
+            listener.onStateChange(this, previousState, state);
         }
     }
 
@@ -527,12 +532,29 @@ public class Subscription {
         return priority;
     }
 
+    public synchronized UInteger[] getAvailableSequenceNumbers() {
+        Set<UInteger> uIntegers = availableMessages.keySet();
+        return uIntegers.toArray(new UInteger[uIntegers.size()]);
+    }
+
+    public synchronized SubscriptionManager getSubscriptionManager() {
+        return subscriptionManager;
+    }
+
+    public synchronized void setSubscriptionManager(SubscriptionManager subscriptionManager) {
+        this.subscriptionManager = subscriptionManager;
+    }
+
+    public Session getSession() {
+        return subscriptionManager.getSession();
+    }
+
     public long nextItemId() {
         return itemIds.getAndIncrement();
     }
 
-    public void addStateListener(StateListener listener) {
-        stateListeners.add(listener);
+    public void setStateListener(StateListener listener) {
+        stateListener.set(listener);
     }
 
     /**
@@ -586,7 +608,7 @@ public class Subscription {
         } else {
             long interval = DoubleMath.roundToLong(publishingInterval, RoundingMode.UP);
 
-            manager.getServer().getScheduledExecutorService().schedule(
+            subscriptionManager.getServer().getScheduledExecutorService().schedule(
                     this::onPublishingTimer,
                     interval,
                     TimeUnit.MILLISECONDS
@@ -618,7 +640,7 @@ public class Subscription {
 
             /* Subscription State Table Row 4 */
             if (!publishingEnabled || (publishingEnabled && !moreNotifications)) {
-                publishQueue.addRequest(service);
+                publishQueue().addRequest(service);
             }
             /* Subscription State Table Row 5 */
             else if (publishingEnabled && moreNotifications) {
@@ -655,7 +677,7 @@ public class Subscription {
 
         private void whenKeepAlive(ServiceRequest<PublishRequest, PublishResponse> service) {
             /* Subscription State Table Row 13 */
-            publishQueue.addRequest(service);
+            publishQueue().addRequest(service);
         }
 
         private void whenClosing(ServiceRequest<PublishRequest, PublishResponse> service) {
@@ -665,20 +687,20 @@ public class Subscription {
         }
 
         private void whenClosed(ServiceRequest<PublishRequest, PublishResponse> service) {
-            publishQueue.addRequest(service);
+            publishQueue().addRequest(service);
         }
     }
 
     private class TimerHandler {
         private void whenNormal() {
-            boolean publishRequestQueued = publishQueue.isNotEmpty();
+            boolean publishRequestQueued = publishQueue().isNotEmpty();
             boolean publishingEnabled = Subscription.this.publishingEnabled;
             boolean notificationsAvailable = notificationsAvailable();
 
             /* Subscription State Table Row 6 */
             if (publishRequestQueued && publishingEnabled && notificationsAvailable) {
                 Optional<ServiceRequest<PublishRequest, PublishResponse>> service =
-                        Optional.ofNullable(publishQueue.poll());
+                        Optional.ofNullable(publishQueue().poll());
 
                 if (service.isPresent()) {
                     resetLifetimeCounter();
@@ -693,7 +715,7 @@ public class Subscription {
             else if (publishRequestQueued && !messageSent &&
                     (!publishingEnabled || (publishingEnabled && !notificationsAvailable))) {
                 Optional<ServiceRequest<PublishRequest, PublishResponse>> service =
-                        Optional.ofNullable(publishQueue.poll());
+                        Optional.ofNullable(publishQueue().poll());
 
                 if (service.isPresent()) {
                     resetLifetimeCounter();
@@ -709,7 +731,7 @@ public class Subscription {
                 setState(State.Late);
                 startPublishingTimer();
 
-                publishQueue.addSubscription(Subscription.this);
+                publishQueue().addSubscription(Subscription.this);
             }
             /* Subscription State Table Row 9 */
             else if (messageSent && (!publishingEnabled || (publishingEnabled && !notificationsAvailable))) {
@@ -729,12 +751,12 @@ public class Subscription {
         private void whenKeepAlive() {
             boolean publishingEnabled = Subscription.this.publishingEnabled;
             boolean notificationsAvailable = notificationsAvailable();
-            boolean publishRequestQueued = publishQueue.isNotEmpty();
+            boolean publishRequestQueued = publishQueue().isNotEmpty();
 
             /* Subscription State Table Row 14 */
             if (publishingEnabled && notificationsAvailable && publishRequestQueued) {
                 Optional<ServiceRequest<PublishRequest, PublishResponse>> service =
-                        Optional.ofNullable(publishQueue.poll());
+                        Optional.ofNullable(publishQueue().poll());
 
                 if (service.isPresent()) {
                     setState(State.Normal);
@@ -751,7 +773,7 @@ public class Subscription {
                     (!publishingEnabled || (publishingEnabled && !notificationsAvailable))) {
 
                 Optional<ServiceRequest<PublishRequest, PublishResponse>> service =
-                        Optional.ofNullable(publishQueue.poll());
+                        Optional.ofNullable(publishQueue().poll());
 
                 if (service.isPresent()) {
                     returnKeepAlive(service.get());
@@ -777,7 +799,7 @@ public class Subscription {
                 setState(State.Late);
                 startPublishingTimer();
 
-                publishQueue.addSubscription(Subscription.this);
+                publishQueue().addSubscription(Subscription.this);
             }
         }
     }
