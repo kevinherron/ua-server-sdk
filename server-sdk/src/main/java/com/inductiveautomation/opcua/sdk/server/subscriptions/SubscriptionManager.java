@@ -17,6 +17,7 @@
 package com.inductiveautomation.opcua.sdk.server.subscriptions;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
@@ -821,7 +822,18 @@ public class SubscriptionManager {
     }
 
     public void sessionClosed(boolean deleteSubscriptions) {
-        // TODO?
+        Iterator<Subscription> iterator = subscriptions.values().iterator();
+
+        while (iterator.hasNext()) {
+            Subscription s = iterator.next();
+            s.setStateListener(null);
+
+            if (deleteSubscriptions) {
+                server.getSubscriptions().remove(s.getId());
+            }
+
+            iterator.remove();
+        }
     }
 
     public Subscription removeSubscription(UInteger subscriptionId) {

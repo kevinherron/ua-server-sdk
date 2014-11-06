@@ -55,7 +55,6 @@ import com.inductiveautomation.opcua.stack.core.types.structured.ResponseHeader;
 import com.inductiveautomation.opcua.stack.core.types.structured.SetPublishingModeRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.SetTriggeringRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.StatusChangeNotification;
-import com.inductiveautomation.opcua.stack.core.util.ExecutionQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -559,8 +558,6 @@ public class Subscription {
 
     /**
      * Handle an incoming {@link PublishRequest}.
-     * <p>
-     * Must be called on the {@link ExecutionQueue}.
      *
      * @param service The service request that contains the {@link PublishRequest}.
      */
@@ -580,8 +577,6 @@ public class Subscription {
 
     /**
      * The publishing timer has elapsed.
-     * <p>
-     * Must be called on the {@link ExecutionQueue}.
      */
     synchronized void onPublishingTimer() {
         State state = this.state.get();

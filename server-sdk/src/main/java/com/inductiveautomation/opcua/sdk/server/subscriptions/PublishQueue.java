@@ -106,15 +106,15 @@ public class PublishQueue {
         }
     }
 
-    public boolean isEmpty() {
+    public synchronized boolean isEmpty() {
         return serviceQueue.isEmpty();
     }
 
-    public boolean isNotEmpty() {
+    public synchronized boolean isNotEmpty() {
         return !isEmpty();
     }
 
-    public ServiceRequest<PublishRequest, PublishResponse> poll() {
+    public synchronized ServiceRequest<PublishRequest, PublishResponse> poll() {
         return serviceQueue.poll();
     }
 
