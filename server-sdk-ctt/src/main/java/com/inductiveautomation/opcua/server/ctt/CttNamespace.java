@@ -36,6 +36,7 @@ import com.inductiveautomation.opcua.sdk.server.api.DataItem;
 import com.inductiveautomation.opcua.sdk.server.api.MethodInvocationHandler;
 import com.inductiveautomation.opcua.sdk.server.api.MonitoredItem;
 import com.inductiveautomation.opcua.sdk.server.api.UaNamespace;
+import com.inductiveautomation.opcua.sdk.server.model.UaFolderNode;
 import com.inductiveautomation.opcua.sdk.server.model.UaMethodNode;
 import com.inductiveautomation.opcua.sdk.server.model.UaNode;
 import com.inductiveautomation.opcua.sdk.server.model.UaObjectNode;
@@ -80,7 +81,7 @@ public class CttNamespace implements UaNamespace {
 
     private final Map<NodeId, UaNode> nodes = Maps.newConcurrentMap();
 
-    private final UaNode cttFolder;
+    private final UaFolderNode cttFolder;
     private final SubscriptionModel subscriptionModel;
 
     private final OpcUaServer server;
@@ -90,12 +91,12 @@ public class CttNamespace implements UaNamespace {
 
         NodeId cttNodeId = new NodeId(NamespaceIndex, "CTT");
 
-        cttFolder = UaObjectNode.builder(this)
-                .setNodeId(cttNodeId)
-                .setBrowseName(new QualifiedName(NamespaceIndex, "CTT"))
-                .setDisplayName(LocalizedText.english("CTT"))
-                .setTypeDefinition(Identifiers.FolderType)
-                .build();
+        cttFolder = new UaFolderNode(
+                this,
+                cttNodeId,
+                new QualifiedName(NamespaceIndex, "CTT"),
+                LocalizedText.english("CTT")
+        );
 
         nodes.put(cttNodeId, cttFolder);
 

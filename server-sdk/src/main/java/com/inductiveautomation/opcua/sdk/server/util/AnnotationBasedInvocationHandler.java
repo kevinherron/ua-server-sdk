@@ -186,7 +186,7 @@ public class AnnotationBasedInvocationHandler implements MethodInvocationHandler
     }
 
 
-    public static AnnotationBasedInvocationHandler fromAnnotatedObject(UaNamespace nodeManager, Object annotatedObject) throws Exception {
+    public static AnnotationBasedInvocationHandler fromAnnotatedObject(UaNamespace namespace, Object annotatedObject) throws Exception {
         // TODO Make this work when parameter types are not built-in types
 
         Method annotatedMethod = Arrays.stream(annotatedObject.getClass().getMethods())
@@ -253,7 +253,7 @@ public class AnnotationBasedInvocationHandler implements MethodInvocationHandler
         }
 
         return new AnnotationBasedInvocationHandler(
-                nodeManager,
+                namespace,
                 inputArguments,
                 outputArguments,
                 annotatedObject

@@ -59,12 +59,12 @@ public class UaObjectNode extends UaNode implements ObjectNode {
 
     private volatile UByte eventNotifier = ubyte(0);
 
-    public UaObjectNode(UaNamespace namespce,
+    public UaObjectNode(UaNamespace namespace,
                         NodeId nodeId,
                         QualifiedName browseName,
                         LocalizedText displayName) {
 
-        super(namespce, nodeId, NodeClass.Object, browseName, displayName);
+        super(namespace, nodeId, NodeClass.Object, browseName, displayName);
     }
 
     public UaObjectNode(UaNamespace namespace,
