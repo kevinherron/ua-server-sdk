@@ -14,6 +14,4 @@ public interface DataItemType extends BaseDataVariableType {
 
     void setValuePrecision(Double valuePrecision);
 
-    void atomicAction(Runnable runnable);
-
 }

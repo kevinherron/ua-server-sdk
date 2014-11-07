@@ -16,6 +16,4 @@ public interface OptionSetType extends BaseDataVariableType {
 
     void setBitMask(Boolean[] bitMask);
 
-    void atomicAction(Runnable runnable);
-
 }

@@ -224,6 +224,4 @@ public interface SessionDiagnosticsVariableType extends BaseDataVariableType {
 
     void setUnregisterNodesCount(ServiceCounterDataType unregisterNodesCount);
 
-    void atomicAction(Runnable runnable);
-
 }

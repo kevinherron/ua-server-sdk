@@ -17,7 +17,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 @UaVariableType(name = "DataItemType")
 public class DataItemNode extends BaseDataVariableNode implements DataItemType {
 
-    public DataItemNode(UaNamespace nodeManager,
+    public DataItemNode(UaNamespace namespace,
                         NodeId nodeId,
                         QualifiedName browseName,
                         LocalizedText displayName,
@@ -33,7 +33,7 @@ public class DataItemNode extends BaseDataVariableNode implements DataItemType {
                         Optional<Double> minimumSamplingInterval,
                         boolean historizing) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
 
     }
@@ -66,11 +66,6 @@ public class DataItemNode extends BaseDataVariableNode implements DataItemType {
         getPropertyNode("ValuePrecision").ifPresent(n -> {
             n.setValue(new DataValue(new Variant(valuePrecision)));
         });
-    }
-
-    @Override
-    public void atomicAction(Runnable runnable) {
-        runnable.run();
     }
 
 }

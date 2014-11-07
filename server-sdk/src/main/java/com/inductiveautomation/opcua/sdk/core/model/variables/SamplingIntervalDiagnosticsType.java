@@ -25,6 +25,4 @@ public interface SamplingIntervalDiagnosticsType extends BaseDataVariableType {
 
     void setDisabledMonitoredItemsSamplingCount(UInteger disabledMonitoredItemsSamplingCount);
 
-    void atomicAction(Runnable runnable);
-
 }

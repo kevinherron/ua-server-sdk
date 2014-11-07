@@ -52,6 +52,4 @@ public interface SessionSecurityDiagnosticsType extends BaseDataVariableType {
 
     void setClientCertificate(ByteString clientCertificate);
 
-    void atomicAction(Runnable runnable);
-
 }

@@ -15,6 +15,4 @@ public interface ImageItemType extends ArrayItemType {
 
     void setYAxisDefinition(AxisInformation yAxisDefinition);
 
-    void atomicAction(Runnable runnable);
-
 }

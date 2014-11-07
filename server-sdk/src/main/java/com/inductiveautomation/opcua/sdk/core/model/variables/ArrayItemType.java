@@ -34,6 +34,4 @@ public interface ArrayItemType extends DataItemType {
 
     void setAxisScaleType(AxisScaleEnumeration axisScaleType);
 
-    void atomicAction(Runnable runnable);
-
 }

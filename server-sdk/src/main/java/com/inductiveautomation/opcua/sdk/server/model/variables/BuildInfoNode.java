@@ -21,7 +21,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.BuildInfo;
 @UaVariableType(name = "BuildInfoType")
 public class BuildInfoNode extends BaseDataVariableNode implements BuildInfoType {
 
-    public BuildInfoNode(UaNamespace nodeManager,
+    public BuildInfoNode(UaNamespace namespace,
                          NodeId nodeId,
                          QualifiedName browseName,
                          LocalizedText displayName,
@@ -37,7 +37,7 @@ public class BuildInfoNode extends BaseDataVariableNode implements BuildInfoType
                          Optional<Double> minimumSamplingInterval,
                          boolean historizing) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
 
     }
@@ -170,11 +170,6 @@ public class BuildInfoNode extends BaseDataVariableNode implements BuildInfoType
 
             fireAttributeChanged(AttributeIds.Value, getValue());
         });
-    }
-
-    @Override
-    public void atomicAction(Runnable runnable) {
-        runnable.run();
     }
 
 }

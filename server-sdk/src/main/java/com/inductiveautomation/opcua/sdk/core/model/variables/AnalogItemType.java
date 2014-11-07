@@ -22,6 +22,4 @@ public interface AnalogItemType extends DataItemType {
 
     void setEngineeringUnits(EUInformation engineeringUnits);
 
-    void atomicAction(Runnable runnable);
-
 }

@@ -32,6 +32,4 @@ public interface TwoStateVariableType extends StateVariableType {
 
     void setFalseState(LocalizedText falseState);
 
-    void atomicAction(Runnable runnable);
-
 }

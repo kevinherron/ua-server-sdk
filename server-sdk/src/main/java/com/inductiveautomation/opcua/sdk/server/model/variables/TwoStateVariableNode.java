@@ -19,7 +19,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 @UaVariableType(name = "TwoStateVariableType")
 public class TwoStateVariableNode extends StateVariableNode implements TwoStateVariableType {
 
-    public TwoStateVariableNode(UaNamespace nodeManager,
+    public TwoStateVariableNode(UaNamespace namespace,
                                 NodeId nodeId,
                                 QualifiedName browseName,
                                 LocalizedText displayName,
@@ -35,7 +35,7 @@ public class TwoStateVariableNode extends StateVariableNode implements TwoStateV
                                 Optional<Double> minimumSamplingInterval,
                                 boolean historizing) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
 
     }
@@ -113,11 +113,6 @@ public class TwoStateVariableNode extends StateVariableNode implements TwoStateV
         getPropertyNode("FalseState").ifPresent(n -> {
             n.setValue(new DataValue(new Variant(falseState)));
         });
-    }
-
-    @Override
-    public void atomicAction(Runnable runnable) {
-        runnable.run();
     }
 
 }

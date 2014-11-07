@@ -28,6 +28,4 @@ public interface StateVariableType extends BaseDataVariableType {
 
     void setEffectiveDisplayName(LocalizedText effectiveDisplayName);
 
-    void atomicAction(Runnable runnable);
-
 }

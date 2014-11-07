@@ -20,7 +20,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.SamplingInterva
 @UaVariableType(name = "SamplingIntervalDiagnosticsType")
 public class SamplingIntervalDiagnosticsNode extends BaseDataVariableNode implements SamplingIntervalDiagnosticsType {
 
-    public SamplingIntervalDiagnosticsNode(UaNamespace nodeManager,
+    public SamplingIntervalDiagnosticsNode(UaNamespace namespace,
                                            NodeId nodeId,
                                            QualifiedName browseName,
                                            LocalizedText displayName,
@@ -36,7 +36,7 @@ public class SamplingIntervalDiagnosticsNode extends BaseDataVariableNode implem
                                            Optional<Double> minimumSamplingInterval,
                                            boolean historizing) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
 
     }
@@ -131,11 +131,6 @@ public class SamplingIntervalDiagnosticsNode extends BaseDataVariableNode implem
 
             fireAttributeChanged(AttributeIds.Value, getValue());
         });
-    }
-
-    @Override
-    public void atomicAction(Runnable runnable) {
-        runnable.run();
     }
 
 }

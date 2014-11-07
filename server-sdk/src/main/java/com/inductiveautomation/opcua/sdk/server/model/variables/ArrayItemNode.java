@@ -21,7 +21,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.Range;
 @UaVariableType(name = "ArrayItemType")
 public class ArrayItemNode extends DataItemNode implements ArrayItemType {
 
-    public ArrayItemNode(UaNamespace nodeManager,
+    public ArrayItemNode(UaNamespace namespace,
                          NodeId nodeId,
                          QualifiedName browseName,
                          LocalizedText displayName,
@@ -37,7 +37,7 @@ public class ArrayItemNode extends DataItemNode implements ArrayItemType {
                          Optional<Double> minimumSamplingInterval,
                          boolean historizing) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
 
     }
@@ -117,11 +117,6 @@ public class ArrayItemNode extends DataItemNode implements ArrayItemType {
 
             n.setValue(new DataValue(new Variant(value)));
         });
-    }
-
-    @Override
-    public void atomicAction(Runnable runnable) {
-        runnable.run();
     }
 
 }

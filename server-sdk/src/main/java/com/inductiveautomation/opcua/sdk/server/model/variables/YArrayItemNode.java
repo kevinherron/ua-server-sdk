@@ -18,7 +18,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.AxisInformation
 @UaVariableType(name = "YArrayItemType")
 public class YArrayItemNode extends ArrayItemNode implements YArrayItemType {
 
-    public YArrayItemNode(UaNamespace nodeManager,
+    public YArrayItemNode(UaNamespace namespace,
                           NodeId nodeId,
                           QualifiedName browseName,
                           LocalizedText displayName,
@@ -34,7 +34,7 @@ public class YArrayItemNode extends ArrayItemNode implements YArrayItemType {
                           Optional<Double> minimumSamplingInterval,
                           boolean historizing) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
 
     }
@@ -52,11 +52,6 @@ public class YArrayItemNode extends ArrayItemNode implements YArrayItemType {
         getPropertyNode("XAxisDefinition").ifPresent(n -> {
             n.setValue(new DataValue(new Variant(xAxisDefinition)));
         });
-    }
-
-    @Override
-    public void atomicAction(Runnable runnable) {
-        runnable.run();
     }
 
 }

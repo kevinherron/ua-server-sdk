@@ -18,7 +18,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 @UaVariableType(name = "DataTypeDescriptionType")
 public class DataTypeDescriptionNode extends BaseDataVariableNode implements DataTypeDescriptionType {
 
-    public DataTypeDescriptionNode(UaNamespace nodeManager,
+    public DataTypeDescriptionNode(UaNamespace namespace,
                                    NodeId nodeId,
                                    QualifiedName browseName,
                                    LocalizedText displayName,
@@ -34,7 +34,7 @@ public class DataTypeDescriptionNode extends BaseDataVariableNode implements Dat
                                    Optional<Double> minimumSamplingInterval,
                                    boolean historizing) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
 
     }
@@ -67,11 +67,6 @@ public class DataTypeDescriptionNode extends BaseDataVariableNode implements Dat
         getPropertyNode("DictionaryFragment").ifPresent(n -> {
             n.setValue(new DataValue(new Variant(dictionaryFragment)));
         });
-    }
-
-    @Override
-    public void atomicAction(Runnable runnable) {
-        runnable.run();
     }
 
 }

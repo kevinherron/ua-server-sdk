@@ -18,7 +18,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.EnumValueType;
 @UaVariableType(name = "MultiStateValueDiscreteType")
 public class MultiStateValueDiscreteNode extends DiscreteItemNode implements MultiStateValueDiscreteType {
 
-    public MultiStateValueDiscreteNode(UaNamespace nodeManager,
+    public MultiStateValueDiscreteNode(UaNamespace namespace,
                                        NodeId nodeId,
                                        QualifiedName browseName,
                                        LocalizedText displayName,
@@ -34,7 +34,7 @@ public class MultiStateValueDiscreteNode extends DiscreteItemNode implements Mul
                                        Optional<Double> minimumSamplingInterval,
                                        boolean historizing) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
 
     }
@@ -67,11 +67,6 @@ public class MultiStateValueDiscreteNode extends DiscreteItemNode implements Mul
         getPropertyNode("ValueAsText").ifPresent(n -> {
             n.setValue(new DataValue(new Variant(valueAsText)));
         });
-    }
-
-    @Override
-    public void atomicAction(Runnable runnable) {
-        runnable.run();
     }
 
 }

@@ -20,6 +20,4 @@ public interface CubeItemType extends ArrayItemType {
 
     void setZAxisDefinition(AxisInformation zAxisDefinition);
 
-    void atomicAction(Runnable runnable);
-
 }

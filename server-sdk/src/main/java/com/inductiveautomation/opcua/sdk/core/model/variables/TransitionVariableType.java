@@ -33,6 +33,4 @@ public interface TransitionVariableType extends BaseDataVariableType {
 
     void setEffectiveTransitionTime(DateTime effectiveTransitionTime);
 
-    void atomicAction(Runnable runnable);
-
 }

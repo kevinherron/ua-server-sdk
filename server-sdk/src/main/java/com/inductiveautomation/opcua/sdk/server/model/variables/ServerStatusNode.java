@@ -23,7 +23,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.ServerStatusDat
 @UaVariableType(name = "ServerStatusType")
 public class ServerStatusNode extends BaseDataVariableNode implements ServerStatusType {
 
-    public ServerStatusNode(UaNamespace nodeManager,
+    public ServerStatusNode(UaNamespace namespace,
                             NodeId nodeId,
                             QualifiedName browseName,
                             LocalizedText displayName,
@@ -39,7 +39,7 @@ public class ServerStatusNode extends BaseDataVariableNode implements ServerStat
                             Optional<Double> minimumSamplingInterval,
                             boolean historizing) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
 
     }
@@ -177,11 +177,6 @@ public class ServerStatusNode extends BaseDataVariableNode implements ServerStat
 
             fireAttributeChanged(AttributeIds.Value, getValue());
         });
-    }
-
-    @Override
-    public void atomicAction(Runnable runnable) {
-        runnable.run();
     }
 
 }

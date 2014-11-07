@@ -15,7 +15,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 @UaVariableType(name = "SessionSecurityDiagnosticsArrayType")
 public class SessionSecurityDiagnosticsArrayNode extends BaseDataVariableNode implements SessionSecurityDiagnosticsArrayType {
 
-    public SessionSecurityDiagnosticsArrayNode(UaNamespace nodeManager,
+    public SessionSecurityDiagnosticsArrayNode(UaNamespace namespace,
                                                NodeId nodeId,
                                                QualifiedName browseName,
                                                LocalizedText displayName,
@@ -31,15 +31,10 @@ public class SessionSecurityDiagnosticsArrayNode extends BaseDataVariableNode im
                                                Optional<Double> minimumSamplingInterval,
                                                boolean historizing) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
 
     }
 
-
-    @Override
-    public void atomicAction(Runnable runnable) {
-        runnable.run();
-    }
 
 }

@@ -15,6 +15,4 @@ public interface TwoStateDiscreteType extends DiscreteItemType {
 
     void setTrueState(LocalizedText trueState);
 
-    void atomicAction(Runnable runnable);
-
 }

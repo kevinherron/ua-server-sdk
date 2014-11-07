@@ -22,7 +22,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.SessionSecurity
 @UaVariableType(name = "SessionSecurityDiagnosticsType")
 public class SessionSecurityDiagnosticsNode extends BaseDataVariableNode implements SessionSecurityDiagnosticsType {
 
-    public SessionSecurityDiagnosticsNode(UaNamespace nodeManager,
+    public SessionSecurityDiagnosticsNode(UaNamespace namespace,
                                           NodeId nodeId,
                                           QualifiedName browseName,
                                           LocalizedText displayName,
@@ -38,7 +38,7 @@ public class SessionSecurityDiagnosticsNode extends BaseDataVariableNode impleme
                                           Optional<Double> minimumSamplingInterval,
                                           boolean historizing) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
 
     }
@@ -233,11 +233,6 @@ public class SessionSecurityDiagnosticsNode extends BaseDataVariableNode impleme
 
             fireAttributeChanged(AttributeIds.Value, getValue());
         });
-    }
-
-    @Override
-    public void atomicAction(Runnable runnable) {
-        runnable.run();
     }
 
 }

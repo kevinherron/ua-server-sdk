@@ -16,7 +16,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 @UaVariableType(name = "BaseVariableType")
 public class BaseVariableNode extends UaVariableNode implements BaseVariableType {
 
-    public BaseVariableNode(UaNamespace nodeManager,
+    public BaseVariableNode(UaNamespace namespace,
                             NodeId nodeId,
                             QualifiedName browseName,
                             LocalizedText displayName,
@@ -32,15 +32,10 @@ public class BaseVariableNode extends UaVariableNode implements BaseVariableType
                             Optional<Double> minimumSamplingInterval,
                             boolean historizing) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
 
     }
 
-
-    @Override
-    public void atomicAction(Runnable runnable) {
-        runnable.run();
-    }
 
 }

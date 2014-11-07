@@ -10,6 +10,4 @@ public interface FiniteStateVariableType extends StateVariableType {
 
     void setId(NodeId id);
 
-    void atomicAction(Runnable runnable);
-
 }

@@ -14,6 +14,4 @@ public interface DataTypeDictionaryType extends BaseDataVariableType {
 
     void setNamespaceUri(String namespaceUri);
 
-    void atomicAction(Runnable runnable);
-
 }

@@ -20,7 +20,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.Range;
 @UaVariableType(name = "AnalogItemType")
 public class AnalogItemNode extends DataItemNode implements AnalogItemType {
 
-    public AnalogItemNode(UaNamespace nodeManager,
+    public AnalogItemNode(UaNamespace namespace,
                           NodeId nodeId,
                           QualifiedName browseName,
                           LocalizedText displayName,
@@ -36,7 +36,7 @@ public class AnalogItemNode extends DataItemNode implements AnalogItemType {
                           Optional<Double> minimumSamplingInterval,
                           boolean historizing) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
 
     }
@@ -84,11 +84,6 @@ public class AnalogItemNode extends DataItemNode implements AnalogItemType {
         getPropertyNode("EngineeringUnits").ifPresent(n -> {
             n.setValue(new DataValue(new Variant(engineeringUnits)));
         });
-    }
-
-    @Override
-    public void atomicAction(Runnable runnable) {
-        runnable.run();
     }
 
 }

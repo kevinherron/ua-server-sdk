@@ -18,7 +18,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 @UaVariableType(name = "OptionSetType")
 public class OptionSetNode extends BaseDataVariableNode implements OptionSetType {
 
-    public OptionSetNode(UaNamespace nodeManager,
+    public OptionSetNode(UaNamespace namespace,
                          NodeId nodeId,
                          QualifiedName browseName,
                          LocalizedText displayName,
@@ -34,7 +34,7 @@ public class OptionSetNode extends BaseDataVariableNode implements OptionSetType
                          Optional<Double> minimumSamplingInterval,
                          boolean historizing) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
 
     }
@@ -67,11 +67,6 @@ public class OptionSetNode extends BaseDataVariableNode implements OptionSetType
         getPropertyNode("BitMask").ifPresent(n -> {
             n.setValue(new DataValue(new Variant(bitMask)));
         });
-    }
-
-    @Override
-    public void atomicAction(Runnable runnable) {
-        runnable.run();
     }
 
 }

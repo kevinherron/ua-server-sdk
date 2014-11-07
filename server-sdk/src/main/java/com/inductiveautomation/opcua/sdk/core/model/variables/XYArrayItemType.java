@@ -10,6 +10,4 @@ public interface XYArrayItemType extends ArrayItemType {
 
     void setXAxisDefinition(AxisInformation xAxisDefinition);
 
-    void atomicAction(Runnable runnable);
-
 }

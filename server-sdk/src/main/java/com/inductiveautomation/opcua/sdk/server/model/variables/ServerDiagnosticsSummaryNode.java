@@ -20,7 +20,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.ServerDiagnosti
 @UaVariableType(name = "ServerDiagnosticsSummaryType")
 public class ServerDiagnosticsSummaryNode extends BaseDataVariableNode implements ServerDiagnosticsSummaryType {
 
-    public ServerDiagnosticsSummaryNode(UaNamespace nodeManager,
+    public ServerDiagnosticsSummaryNode(UaNamespace namespace,
                                         NodeId nodeId,
                                         QualifiedName browseName,
                                         LocalizedText displayName,
@@ -36,7 +36,7 @@ public class ServerDiagnosticsSummaryNode extends BaseDataVariableNode implement
                                         Optional<Double> minimumSamplingInterval,
                                         boolean historizing) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
 
     }
@@ -283,11 +283,6 @@ public class ServerDiagnosticsSummaryNode extends BaseDataVariableNode implement
 
             fireAttributeChanged(AttributeIds.Value, getValue());
         });
-    }
-
-    @Override
-    public void atomicAction(Runnable runnable) {
-        runnable.run();
     }
 
 }

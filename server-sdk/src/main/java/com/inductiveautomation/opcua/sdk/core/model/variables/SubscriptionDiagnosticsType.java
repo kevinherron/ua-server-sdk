@@ -162,6 +162,4 @@ public interface SubscriptionDiagnosticsType extends BaseDataVariableType {
 
     void setEventQueueOverFlowCount(UInteger eventQueueOverFlowCount);
 
-    void atomicAction(Runnable runnable);
-
 }

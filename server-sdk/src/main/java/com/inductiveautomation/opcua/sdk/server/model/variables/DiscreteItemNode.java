@@ -15,7 +15,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 @UaVariableType(name = "DiscreteItemType")
 public class DiscreteItemNode extends DataItemNode implements DiscreteItemType {
 
-    public DiscreteItemNode(UaNamespace nodeManager,
+    public DiscreteItemNode(UaNamespace namespace,
                             NodeId nodeId,
                             QualifiedName browseName,
                             LocalizedText displayName,
@@ -31,15 +31,10 @@ public class DiscreteItemNode extends DataItemNode implements DiscreteItemType {
                             Optional<Double> minimumSamplingInterval,
                             boolean historizing) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
 
     }
 
-
-    @Override
-    public void atomicAction(Runnable runnable) {
-        runnable.run();
-    }
 
 }

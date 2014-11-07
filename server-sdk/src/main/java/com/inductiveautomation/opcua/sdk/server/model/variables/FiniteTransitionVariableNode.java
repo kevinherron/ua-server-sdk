@@ -17,7 +17,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 @UaVariableType(name = "FiniteTransitionVariableType")
 public class FiniteTransitionVariableNode extends TransitionVariableNode implements FiniteTransitionVariableType {
 
-    public FiniteTransitionVariableNode(UaNamespace nodeManager,
+    public FiniteTransitionVariableNode(UaNamespace namespace,
                                         NodeId nodeId,
                                         QualifiedName browseName,
                                         LocalizedText displayName,
@@ -33,7 +33,7 @@ public class FiniteTransitionVariableNode extends TransitionVariableNode impleme
                                         Optional<Double> minimumSamplingInterval,
                                         boolean historizing) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
 
     }
@@ -51,11 +51,6 @@ public class FiniteTransitionVariableNode extends TransitionVariableNode impleme
         getPropertyNode("Id").ifPresent(n -> {
             n.setValue(new DataValue(new Variant(id)));
         });
-    }
-
-    @Override
-    public void atomicAction(Runnable runnable) {
-        runnable.run();
     }
 
 }

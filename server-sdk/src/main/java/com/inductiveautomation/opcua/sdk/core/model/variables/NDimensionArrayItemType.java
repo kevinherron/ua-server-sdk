@@ -10,6 +10,4 @@ public interface NDimensionArrayItemType extends ArrayItemType {
 
     void setAxisDefinition(AxisInformation[] axisDefinition);
 
-    void atomicAction(Runnable runnable);
-
 }

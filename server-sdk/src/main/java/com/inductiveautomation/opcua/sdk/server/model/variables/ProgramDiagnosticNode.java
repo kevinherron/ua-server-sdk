@@ -22,7 +22,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.StatusResult;
 @UaVariableType(name = "ProgramDiagnosticType")
 public class ProgramDiagnosticNode extends BaseDataVariableNode implements ProgramDiagnosticType {
 
-    public ProgramDiagnosticNode(UaNamespace nodeManager,
+    public ProgramDiagnosticNode(UaNamespace namespace,
                                  NodeId nodeId,
                                  QualifiedName browseName,
                                  LocalizedText displayName,
@@ -38,7 +38,7 @@ public class ProgramDiagnosticNode extends BaseDataVariableNode implements Progr
                                  Optional<Double> minimumSamplingInterval,
                                  boolean historizing) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
 
     }
@@ -227,11 +227,6 @@ public class ProgramDiagnosticNode extends BaseDataVariableNode implements Progr
         getPropertyNode("LastMethodReturnStatus").ifPresent(n -> {
             n.setValue(new DataValue(new Variant(lastMethodReturnStatus)));
         });
-    }
-
-    @Override
-    public void atomicAction(Runnable runnable) {
-        runnable.run();
     }
 
 }

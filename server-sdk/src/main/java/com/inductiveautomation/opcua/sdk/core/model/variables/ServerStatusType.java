@@ -39,6 +39,4 @@ public interface ServerStatusType extends BaseDataVariableType {
 
     void setShutdownReason(LocalizedText shutdownReason);
 
-    void atomicAction(Runnable runnable);
-
 }

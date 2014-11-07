@@ -10,6 +10,4 @@ public interface ConditionVariableType extends BaseDataVariableType {
 
     void setSourceTimestamp(DateTime sourceTimestamp);
 
-    void atomicAction(Runnable runnable);
-
 }

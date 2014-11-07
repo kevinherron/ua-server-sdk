@@ -15,6 +15,4 @@ public interface DataTypeDescriptionType extends BaseDataVariableType {
 
     void setDictionaryFragment(ByteString dictionaryFragment);
 
-    void atomicAction(Runnable runnable);
-
 }

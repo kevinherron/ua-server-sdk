@@ -10,6 +10,4 @@ public interface FiniteTransitionVariableType extends TransitionVariableType {
 
     void setId(NodeId id);
 
-    void atomicAction(Runnable runnable);
-
 }

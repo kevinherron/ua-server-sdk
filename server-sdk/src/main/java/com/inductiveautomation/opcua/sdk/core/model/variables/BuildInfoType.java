@@ -35,6 +35,4 @@ public interface BuildInfoType extends BaseDataVariableType {
 
     void setBuildDate(DateTime buildDate);
 
-    void atomicAction(Runnable runnable);
-
 }

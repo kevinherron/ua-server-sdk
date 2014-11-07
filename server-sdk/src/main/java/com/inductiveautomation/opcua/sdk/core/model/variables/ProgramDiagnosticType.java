@@ -58,6 +58,4 @@ public interface ProgramDiagnosticType extends BaseDataVariableType {
 
     void setLastMethodReturnStatus(StatusResult lastMethodReturnStatus);
 
-    void atomicAction(Runnable runnable);
-
 }

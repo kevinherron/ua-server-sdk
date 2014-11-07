@@ -65,6 +65,4 @@ public interface ServerDiagnosticsSummaryType extends BaseDataVariableType {
 
     void setRejectedRequestsCount(UInteger rejectedRequestsCount);
 
-    void atomicAction(Runnable runnable);
-
 }

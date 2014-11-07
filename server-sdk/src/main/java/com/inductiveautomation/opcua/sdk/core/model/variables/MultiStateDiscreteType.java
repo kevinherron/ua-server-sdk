@@ -10,6 +10,4 @@ public interface MultiStateDiscreteType extends DiscreteItemType {
 
     void setEnumStrings(LocalizedText[] enumStrings);
 
-    void atomicAction(Runnable runnable);
-
 }

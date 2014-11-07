@@ -16,6 +16,4 @@ public interface MultiStateValueDiscreteType extends DiscreteItemType {
 
     void setValueAsText(LocalizedText valueAsText);
 
-    void atomicAction(Runnable runnable);
-
 }

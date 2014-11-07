@@ -20,7 +20,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.SubscriptionDia
 @UaVariableType(name = "SubscriptionDiagnosticsType")
 public class SubscriptionDiagnosticsNode extends BaseDataVariableNode implements SubscriptionDiagnosticsType {
 
-    public SubscriptionDiagnosticsNode(UaNamespace nodeManager,
+    public SubscriptionDiagnosticsNode(UaNamespace namespace,
                                        NodeId nodeId,
                                        QualifiedName browseName,
                                        LocalizedText displayName,
@@ -36,7 +36,7 @@ public class SubscriptionDiagnosticsNode extends BaseDataVariableNode implements
                                        Optional<Double> minimumSamplingInterval,
                                        boolean historizing) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
 
     }
@@ -644,11 +644,6 @@ public class SubscriptionDiagnosticsNode extends BaseDataVariableNode implements
 
             fireAttributeChanged(AttributeIds.Value, getValue());
         });
-    }
-
-    @Override
-    public void atomicAction(Runnable runnable) {
-        runnable.run();
     }
 
 }
