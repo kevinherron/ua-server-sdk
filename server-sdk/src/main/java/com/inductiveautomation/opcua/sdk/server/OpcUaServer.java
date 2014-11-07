@@ -101,11 +101,17 @@ public class OpcUaServer {
         for (String address : config.getBindAddresses()) {
             String bindUrl = String.format("opc.tcp://%s:%d/%s", address, config.getBindPort(), config.getServerName());
 
-            String endpointUrl = endpointUrl(config.getHostname(), address, config.getBindPort());
-
             for (SecurityPolicy securityPolicy : config.getSecurityPolicies()) {
                 MessageSecurityMode messageSecurityMode = securityPolicy == SecurityPolicy.None ?
                         MessageSecurityMode.None : MessageSecurityMode.SignAndEncrypt;
+
+                String endpointUrl = endpointUrl(
+                        config.getHostname(),
+                        address,
+                        config.getBindPort(),
+                        securityPolicy,
+                        messageSecurityMode
+                );
 
                 logger.info("Binding endpoint {} to {} [{}/{}]",
                         endpointUrl, bindUrl, securityPolicy, messageSecurityMode);
@@ -128,6 +134,7 @@ public class OpcUaServer {
     private UaServer buildServer() {
         UaTcpServerBuilder bootstrap = new UaTcpServerBuilder();
 
+        bootstrap.setServerName(config.getServerName());
         bootstrap.setApplicationName(config.getApplicationName());
         bootstrap.setApplicationUri(config.getApplicationUri());
         bootstrap.setProductUri(config.getProductUri());
@@ -139,7 +146,10 @@ public class OpcUaServer {
         return bootstrap.build();
     }
 
-    private String endpointUrl(String hostname, String address, int port) {
+    private String endpointUrl(String hostname, String address, int port,
+                               SecurityPolicy securityPolicy,
+                               MessageSecurityMode securityMode) {
+
         StringBuilder sb = new StringBuilder();
 
         try {
@@ -150,6 +160,7 @@ public class OpcUaServer {
                 if (!config.getServerName().isEmpty()) {
                     sb.append("/").append(config.getServerName());
                 }
+                sb.append("/").append(securityPolicy).append("/").append(securityMode);
                 return sb.toString();
             }
         } catch (UnknownHostException ignored) {
@@ -159,6 +170,7 @@ public class OpcUaServer {
         if (!config.getServerName().isEmpty()) {
             sb.append("/").append(config.getServerName());
         }
+        sb.append("/").append(securityPolicy).append("/").append(securityMode);
         return sb.toString();
     }
 
