@@ -147,6 +147,30 @@ public class UaObjectNode extends UaNode implements ObjectNode {
         return node.map(n -> n);
     }
 
+    /**
+     * Add a 'HasComponent' reference from this Object to {@code node} and an inverse 'ComponentOf' reference from
+     * {@code node} back to this Object.
+     *
+     * @param node the node to be organized by this folder.
+     */
+    public void hasComponent(UaNode node) {
+        addReference(new Reference(
+                getNodeId(),
+                Identifiers.HasComponent,
+                node.getNodeId().expanded(),
+                node.getNodeClass(),
+                true
+        ));
+
+        node.addReference(new Reference(
+                node.getNodeId(),
+                Identifiers.HasComponent,
+                getNodeId().expanded(),
+                getNodeClass(),
+                false
+        ));
+    }
+
     @UaOptional("NodeVersion")
     public String getNodeVersion() {
         return getProperty(NodeVersion).orElse(null);
