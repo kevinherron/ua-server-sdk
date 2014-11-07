@@ -78,14 +78,11 @@ public class UsernameIdentityValidator extends IdentityValidator {
                     ((plainTextBytes[1] & 0xFF) << 8) |
                     (plainTextBytes[0] & 0xFF);
 
-            tokenBytes = new byte[length];
-            System.arraycopy(plainTextBytes, 4, tokenBytes, 0, length);
-
-            byte[] passwordBytes = new byte[tokenBytes.length - lastNonceLength];
+            byte[] passwordBytes = new byte[length - lastNonceLength];
             byte[] nonceBytes = new byte[lastNonceLength];
 
-            System.arraycopy(tokenBytes, 0, passwordBytes, 0, passwordBytes.length);
-            System.arraycopy(tokenBytes, passwordBytes.length, nonceBytes, 0, lastNonceLength);
+            System.arraycopy(plainTextBytes, 4, passwordBytes, 0, passwordBytes.length);
+            System.arraycopy(plainTextBytes, 4 + passwordBytes.length, nonceBytes, 0, lastNonceLength);
 
             String password = new String(passwordBytes);
             AuthenticationChallenge challenge = new AuthenticationChallenge(username, password);

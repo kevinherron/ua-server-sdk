@@ -32,26 +32,88 @@ import com.inductiveautomation.opcua.stack.core.types.structured.X509IdentityTok
 
 public abstract class IdentityValidator {
 
+    /**
+     * Validate an {@link AnonymousIdentityToken} and return an identity Object that represents the user.
+     * <p>
+     * This Object should implement equality in such a way that a subsequent identity validation for the same user
+     * yields a comparable Object.
+     *
+     * @param token       the {@link AnonymousIdentityToken}.
+     * @param tokenPolicy the {@link UserTokenPolicy} specified by the policyId in {@code token}.
+     * @param channel     the {@link SecureChannel} the request is arriving on.
+     * @param session     the {@link Session} the request is arriving on.
+     * @return an identity Object that represents the user.
+     * @throws UaException if the token is invalid, rejected, or user access is denied.
+     */
     public Object validateAnonymousToken(AnonymousIdentityToken token, UserTokenPolicy tokenPolicy,
-                                           SecureChannel channel, Session session) throws UaException {
+                                         SecureChannel channel, Session session) throws UaException {
         throw new UaException(StatusCodes.Bad_IdentityTokenInvalid);
     }
 
+    /**
+     * Validate a {@link UserNameIdentityToken} and return an identity Object that represents the user.
+     * <p>
+     * This Object should implement equality in such a way that a subsequent identity validation for the same user
+     * yields a comparable Object.
+     *
+     * @param token       the {@link UserNameIdentityToken}.
+     * @param tokenPolicy the {@link UserTokenPolicy} specified by the policyId in {@code token}.
+     * @param channel     the {@link SecureChannel} the request is arriving on.
+     * @param session     the {@link Session} the request is arriving on.
+     * @return an identity Object that represents the user.
+     * @throws UaException if the token is invalid, rejected, or user access is denied.
+     */
     public Object validateUsernameToken(UserNameIdentityToken token, UserTokenPolicy tokenPolicy,
-                                          SecureChannel channel, Session session) throws UaException {
+                                        SecureChannel channel, Session session) throws UaException {
         throw new UaException(StatusCodes.Bad_IdentityTokenInvalid);
     }
 
+    /**
+     * Validate an {@link X509IdentityToken} and return an identity Object that represents the user.
+     * <p>
+     * This Object should implement equality in such a way that a subsequent identity validation for the same user
+     * yields a comparable Object.
+     *
+     * @param token       the {@link X509IdentityToken}.
+     * @param tokenPolicy the {@link UserTokenPolicy} specified by the policyId in {@code token}.
+     * @param channel     the {@link SecureChannel} the request is arriving on.
+     * @param session     the {@link Session} the request is arriving on.
+     * @return an identity Object that represents the user.
+     * @throws UaException if the token is invalid, rejected, or user access is denied.
+     */
     public Object validateX509Token(X509IdentityToken token, UserTokenPolicy tokenPolicy,
-                                      SecureChannel channel, Session session) throws UaException {
+                                    SecureChannel channel, Session session) throws UaException {
         throw new UaException(StatusCodes.Bad_IdentityTokenInvalid);
     }
 
+    /**
+     * Validate an {@link IssuedIdentityToken} and return an identity Object that represents the user.
+     * <p>
+     * This Object should implement equality in such a way that a subsequent identity validation for the same user
+     * yields a comparable Object.
+     *
+     * @param token       the {@link IssuedIdentityToken}.
+     * @param tokenPolicy the {@link UserTokenPolicy} specified by the policyId in {@code token}.
+     * @param channel     the {@link SecureChannel} the request is arriving on.
+     * @param session     the {@link Session} the request is arriving on.
+     * @return an identity Object that represents the user.
+     * @throws UaException if the token is invalid, rejected, or user access is denied.
+     */
     public Object validateIssuedIdentityToken(IssuedIdentityToken token, UserTokenPolicy tokenPolicy,
-                                                SecureChannel channel, Session session) throws UaException {
+                                              SecureChannel channel, Session session) throws UaException {
         throw new UaException(StatusCodes.Bad_IdentityTokenInvalid);
     }
 
+    /**
+     * Decrypt the data contained in a {@link UserNameIdentityToken} or {@link IssuedIdentityToken}.
+     * <p>
+     * See {@link UserNameIdentityToken#getPassword()} and {@link IssuedIdentityToken#getTokenData()}.
+     *
+     * @param secureChannel the {@link SecureChannel}.
+     * @param dataBytes     the encrypted data.
+     * @return the decrypted data.
+     * @throws UaException if decryption fails.
+     */
     protected byte[] decryptTokenData(SecureChannel secureChannel, byte[] dataBytes) throws UaException {
         int cipherTextBlockSize = secureChannel.getLocalAsymmetricCipherTextBlockSize();
         int blockCount = dataBytes.length / cipherTextBlockSize;
@@ -78,7 +140,7 @@ public abstract class IdentityValidator {
         return plainTextBytes;
     }
 
-    protected  Cipher getCipher(SecureChannel channel) throws UaException {
+    private Cipher getCipher(SecureChannel channel) throws UaException {
         try {
             String transformation = channel.getSecurityPolicy().getAsymmetricEncryptionAlgorithm().getTransformation();
             Cipher cipher = Cipher.getInstance(transformation);
