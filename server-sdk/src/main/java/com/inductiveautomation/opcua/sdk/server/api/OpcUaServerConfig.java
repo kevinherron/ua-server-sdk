@@ -24,6 +24,8 @@ import java.util.EnumSet;
 import java.util.List;
 
 import com.google.common.collect.Lists;
+import com.inductiveautomation.opcua.sdk.server.identity.AnonymousIdentityValidator;
+import com.inductiveautomation.opcua.sdk.server.identity.IdentityValidator;
 import com.inductiveautomation.opcua.stack.core.Stack;
 import com.inductiveautomation.opcua.stack.core.security.SecurityPolicy;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
@@ -34,9 +36,15 @@ import com.inductiveautomation.opcua.stack.core.types.structured.UserTokenPolicy
 
 public interface OpcUaServerConfig {
 
-    public static final UserTokenPolicy UserTokenPolicy_Anonymous = new UserTokenPolicy(
+    public static final UserTokenPolicy USER_TOKEN_POLICY_ANONYMOUS = new UserTokenPolicy(
             "anonymous",
             UserTokenType.Anonymous,
+            null, null, null
+    );
+
+    public static final UserTokenPolicy USER_TOKEN_POLICY_USERNAME = new UserTokenPolicy(
+            "username",
+            UserTokenType.UserName,
             null, null, null
     );
 
@@ -77,7 +85,11 @@ public interface OpcUaServerConfig {
     }
 
     default List<UserTokenPolicy> getUserTokenPolicies() {
-        return Lists.newArrayList(UserTokenPolicy_Anonymous);
+        return Lists.newArrayList(USER_TOKEN_POLICY_ANONYMOUS);
+    }
+
+    default IdentityValidator getIdentityValidator() {
+        return new AnonymousIdentityValidator();
     }
 
     default LocalizedText getApplicationName() {

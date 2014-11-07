@@ -23,10 +23,15 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.util.EnumSet;
+import java.util.List;
 
+import com.google.common.collect.Lists;
 import com.inductiveautomation.opcua.sdk.server.api.OpcUaServerConfig;
+import com.inductiveautomation.opcua.sdk.server.identity.IdentityValidator;
+import com.inductiveautomation.opcua.sdk.server.identity.UsernameIdentityValidator;
 import com.inductiveautomation.opcua.stack.core.security.SecurityPolicy;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
+import com.inductiveautomation.opcua.stack.core.types.structured.UserTokenPolicy;
 import org.slf4j.LoggerFactory;
 
 public class CttServerConfig implements OpcUaServerConfig {
@@ -70,7 +75,7 @@ public class CttServerConfig implements OpcUaServerConfig {
 
     @Override
     public String getProductUri() {
-        return "http://www.inductiveautomation.com/opc-ua/stack";
+        return "http://www.inductiveautomation.com/opc-ua/sdk";
     }
 
     @Override
@@ -91,6 +96,22 @@ public class CttServerConfig implements OpcUaServerConfig {
     @Override
     public EnumSet<SecurityPolicy> getSecurityPolicies() {
         return EnumSet.of(SecurityPolicy.None, SecurityPolicy.Basic128Rsa15);
+    }
+
+    @Override
+    public List<UserTokenPolicy> getUserTokenPolicies() {
+        return Lists.newArrayList(USER_TOKEN_POLICY_ANONYMOUS, USER_TOKEN_POLICY_USERNAME);
+    }
+
+    @Override
+    public IdentityValidator getIdentityValidator() {
+        return new UsernameIdentityValidator(true, challenge -> {
+            String username = challenge.getUsername();
+            String password = challenge.getPassword();
+
+            return ("user1".equals(username) && "password1".equals(password)) ||
+                    ("user2".equals(username) && "password2".equals(password));
+        });
     }
 
 }

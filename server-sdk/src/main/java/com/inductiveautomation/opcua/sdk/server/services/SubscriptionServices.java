@@ -146,8 +146,8 @@ public class SubscriptionServices implements SubscriptionServiceSet {
     }
 
     private boolean sessionsHaveSameUser(Session s1, Session s2) {
-        Object t1 = s1.getIdentityToken();
-        Object t2 = s2.getIdentityToken();
+        Object t1 = s1.getIdentityObject();
+        Object t2 = s2.getIdentityObject();
 
         if (t1 instanceof UserNameIdentityToken && t2 instanceof UserNameIdentityToken) {
             ByteString c1 = s1.getClientCertificateBytes();

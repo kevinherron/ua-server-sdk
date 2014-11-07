@@ -34,6 +34,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.math.DoubleMath;
 import com.google.common.primitives.Bytes;
+import com.inductiveautomation.opcua.sdk.server.identity.IdentityValidator;
 import com.inductiveautomation.opcua.sdk.server.services.ServiceAttributes;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.UaException;
@@ -90,6 +91,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.HistoryReadRequ
 import com.inductiveautomation.opcua.stack.core.types.structured.HistoryReadResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.HistoryUpdateRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.HistoryUpdateResponse;
+import com.inductiveautomation.opcua.stack.core.types.structured.IssuedIdentityToken;
 import com.inductiveautomation.opcua.stack.core.types.structured.ModifyMonitoredItemsRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.ModifyMonitoredItemsResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.ModifySubscriptionRequest;
@@ -106,7 +108,6 @@ import com.inductiveautomation.opcua.stack.core.types.structured.RegisterNodesRe
 import com.inductiveautomation.opcua.stack.core.types.structured.RegisterNodesResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.RepublishRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.RepublishResponse;
-import com.inductiveautomation.opcua.stack.core.types.structured.ResponseHeader;
 import com.inductiveautomation.opcua.stack.core.types.structured.SetMonitoringModeRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.SetMonitoringModeResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.SetPublishingModeRequest;
@@ -126,6 +127,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.UserNameIdentit
 import com.inductiveautomation.opcua.stack.core.types.structured.UserTokenPolicy;
 import com.inductiveautomation.opcua.stack.core.types.structured.WriteRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.WriteResponse;
+import com.inductiveautomation.opcua.stack.core.types.structured.X509IdentityToken;
 import com.inductiveautomation.opcua.stack.core.util.CertificateUtil;
 import com.inductiveautomation.opcua.stack.core.util.NonceUtil;
 import com.inductiveautomation.opcua.stack.core.util.SignatureUtil;
@@ -252,6 +254,8 @@ public class SessionManager implements
             activeSessions.remove(authenticationToken);
         });
 
+        session.setLastNonce(serverNonce);
+
         CreateSessionResponse response = new CreateSessionResponse(
                 serviceRequest.createResponseHeader(),
                 sessionId,
@@ -264,7 +268,6 @@ public class SessionManager implements
                 serverSignature,
                 uint(maxRequestMessageSize)
         );
-
 
         serviceRequest.setResponse(response);
     }
@@ -305,8 +308,8 @@ public class SessionManager implements
     public void onActivateSession(ServiceRequest<ActivateSessionRequest, ActivateSessionResponse> serviceRequest) throws UaException {
         ActivateSessionRequest request = serviceRequest.getRequest();
 
-        long secureChannelId = serviceRequest.getSecureChannel().getChannelId();
-
+        ServerSecureChannel secureChannel = serviceRequest.getSecureChannel();
+        long secureChannelId = secureChannel.getChannelId();
         NodeId authToken = request.getRequestHeader().getAuthenticationToken();
         SignedSoftwareCertificate[] clientSoftwareCertificates = request.getClientSoftwareCertificates();
 
@@ -322,23 +325,18 @@ public class SessionManager implements
                  * Associate session with new secure channel if client certificate and identity token match.
                  */
 
-                ByteString certificateBytes = serviceRequest.getSecureChannel().getRemoteCertificateBytes();
+                ByteString certificateBytes = secureChannel.getRemoteCertificateBytes();
 
                 if (request.getUserIdentityToken() == null || request.getUserIdentityToken().getObject() == null) {
                     throw new UaException(StatusCodes.Bad_IdentityTokenInvalid, "identity token not provided");
                 }
 
-                Object identityTokenObject = request.getUserIdentityToken().getObject();
+                Object tokenObject = request.getUserIdentityToken().getObject();
+                Object identityObject = validateIdentityToken(secureChannel, session, tokenObject);
 
-                if (!(identityTokenObject instanceof UserIdentityToken)) {
-                    throw new UaException(StatusCodes.Bad_IdentityTokenInvalid);
-                }
+                if (identityObject.equals(session.getIdentityObject()) &&
+                        certificateBytes.equals(session.getClientCertificateBytes())) {
 
-                UserIdentityToken identityToken = (UserIdentityToken) request.getUserIdentityToken().getObject();
-
-                // TODO validate identityToken
-
-                if (certificateBytes.equals(session.getClientCertificateBytes())) {
                     session.setSecureChannelId(secureChannelId);
 
                     logger.debug("Session id={} is now associated with secureChannelId={}",
@@ -347,9 +345,13 @@ public class SessionManager implements
                     StatusCode[] results = new StatusCode[clientSoftwareCertificates.length];
                     Arrays.fill(results, StatusCode.Good);
 
+                    ByteString serverNonce = NonceUtil.generateNonce(32);
+
+                    session.setLastNonce(serverNonce);
+
                     ActivateSessionResponse response = new ActivateSessionResponse(
                             serviceRequest.createResponseHeader(),
-                            NonceUtil.generateNonce(32),
+                            serverNonce,
                             results,
                             new DiagnosticInfo[0]
                     );
@@ -369,31 +371,24 @@ public class SessionManager implements
             }
 
             Object tokenObject = request.getUserIdentityToken().getObject();
-
-            if (tokenObject instanceof AnonymousIdentityToken) {
-                AnonymousIdentityToken token = (AnonymousIdentityToken) tokenObject;
-
-                validateAnonymousIdentityToken(token);
-            } else if (tokenObject instanceof UserNameIdentityToken) {
-                UserNameIdentityToken token = (UserNameIdentityToken) tokenObject;
-
-                validateUserNameIdentityToken(token);
-            } else {
-                throw new UaException(StatusCodes.Bad_IdentityTokenInvalid);
-            }
+            Object identityObject = validateIdentityToken(secureChannel, session, tokenObject);
+            session.setIdentityObject(identityObject);
 
             createdSessions.remove(authToken);
             activeSessions.put(authToken, session);
 
-            session.setIdentityToken((UserIdentityToken) tokenObject);
-            session.setClientCertificateBytes(serviceRequest.getSecureChannel().getRemoteCertificateBytes());
+            session.setClientCertificateBytes(secureChannel.getRemoteCertificateBytes());
 
             StatusCode[] results = new StatusCode[clientSoftwareCertificates.length];
             Arrays.fill(results, StatusCode.Good);
 
+            ByteString serverNonce = NonceUtil.generateNonce(32);
+
+            session.setLastNonce(serverNonce);
+
             ActivateSessionResponse response = new ActivateSessionResponse(
                     serviceRequest.createResponseHeader(),
-                    NonceUtil.generateNonce(32),
+                    serverNonce,
                     results,
                     new DiagnosticInfo[0]
             );
@@ -402,20 +397,46 @@ public class SessionManager implements
         }
     }
 
-    private void validateAnonymousIdentityToken(AnonymousIdentityToken token) throws UaException {
-        String policyId = token.getPolicyId();
+    private Object validateIdentityToken(ServerSecureChannel secureChannel, Session session, Object tokenObject) throws UaException {
+        IdentityValidator identityValidator = server.getConfig().getIdentityValidator();
+        UserTokenPolicy tokenPolicy = validatePolicyId(tokenObject);
 
-        for (UserTokenPolicy policy : server.getUserTokenPolicies()) {
-            if (policyId.equals(policy.getPolicyId())) {
-                return;
-            }
+        if (tokenObject instanceof AnonymousIdentityToken) {
+            AnonymousIdentityToken token = (AnonymousIdentityToken) tokenObject;
+
+            return identityValidator.validateAnonymousToken(token, tokenPolicy, secureChannel, session);
+        } else if (tokenObject instanceof UserNameIdentityToken) {
+            UserNameIdentityToken token = (UserNameIdentityToken) tokenObject;
+
+            return identityValidator.validateUsernameToken(token, tokenPolicy, secureChannel, session);
+        } else if (tokenObject instanceof X509IdentityToken) {
+            X509IdentityToken token = (X509IdentityToken) tokenObject;
+
+            return identityValidator.validateX509Token(token, tokenPolicy, secureChannel, session);
+        } else if (tokenObject instanceof IssuedIdentityToken) {
+            IssuedIdentityToken token = (IssuedIdentityToken) tokenObject;
+
+            return identityValidator.validateIssuedIdentityToken(token, tokenPolicy, secureChannel, session);
+        } else {
+            throw new UaException(StatusCodes.Bad_IdentityTokenInvalid);
         }
-
-        throw new UaException(StatusCodes.Bad_IdentityTokenInvalid, "policy not found: " + policyId);
     }
 
-    private void validateUserNameIdentityToken(UserNameIdentityToken token) throws UaException {
-        throw new UaException(StatusCodes.Bad_IdentityTokenInvalid);
+    private UserTokenPolicy validatePolicyId(Object tokenObject) throws UaException {
+        if (tokenObject instanceof UserIdentityToken) {
+            UserIdentityToken token = (UserIdentityToken) tokenObject;
+            String policyId = token.getPolicyId();
+
+            for (UserTokenPolicy policy : server.getUserTokenPolicies()) {
+                if (policyId.equals(policy.getPolicyId())) {
+                    return policy;
+                }
+            }
+
+            throw new UaException(StatusCodes.Bad_IdentityTokenRejected, "policy not found: " + policyId);
+        } else {
+            throw new UaException(StatusCodes.Bad_IdentityTokenInvalid);
+        }
     }
 
     @Override

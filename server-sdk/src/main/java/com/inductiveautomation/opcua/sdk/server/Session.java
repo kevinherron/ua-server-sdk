@@ -48,7 +48,6 @@ import com.inductiveautomation.opcua.stack.core.types.structured.CloseSessionReq
 import com.inductiveautomation.opcua.stack.core.types.structured.CloseSessionResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.CreateSessionRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.CreateSessionResponse;
-import com.inductiveautomation.opcua.stack.core.types.structured.UserIdentityToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,8 +65,10 @@ public class Session implements SessionServiceSet {
 
     private volatile long secureChannelId;
 
-    private volatile UserIdentityToken identityToken;
+    private volatile Object identityObject;
     private volatile ByteString clientCertificateBytes;
+
+    private volatile ByteString lastNonce = ByteString.NullValue;
 
     private volatile long lastActivity = System.nanoTime();
     private volatile ScheduledFuture<?> checkTimeoutFuture;
@@ -111,8 +112,8 @@ public class Session implements SessionServiceSet {
     }
 
     @Nullable
-    public UserIdentityToken getIdentityToken() {
-        return identityToken;
+    public Object getIdentityObject() {
+        return identityObject;
     }
 
     @Nullable
@@ -124,8 +125,8 @@ public class Session implements SessionServiceSet {
         this.secureChannelId = secureChannelId;
     }
 
-    public void setIdentityToken(UserIdentityToken identityToken) {
-        this.identityToken = identityToken;
+    public void setIdentityObject(Object identityObject) {
+        this.identityObject = identityObject;
     }
 
     public void setClientCertificateBytes(ByteString clientCertificateBytes) {
@@ -138,6 +139,14 @@ public class Session implements SessionServiceSet {
 
     void updateLastActivity() {
         lastActivity = System.nanoTime();
+    }
+
+    void setLastNonce(ByteString lastNonce) {
+        this.lastNonce = lastNonce;
+    }
+
+    public ByteString getLastNonce() {
+        return lastNonce;
     }
 
     private void checkTimeout() {
