@@ -8,6 +8,4 @@ public interface ServerRedundancyType extends BaseObjectType {
 
     void setRedundancySupport(RedundancySupport redundancySupport);
 
-    void atomicSet(Runnable runnable);
-
 }

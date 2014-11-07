@@ -24,6 +24,4 @@ public interface AuditEventType extends BaseEventType {
 
     void setClientUserId(String clientUserId);
 
-    void atomicSet(Runnable runnable);
-
 }

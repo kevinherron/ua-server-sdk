@@ -10,6 +10,4 @@ public interface StateMachineType extends BaseObjectType {
     TransitionVariableType getLastTransition();
 
 
-    void atomicSet(Runnable runnable);
-
 }

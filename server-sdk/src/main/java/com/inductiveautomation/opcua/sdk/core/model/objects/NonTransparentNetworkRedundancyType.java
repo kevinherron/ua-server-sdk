@@ -8,6 +8,4 @@ public interface NonTransparentNetworkRedundancyType extends NonTransparentRedun
 
     void setServerNetworkGroups(NetworkGroupDataType[] serverNetworkGroups);
 
-    void atomicSet(Runnable runnable);
-
 }

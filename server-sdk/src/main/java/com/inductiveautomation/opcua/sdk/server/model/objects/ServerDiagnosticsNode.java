@@ -22,7 +22,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 public class ServerDiagnosticsNode extends BaseObjectNode implements ServerDiagnosticsType {
 
     public ServerDiagnosticsNode(
-            UaNamespace nodeManager,
+            UaNamespace namespace,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -31,7 +31,7 @@ public class ServerDiagnosticsNode extends BaseObjectNode implements ServerDiagn
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
     public ServerDiagnosticsSummaryType getServerDiagnosticsSummary() {
@@ -87,9 +87,4 @@ public class ServerDiagnosticsNode extends BaseObjectNode implements ServerDiagn
             n.setValue(new DataValue(new Variant(enabledFlag)));
         });
     }
-
-    public synchronized void atomicSet(Runnable runnable) {
-        runnable.run();
-    }
-
 }

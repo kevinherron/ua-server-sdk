@@ -30,6 +30,4 @@ public interface AuditOpenSecureChannelEventType extends AuditChannelEventType {
 
     void setRequestedLifetime(Double requestedLifetime);
 
-    void atomicSet(Runnable runnable);
-
 }

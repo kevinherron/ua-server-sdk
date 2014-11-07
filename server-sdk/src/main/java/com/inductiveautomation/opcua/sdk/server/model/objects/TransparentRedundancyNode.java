@@ -19,7 +19,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.RedundantServer
 public class TransparentRedundancyNode extends ServerRedundancyNode implements TransparentRedundancyType {
 
     public TransparentRedundancyNode(
-            UaNamespace nodeManager,
+            UaNamespace namespace,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -28,7 +28,7 @@ public class TransparentRedundancyNode extends ServerRedundancyNode implements T
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
     public String getCurrentServerId() {
@@ -54,9 +54,4 @@ public class TransparentRedundancyNode extends ServerRedundancyNode implements T
             n.setValue(new DataValue(new Variant(redundantServerArray)));
         });
     }
-
-    public synchronized void atomicSet(Runnable runnable) {
-        runnable.run();
-    }
-
 }

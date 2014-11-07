@@ -10,6 +10,4 @@ public interface AuditCertificateDataMismatchEventType extends AuditCertificateE
 
     void setInvalidUri(String invalidUri);
 
-    void atomicSet(Runnable runnable);
-
 }

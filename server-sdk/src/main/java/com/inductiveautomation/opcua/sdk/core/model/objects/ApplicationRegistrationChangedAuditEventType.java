@@ -6,6 +6,4 @@ public interface ApplicationRegistrationChangedAuditEventType extends AuditUpdat
 
     void setApplicationUri(String applicationUri);
 
-    void atomicSet(Runnable runnable);
-
 }

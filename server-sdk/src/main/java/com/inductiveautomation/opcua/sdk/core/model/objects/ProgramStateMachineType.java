@@ -7,6 +7,10 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 
 public interface ProgramStateMachineType extends FiniteStateMachineType {
 
+    FiniteStateVariableType getCurrentState();
+
+    FiniteTransitionVariableType getLastTransition();
+
     Boolean getCreatable();
 
     Boolean getDeletable();
@@ -20,10 +24,6 @@ public interface ProgramStateMachineType extends FiniteStateMachineType {
     UInteger getMaxInstanceCount();
 
     UInteger getMaxRecycleCount();
-
-    FiniteStateVariableType getCurrentState();
-
-    FiniteTransitionVariableType getLastTransition();
 
     ProgramDiagnosticType getProgramDiagnostics();
 
@@ -68,7 +68,5 @@ public interface ProgramStateMachineType extends FiniteStateMachineType {
     void setMaxInstanceCount(UInteger maxInstanceCount);
 
     void setMaxRecycleCount(UInteger maxRecycleCount);
-
-    void atomicSet(Runnable runnable);
 
 }

@@ -13,6 +13,4 @@ public interface AuditHistoryAtTimeDeleteEventType extends AuditHistoryDeleteEve
 
     void setOldValues(DataValue[] oldValues);
 
-    void atomicSet(Runnable runnable);
-
 }

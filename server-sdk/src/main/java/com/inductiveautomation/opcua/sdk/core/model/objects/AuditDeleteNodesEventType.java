@@ -8,6 +8,4 @@ public interface AuditDeleteNodesEventType extends AuditNodeManagementEventType 
 
     void setNodesToDelete(DeleteNodesItem[] nodesToDelete);
 
-    void atomicSet(Runnable runnable);
-
 }

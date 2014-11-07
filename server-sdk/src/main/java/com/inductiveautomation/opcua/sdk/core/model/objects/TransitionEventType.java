@@ -12,6 +12,4 @@ public interface TransitionEventType extends BaseEventType {
     StateVariableType getToState();
 
 
-    void atomicSet(Runnable runnable);
-
 }

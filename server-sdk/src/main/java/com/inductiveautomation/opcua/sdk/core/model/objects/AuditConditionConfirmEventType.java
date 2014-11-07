@@ -13,6 +13,4 @@ public interface AuditConditionConfirmEventType extends AuditConditionEventType 
 
     void setComment(LocalizedText comment);
 
-    void atomicSet(Runnable runnable);
-
 }

@@ -18,7 +18,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 public class NonTransparentRedundancyNode extends ServerRedundancyNode implements NonTransparentRedundancyType {
 
     public NonTransparentRedundancyNode(
-            UaNamespace nodeManager,
+            UaNamespace namespace,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -27,7 +27,7 @@ public class NonTransparentRedundancyNode extends ServerRedundancyNode implement
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
     public String[] getServerUriArray() {
@@ -41,9 +41,4 @@ public class NonTransparentRedundancyNode extends ServerRedundancyNode implement
             n.setValue(new DataValue(new Variant(serverUriArray)));
         });
     }
-
-    public synchronized void atomicSet(Runnable runnable) {
-        runnable.run();
-    }
-
 }

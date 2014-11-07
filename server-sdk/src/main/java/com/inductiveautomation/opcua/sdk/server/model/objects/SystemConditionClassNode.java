@@ -16,7 +16,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 public class SystemConditionClassNode extends BaseConditionClassNode implements SystemConditionClassType {
 
     public SystemConditionClassNode(
-            UaNamespace nodeManager,
+            UaNamespace namespace,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -25,12 +25,8 @@ public class SystemConditionClassNode extends BaseConditionClassNode implements 
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
-
-    public synchronized void atomicSet(Runnable runnable) {
-        runnable.run();
-    }
 
 }

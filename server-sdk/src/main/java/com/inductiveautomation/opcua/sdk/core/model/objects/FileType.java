@@ -21,6 +21,4 @@ public interface FileType extends BaseObjectType {
 
     void setOpenCount(UShort openCount);
 
-    void atomicSet(Runnable runnable);
-
 }

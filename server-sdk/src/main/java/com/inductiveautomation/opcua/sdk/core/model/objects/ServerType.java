@@ -9,11 +9,11 @@ public interface ServerType extends BaseObjectType {
 
     String[] getNamespaceArray();
 
+    ServerStatusType getServerStatus();
+
     UByte getServiceLevel();
 
     Boolean getAuditing();
-
-    ServerStatusType getServerStatus();
 
     ServerCapabilitiesType getServerCapabilities();
 
@@ -32,7 +32,5 @@ public interface ServerType extends BaseObjectType {
     void setServiceLevel(UByte serviceLevel);
 
     void setAuditing(Boolean auditing);
-
-    void atomicSet(Runnable runnable);
 
 }

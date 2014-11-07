@@ -19,6 +19,4 @@ public interface ExclusiveLimitStateMachineType extends FiniteStateMachineType {
     TransitionType getHighToHighHigh();
 
 
-    void atomicSet(Runnable runnable);
-
 }

@@ -8,6 +8,4 @@ public interface SystemStatusChangeEventType extends SystemEventType {
 
     void setSystemState(ServerState systemState);
 
-    void atomicSet(Runnable runnable);
-
 }

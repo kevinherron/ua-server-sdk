@@ -20,7 +20,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 public class ShelvedStateMachineNode extends FiniteStateMachineNode implements ShelvedStateMachineType {
 
     public ShelvedStateMachineNode(
-            UaNamespace nodeManager,
+            UaNamespace namespace,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -29,7 +29,7 @@ public class ShelvedStateMachineNode extends FiniteStateMachineNode implements S
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
     public Double getUnshelveTime() {
@@ -97,9 +97,4 @@ public class ShelvedStateMachineNode extends FiniteStateMachineNode implements S
             n.setValue(new DataValue(new Variant(unshelveTime)));
         });
     }
-
-    public synchronized void atomicSet(Runnable runnable) {
-        runnable.run();
-    }
-
 }

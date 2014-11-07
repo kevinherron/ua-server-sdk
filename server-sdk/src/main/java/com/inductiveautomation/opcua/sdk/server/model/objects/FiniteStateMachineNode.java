@@ -20,7 +20,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 public class FiniteStateMachineNode extends StateMachineNode implements FiniteStateMachineType {
 
     public FiniteStateMachineNode(
-            UaNamespace nodeManager,
+            UaNamespace namespace,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -29,7 +29,7 @@ public class FiniteStateMachineNode extends StateMachineNode implements FiniteSt
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
     public FiniteStateVariableType getCurrentState() {
@@ -55,9 +55,4 @@ public class FiniteStateMachineNode extends StateMachineNode implements FiniteSt
             n.setValue(new DataValue(new Variant(lastTransition)));
         });
     }
-
-    public synchronized void atomicSet(Runnable runnable) {
-        runnable.run();
-    }
-
 }

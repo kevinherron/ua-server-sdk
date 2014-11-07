@@ -15,6 +15,4 @@ public interface NonExclusiveLimitAlarmType extends LimitAlarmType {
     TwoStateVariableType getLowLowState();
 
 
-    void atomicSet(Runnable runnable);
-
 }

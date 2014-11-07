@@ -6,6 +6,4 @@ public interface AuditConditionShelvingEventType extends AuditConditionEventType
 
     void setShelvingTime(Double shelvingTime);
 
-    void atomicSet(Runnable runnable);
-
 }

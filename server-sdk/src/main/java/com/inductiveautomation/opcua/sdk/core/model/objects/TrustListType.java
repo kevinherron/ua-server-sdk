@@ -12,6 +12,4 @@ public interface TrustListType extends FileType {
 
     void setLastUpdateTime(DateTime lastUpdateTime);
 
-    void atomicSet(Runnable runnable);
-
 }

@@ -17,6 +17,4 @@ public interface AuditActivateSessionEventType extends AuditSessionEventType {
 
     void setSecureChannelId(String secureChannelId);
 
-    void atomicSet(Runnable runnable);
-
 }

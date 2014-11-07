@@ -52,6 +52,4 @@ public interface OperationLimitsType extends BaseObjectType {
 
     void setMaxMonitoredItemsPerCall(UInteger maxMonitoredItemsPerCall);
 
-    void atomicSet(Runnable runnable);
-
 }

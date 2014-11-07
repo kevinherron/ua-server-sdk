@@ -13,6 +13,4 @@ public interface SessionDiagnosticsObjectType extends BaseObjectType {
     SubscriptionDiagnosticsArrayType getSubscriptionDiagnosticsArray();
 
 
-    void atomicSet(Runnable runnable);
-
 }

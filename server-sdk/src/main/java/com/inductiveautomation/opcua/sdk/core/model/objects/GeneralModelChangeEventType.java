@@ -8,6 +8,4 @@ public interface GeneralModelChangeEventType extends BaseModelChangeEventType {
 
     void setChanges(ModelChangeStructureDataType[] changes);
 
-    void atomicSet(Runnable runnable);
-
 }

@@ -51,6 +51,4 @@ public interface ServerCapabilitiesType extends BaseObjectType {
 
     void setMaxStringLength(UInteger maxStringLength);
 
-    void atomicSet(Runnable runnable);
-
 }

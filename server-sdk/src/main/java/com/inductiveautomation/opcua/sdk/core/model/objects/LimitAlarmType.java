@@ -18,6 +18,4 @@ public interface LimitAlarmType extends AlarmConditionType {
 
     void setLowLowLimit(Double lowLowLimit);
 
-    void atomicSet(Runnable runnable);
-
 }

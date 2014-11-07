@@ -28,6 +28,4 @@ public interface ServerConfigurationType extends BaseObjectType {
 
     void setMulticastDnsEnabled(Boolean multicastDnsEnabled);
 
-    void atomicSet(Runnable runnable);
-
 }

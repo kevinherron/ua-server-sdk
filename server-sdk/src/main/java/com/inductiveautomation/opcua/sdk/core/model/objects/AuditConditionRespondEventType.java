@@ -6,6 +6,4 @@ public interface AuditConditionRespondEventType extends AuditConditionEventType 
 
     void setSelectedResponse(Integer selectedResponse);
 
-    void atomicSet(Runnable runnable);
-
 }

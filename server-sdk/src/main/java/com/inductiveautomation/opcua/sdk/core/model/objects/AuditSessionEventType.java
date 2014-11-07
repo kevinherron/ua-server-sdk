@@ -8,6 +8,4 @@ public interface AuditSessionEventType extends AuditEventType {
 
     void setSessionId(NodeId sessionId);
 
-    void atomicSet(Runnable runnable);
-
 }

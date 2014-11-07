@@ -8,6 +8,4 @@ public interface AuditCancelEventType extends AuditSessionEventType {
 
     void setRequestHandle(UInteger requestHandle);
 
-    void atomicSet(Runnable runnable);
-
 }

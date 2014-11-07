@@ -6,6 +6,4 @@ public interface AuditUrlMismatchEventType extends AuditCreateSessionEventType {
 
     void setEndpointUrl(String endpointUrl);
 
-    void atomicSet(Runnable runnable);
-
 }

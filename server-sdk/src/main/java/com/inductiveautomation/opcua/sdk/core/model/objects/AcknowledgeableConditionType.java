@@ -11,6 +11,4 @@ public interface AcknowledgeableConditionType extends ConditionType {
     TwoStateVariableType getConfirmedState();
 
 
-    void atomicSet(Runnable runnable);
-
 }

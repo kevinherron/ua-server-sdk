@@ -7,6 +7,4 @@ public interface ProgramTransitionAuditEventType extends AuditUpdateStateEventTy
     FiniteTransitionVariableType getTransition();
 
 
-    void atomicSet(Runnable runnable);
-
 }

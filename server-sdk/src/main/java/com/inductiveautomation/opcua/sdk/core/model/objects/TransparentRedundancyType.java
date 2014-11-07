@@ -12,6 +12,4 @@ public interface TransparentRedundancyType extends ServerRedundancyType {
 
     void setRedundantServerArray(RedundantServerDataType[] redundantServerArray);
 
-    void atomicSet(Runnable runnable);
-
 }

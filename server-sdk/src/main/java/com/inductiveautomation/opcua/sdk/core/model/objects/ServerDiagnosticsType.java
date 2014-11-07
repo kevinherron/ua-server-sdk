@@ -6,8 +6,6 @@ import com.inductiveautomation.opcua.sdk.core.model.variables.SubscriptionDiagno
 
 public interface ServerDiagnosticsType extends BaseObjectType {
 
-    Boolean getEnabledFlag();
-
     ServerDiagnosticsSummaryType getServerDiagnosticsSummary();
 
     SamplingIntervalDiagnosticsArrayType getSamplingIntervalDiagnosticsArray();
@@ -16,8 +14,8 @@ public interface ServerDiagnosticsType extends BaseObjectType {
 
     SessionsDiagnosticsSummaryType getSessionsDiagnosticsSummary();
 
-    void setEnabledFlag(Boolean enabledFlag);
+    Boolean getEnabledFlag();
 
-    void atomicSet(Runnable runnable);
+    void setEnabledFlag(Boolean enabledFlag);
 
 }

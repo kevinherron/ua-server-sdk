@@ -19,7 +19,7 @@ import com.inductiveautomation.opcua.stack.core.types.enumerated.RedundancySuppo
 public class ServerRedundancyNode extends BaseObjectNode implements ServerRedundancyType {
 
     public ServerRedundancyNode(
-            UaNamespace nodeManager,
+            UaNamespace namespace,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -28,7 +28,7 @@ public class ServerRedundancyNode extends BaseObjectNode implements ServerRedund
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
     public RedundancySupport getRedundancySupport() {
@@ -44,9 +44,4 @@ public class ServerRedundancyNode extends BaseObjectNode implements ServerRedund
             n.setValue(new DataValue(new Variant(value)));
         });
     }
-
-    public synchronized void atomicSet(Runnable runnable) {
-        runnable.run();
-    }
-
 }

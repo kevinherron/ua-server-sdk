@@ -20,6 +20,4 @@ public interface AuditWriteUpdateEventType extends AuditUpdateEventType {
 
     void setNewValue(Object newValue);
 
-    void atomicSet(Runnable runnable);
-
 }

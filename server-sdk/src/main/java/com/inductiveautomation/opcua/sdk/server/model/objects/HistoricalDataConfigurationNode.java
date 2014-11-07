@@ -22,7 +22,7 @@ import com.inductiveautomation.opcua.stack.core.types.enumerated.ExceptionDeviat
 public class HistoricalDataConfigurationNode extends BaseObjectNode implements HistoricalDataConfigurationType {
 
     public HistoricalDataConfigurationNode(
-            UaNamespace nodeManager,
+            UaNamespace namespace,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -31,7 +31,7 @@ public class HistoricalDataConfigurationNode extends BaseObjectNode implements H
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
     public AggregateConfigurationType getAggregateConfiguration() {
@@ -143,9 +143,4 @@ public class HistoricalDataConfigurationNode extends BaseObjectNode implements H
             n.setValue(new DataValue(new Variant(startOfOnlineArchive)));
         });
     }
-
-    public synchronized void atomicSet(Runnable runnable) {
-        runnable.run();
-    }
-
 }

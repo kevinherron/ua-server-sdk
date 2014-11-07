@@ -18,7 +18,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 public class AggregateConfigurationNode extends BaseObjectNode implements AggregateConfigurationType {
 
     public AggregateConfigurationNode(
-            UaNamespace nodeManager,
+            UaNamespace namespace,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -27,7 +27,7 @@ public class AggregateConfigurationNode extends BaseObjectNode implements Aggreg
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
     public Boolean getTreatUncertainAsBad() {
@@ -77,9 +77,4 @@ public class AggregateConfigurationNode extends BaseObjectNode implements Aggreg
             n.setValue(new DataValue(new Variant(useSlopedExtrapolation)));
         });
     }
-
-    public synchronized void atomicSet(Runnable runnable) {
-        runnable.run();
-    }
-
 }

@@ -19,7 +19,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 public class HistoryServerCapabilitiesNode extends BaseObjectNode implements HistoryServerCapabilitiesType {
 
     public HistoryServerCapabilitiesNode(
-            UaNamespace nodeManager,
+            UaNamespace namespace,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -28,7 +28,7 @@ public class HistoryServerCapabilitiesNode extends BaseObjectNode implements His
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
     public Boolean getAccessHistoryDataCapability() {
@@ -204,9 +204,4 @@ public class HistoryServerCapabilitiesNode extends BaseObjectNode implements His
             n.setValue(new DataValue(new Variant(insertAnnotationCapability)));
         });
     }
-
-    public synchronized void atomicSet(Runnable runnable) {
-        runnable.run();
-    }
-
 }

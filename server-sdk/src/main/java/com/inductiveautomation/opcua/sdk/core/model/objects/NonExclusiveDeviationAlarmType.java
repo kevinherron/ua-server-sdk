@@ -8,6 +8,4 @@ public interface NonExclusiveDeviationAlarmType extends NonExclusiveLimitAlarmTy
 
     void setSetpointNode(NodeId setpointNode);
 
-    void atomicSet(Runnable runnable);
-
 }

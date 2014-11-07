@@ -8,6 +8,4 @@ public interface TransitionType extends BaseObjectType {
 
     void setTransitionNumber(UInteger transitionNumber);
 
-    void atomicSet(Runnable runnable);
-
 }

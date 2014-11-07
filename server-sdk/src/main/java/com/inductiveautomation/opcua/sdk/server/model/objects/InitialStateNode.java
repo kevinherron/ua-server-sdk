@@ -16,7 +16,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 public class InitialStateNode extends StateNode implements InitialStateType {
 
     public InitialStateNode(
-            UaNamespace nodeManager,
+            UaNamespace namespace,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -25,12 +25,8 @@ public class InitialStateNode extends StateNode implements InitialStateType {
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
-
-    public synchronized void atomicSet(Runnable runnable) {
-        runnable.run();
-    }
 
 }

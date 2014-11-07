@@ -20,7 +20,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UShort;
 public class FileNode extends BaseObjectNode implements FileType {
 
     public FileNode(
-            UaNamespace nodeManager,
+            UaNamespace namespace,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -29,7 +29,7 @@ public class FileNode extends BaseObjectNode implements FileType {
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
     public ULong getSize() {
@@ -79,9 +79,4 @@ public class FileNode extends BaseObjectNode implements FileType {
             n.setValue(new DataValue(new Variant(openCount)));
         });
     }
-
-    public synchronized void atomicSet(Runnable runnable) {
-        runnable.run();
-    }
-
 }

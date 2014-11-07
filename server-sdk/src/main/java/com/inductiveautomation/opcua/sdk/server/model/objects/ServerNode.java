@@ -24,7 +24,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 public class ServerNode extends BaseObjectNode implements ServerType {
 
     public ServerNode(
-            UaNamespace nodeManager,
+            UaNamespace namespace,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -33,7 +33,7 @@ public class ServerNode extends BaseObjectNode implements ServerType {
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
     public String[] getServerArray() {
@@ -125,9 +125,4 @@ public class ServerNode extends BaseObjectNode implements ServerType {
             n.setValue(new DataValue(new Variant(auditing)));
         });
     }
-
-    public synchronized void atomicSet(Runnable runnable) {
-        runnable.run();
-    }
-
 }

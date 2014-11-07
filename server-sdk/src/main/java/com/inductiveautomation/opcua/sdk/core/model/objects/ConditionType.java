@@ -17,8 +17,6 @@ public interface ConditionType extends BaseEventType {
 
     Boolean getRetain();
 
-    String getClientUserId();
-
     TwoStateVariableType getEnabledState();
 
     ConditionVariableType getQuality();
@@ -26,6 +24,8 @@ public interface ConditionType extends BaseEventType {
     ConditionVariableType getLastSeverity();
 
     ConditionVariableType getComment();
+
+    String getClientUserId();
 
     void setConditionClassId(NodeId conditionClassId);
 
@@ -38,7 +38,5 @@ public interface ConditionType extends BaseEventType {
     void setRetain(Boolean retain);
 
     void setClientUserId(String clientUserId);
-
-    void atomicSet(Runnable runnable);
 
 }

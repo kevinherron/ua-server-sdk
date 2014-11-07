@@ -19,7 +19,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.NetworkGroupDat
 public class NonTransparentNetworkRedundancyNode extends NonTransparentRedundancyNode implements NonTransparentNetworkRedundancyType {
 
     public NonTransparentNetworkRedundancyNode(
-            UaNamespace nodeManager,
+            UaNamespace namespace,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -28,7 +28,7 @@ public class NonTransparentNetworkRedundancyNode extends NonTransparentRedundanc
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
     public NetworkGroupDataType[] getServerNetworkGroups() {
@@ -42,9 +42,4 @@ public class NonTransparentNetworkRedundancyNode extends NonTransparentRedundanc
             n.setValue(new DataValue(new Variant(serverNetworkGroups)));
         });
     }
-
-    public synchronized void atomicSet(Runnable runnable) {
-        runnable.run();
-    }
-
 }

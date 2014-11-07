@@ -10,6 +10,4 @@ public interface FiniteStateMachineType extends StateMachineType {
     FiniteTransitionVariableType getLastTransition();
 
 
-    void atomicSet(Runnable runnable);
-
 }

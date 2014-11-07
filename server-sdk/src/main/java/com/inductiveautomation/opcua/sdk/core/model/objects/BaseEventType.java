@@ -45,6 +45,4 @@ public interface BaseEventType extends BaseObjectType {
 
     void setSeverity(UShort severity);
 
-    void atomicSet(Runnable runnable);
-
 }

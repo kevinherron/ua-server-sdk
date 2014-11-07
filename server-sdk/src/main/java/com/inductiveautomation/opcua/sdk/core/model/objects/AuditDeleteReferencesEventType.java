@@ -8,6 +8,4 @@ public interface AuditDeleteReferencesEventType extends AuditNodeManagementEvent
 
     void setReferencesToDelete(DeleteReferencesItem[] referencesToDelete);
 
-    void atomicSet(Runnable runnable);
-
 }

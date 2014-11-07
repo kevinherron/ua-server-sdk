@@ -8,6 +8,4 @@ public interface OffNormalAlarmType extends DiscreteAlarmType {
 
     void setNormalState(NodeId normalState);
 
-    void atomicSet(Runnable runnable);
-
 }

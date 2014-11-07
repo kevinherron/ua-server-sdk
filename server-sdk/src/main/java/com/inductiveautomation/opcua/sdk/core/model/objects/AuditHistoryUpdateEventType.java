@@ -8,6 +8,4 @@ public interface AuditHistoryUpdateEventType extends AuditUpdateEventType {
 
     void setParameterDataTypeId(NodeId parameterDataTypeId);
 
-    void atomicSet(Runnable runnable);
-
 }

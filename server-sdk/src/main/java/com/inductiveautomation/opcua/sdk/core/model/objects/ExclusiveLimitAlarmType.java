@@ -9,6 +9,4 @@ public interface ExclusiveLimitAlarmType extends LimitAlarmType {
     ExclusiveLimitStateMachineType getLimitState();
 
 
-    void atomicSet(Runnable runnable);
-
 }

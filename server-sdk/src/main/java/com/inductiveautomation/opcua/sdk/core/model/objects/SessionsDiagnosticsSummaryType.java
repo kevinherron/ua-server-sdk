@@ -12,6 +12,4 @@ public interface SessionsDiagnosticsSummaryType extends BaseObjectType {
     SessionDiagnosticsObjectType getSessionPlaceholder();
 
 
-    void atomicSet(Runnable runnable);
-
 }

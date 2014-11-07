@@ -8,6 +8,4 @@ public interface ModellingRuleType extends BaseObjectType {
 
     void setNamingRule(NamingRuleType namingRule);
 
-    void atomicSet(Runnable runnable);
-
 }

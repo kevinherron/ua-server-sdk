@@ -12,6 +12,4 @@ public interface AuditUpdateMethodEventType extends AuditEventType {
 
     void setInputArguments(Object[] inputArguments);
 
-    void atomicSet(Runnable runnable);
-
 }

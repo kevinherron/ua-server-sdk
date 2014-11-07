@@ -19,7 +19,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 public class ServerConfigurationNode extends BaseObjectNode implements ServerConfigurationType {
 
     public ServerConfigurationNode(
-            UaNamespace nodeManager,
+            UaNamespace namespace,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -28,7 +28,7 @@ public class ServerConfigurationNode extends BaseObjectNode implements ServerCon
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
     public String[] getSupportedCertificateFormats() {
@@ -102,9 +102,4 @@ public class ServerConfigurationNode extends BaseObjectNode implements ServerCon
             n.setValue(new DataValue(new Variant(multicastDnsEnabled)));
         });
     }
-
-    public synchronized void atomicSet(Runnable runnable) {
-        runnable.run();
-    }
-
 }

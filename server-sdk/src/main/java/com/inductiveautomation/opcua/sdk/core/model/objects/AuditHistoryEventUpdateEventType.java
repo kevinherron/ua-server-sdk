@@ -27,6 +27,4 @@ public interface AuditHistoryEventUpdateEventType extends AuditHistoryUpdateEven
 
     void setOldValues(HistoryEventFieldList oldValues);
 
-    void atomicSet(Runnable runnable);
-
 }

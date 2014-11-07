@@ -6,6 +6,4 @@ public interface ProgramTransitionEventType extends TransitionEventType {
 
     void setIntermediateResult(Object intermediateResult);
 
-    void atomicSet(Runnable runnable);
-
 }

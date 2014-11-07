@@ -21,6 +21,4 @@ public interface AuditHistoryRawModifyDeleteEventType extends AuditHistoryDelete
 
     void setOldValues(DataValue[] oldValues);
 
-    void atomicSet(Runnable runnable);
-
 }

@@ -20,6 +20,4 @@ public interface AuditCreateSessionEventType extends AuditSessionEventType {
 
     void setRevisedSessionTimeout(Double revisedSessionTimeout);
 
-    void atomicSet(Runnable runnable);
-
 }

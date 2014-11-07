@@ -18,7 +18,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 public class ExclusiveLimitStateMachineNode extends FiniteStateMachineNode implements ExclusiveLimitStateMachineType {
 
     public ExclusiveLimitStateMachineNode(
-            UaNamespace nodeManager,
+            UaNamespace namespace,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -27,7 +27,7 @@ public class ExclusiveLimitStateMachineNode extends FiniteStateMachineNode imple
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
     public StateType getHighHigh() {
@@ -76,10 +76,6 @@ public class ExclusiveLimitStateMachineNode extends FiniteStateMachineNode imple
         Optional<com.inductiveautomation.opcua.sdk.core.nodes.ObjectNode> highToHighHigh = getObjectComponent("HighToHighHigh");
 
         return highToHighHigh.map(node -> (TransitionType) node).orElse(null);
-    }
-
-    public synchronized void atomicSet(Runnable runnable) {
-        runnable.run();
     }
 
 }

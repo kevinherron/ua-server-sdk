@@ -24,6 +24,4 @@ public interface ShelvedStateMachineType extends FiniteStateMachineType {
 
     void setUnshelveTime(Double unshelveTime);
 
-    void atomicSet(Runnable runnable);
-
 }

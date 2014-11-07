@@ -19,7 +19,7 @@ import com.inductiveautomation.opcua.stack.core.types.enumerated.NamingRuleType;
 public class ModellingRuleNode extends BaseObjectNode implements ModellingRuleType {
 
     public ModellingRuleNode(
-            UaNamespace nodeManager,
+            UaNamespace namespace,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -28,7 +28,7 @@ public class ModellingRuleNode extends BaseObjectNode implements ModellingRuleTy
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
     public NamingRuleType getNamingRule() {
@@ -44,9 +44,4 @@ public class ModellingRuleNode extends BaseObjectNode implements ModellingRuleTy
             n.setValue(new DataValue(new Variant(value)));
         });
     }
-
-    public synchronized void atomicSet(Runnable runnable) {
-        runnable.run();
-    }
-
 }

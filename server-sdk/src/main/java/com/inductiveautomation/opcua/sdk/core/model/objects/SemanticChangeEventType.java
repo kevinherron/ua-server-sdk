@@ -8,6 +8,4 @@ public interface SemanticChangeEventType extends BaseModelChangeEventType {
 
     void setChanges(SemanticChangeStructureDataType[] changes);
 
-    void atomicSet(Runnable runnable);
-
 }

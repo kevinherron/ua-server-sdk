@@ -10,6 +10,4 @@ public interface AuditUpdateStateEventType extends AuditUpdateMethodEventType {
 
     void setNewStateId(Object newStateId);
 
-    void atomicSet(Runnable runnable);
-
 }

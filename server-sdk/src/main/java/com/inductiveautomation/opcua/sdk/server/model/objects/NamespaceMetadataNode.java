@@ -21,7 +21,7 @@ import com.inductiveautomation.opcua.stack.core.types.enumerated.IdType;
 public class NamespaceMetadataNode extends BaseObjectNode implements NamespaceMetadataType {
 
     public NamespaceMetadataNode(
-            UaNamespace nodeManager,
+            UaNamespace namespace,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -30,7 +30,7 @@ public class NamespaceMetadataNode extends BaseObjectNode implements NamespaceMe
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
     public String getNamespaceUri() {
@@ -58,15 +58,9 @@ public class NamespaceMetadataNode extends BaseObjectNode implements NamespaceMe
     }
 
     public IdType[] getStaticNodeIdIdentifierTypes() {
-        Optional<Integer[]> staticNodeIdIdentifierTypes = getProperty("StaticNodeIdIdentifierTypes");
+        Optional<Integer> staticNodeIdIdentifierTypes = getProperty("StaticNodeIdIdentifierTypes");
 
-        return staticNodeIdIdentifierTypes.map(values -> {
-            IdType[] staticNodeIdentifierTypes = new IdType[values.length];
-            for (int i = 0; i < values.length; i++) {
-                staticNodeIdentifierTypes[i] = IdType.from(values[i]);
-            }
-            return staticNodeIdentifierTypes;
-        }).orElse(null);
+        return staticNodeIdIdentifierTypes.map(IdType[]::from).orElse(null);
     }
 
     public String[] getStaticNumericNodeIdRange() {
@@ -113,15 +107,9 @@ public class NamespaceMetadataNode extends BaseObjectNode implements NamespaceMe
 
     public synchronized void setStaticNodeIdIdentifierTypes(IdType[] staticNodeIdIdentifierTypes) {
         getPropertyNode("StaticNodeIdIdentifierTypes").ifPresent(n -> {
-            if (staticNodeIdIdentifierTypes != null) {
-                Integer[] values = new Integer[staticNodeIdIdentifierTypes.length];
-                for (int i = 0; i < values.length; i++) {
-                    values[i] = staticNodeIdIdentifierTypes[i].getValue();
-                }
-                n.setValue(new DataValue(new Variant(values)));
-            } else {
-                n.setValue(new DataValue(new Variant(new Integer[0])));
-            }
+            Integer value = staticNodeIdIdentifierTypes.getValue();
+
+            n.setValue(new DataValue(new Variant(value)));
         });
     }
 
@@ -136,9 +124,4 @@ public class NamespaceMetadataNode extends BaseObjectNode implements NamespaceMe
             n.setValue(new DataValue(new Variant(staticStringNodeIdPattern)));
         });
     }
-
-    public synchronized void atomicSet(Runnable runnable) {
-        runnable.run();
-    }
-
 }

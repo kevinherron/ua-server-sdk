@@ -20,6 +20,4 @@ public interface AggregateConfigurationType extends BaseObjectType {
 
     void setUseSlopedExtrapolation(Boolean useSlopedExtrapolation);
 
-    void atomicSet(Runnable runnable);
-
 }

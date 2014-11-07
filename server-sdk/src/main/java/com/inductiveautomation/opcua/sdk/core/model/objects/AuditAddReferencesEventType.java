@@ -8,6 +8,4 @@ public interface AuditAddReferencesEventType extends AuditNodeManagementEventTyp
 
     void setReferencesToAdd(AddReferencesItem[] referencesToAdd);
 
-    void atomicSet(Runnable runnable);
-
 }

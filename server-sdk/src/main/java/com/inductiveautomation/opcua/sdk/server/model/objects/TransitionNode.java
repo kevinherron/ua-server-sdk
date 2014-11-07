@@ -18,7 +18,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 public class TransitionNode extends BaseObjectNode implements TransitionType {
 
     public TransitionNode(
-            UaNamespace nodeManager,
+            UaNamespace namespace,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -27,7 +27,7 @@ public class TransitionNode extends BaseObjectNode implements TransitionType {
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
     public UInteger getTransitionNumber() {
@@ -41,9 +41,4 @@ public class TransitionNode extends BaseObjectNode implements TransitionType {
             n.setValue(new DataValue(new Variant(transitionNumber)));
         });
     }
-
-    public synchronized void atomicSet(Runnable runnable) {
-        runnable.run();
-    }
-
 }

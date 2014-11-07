@@ -8,6 +8,4 @@ public interface AuditProgramTransitionEventType extends AuditUpdateStateEventTy
 
     void setTransitionNumber(UInteger transitionNumber);
 
-    void atomicSet(Runnable runnable);
-
 }

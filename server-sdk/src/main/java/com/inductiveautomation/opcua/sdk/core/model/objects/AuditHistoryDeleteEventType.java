@@ -8,6 +8,4 @@ public interface AuditHistoryDeleteEventType extends AuditHistoryUpdateEventType
 
     void setUpdatedNode(NodeId updatedNode);
 
-    void atomicSet(Runnable runnable);
-
 }

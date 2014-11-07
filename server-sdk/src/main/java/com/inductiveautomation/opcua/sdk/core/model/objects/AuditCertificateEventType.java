@@ -8,6 +8,4 @@ public interface AuditCertificateEventType extends AuditSecurityEventType {
 
     void setCertificate(ByteString certificate);
 
-    void atomicSet(Runnable runnable);
-
 }

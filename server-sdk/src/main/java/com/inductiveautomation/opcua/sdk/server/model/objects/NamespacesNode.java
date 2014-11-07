@@ -18,7 +18,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 public class NamespacesNode extends BaseObjectNode implements NamespacesType {
 
     public NamespacesNode(
-            UaNamespace nodeManager,
+            UaNamespace namespace,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -27,7 +27,7 @@ public class NamespacesNode extends BaseObjectNode implements NamespacesType {
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
     public NamespaceMetadataType getNamespaceIdentifier() {
@@ -40,10 +40,6 @@ public class NamespacesNode extends BaseObjectNode implements NamespacesType {
         Optional<com.inductiveautomation.opcua.sdk.core.nodes.ObjectNode> addressSpaceFile = getObjectComponent("AddressSpaceFile");
 
         return addressSpaceFile.map(node -> (AddressSpaceFileType) node).orElse(null);
-    }
-
-    public synchronized void atomicSet(Runnable runnable) {
-        runnable.run();
     }
 
 }

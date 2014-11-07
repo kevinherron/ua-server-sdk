@@ -5,6 +5,10 @@ import com.inductiveautomation.opcua.stack.core.types.enumerated.ExceptionDeviat
 
 public interface HistoricalDataConfigurationType extends BaseObjectType {
 
+    AggregateConfigurationType getAggregateConfiguration();
+
+    FolderType getAggregateFunctions();
+
     Boolean getStepped();
 
     String getDefinition();
@@ -21,10 +25,6 @@ public interface HistoricalDataConfigurationType extends BaseObjectType {
 
     DateTime getStartOfOnlineArchive();
 
-    AggregateConfigurationType getAggregateConfiguration();
-
-    FolderType getAggregateFunctions();
-
     void setStepped(Boolean stepped);
 
     void setDefinition(String definition);
@@ -40,7 +40,5 @@ public interface HistoricalDataConfigurationType extends BaseObjectType {
     void setStartOfArchive(DateTime startOfArchive);
 
     void setStartOfOnlineArchive(DateTime startOfOnlineArchive);
-
-    void atomicSet(Runnable runnable);
 
 }

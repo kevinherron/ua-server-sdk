@@ -23,7 +23,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.SignedSoftwareC
 public class ServerCapabilitiesNode extends BaseObjectNode implements ServerCapabilitiesType {
 
     public ServerCapabilitiesNode(
-            UaNamespace nodeManager,
+            UaNamespace namespace,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -32,7 +32,7 @@ public class ServerCapabilitiesNode extends BaseObjectNode implements ServerCapa
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
     public String[] getServerProfileArray() {
@@ -172,9 +172,4 @@ public class ServerCapabilitiesNode extends BaseObjectNode implements ServerCapa
             n.setValue(new DataValue(new Variant(vendorCapability)));
         });
     }
-
-    public synchronized void atomicSet(Runnable runnable) {
-        runnable.run();
-    }
-
 }

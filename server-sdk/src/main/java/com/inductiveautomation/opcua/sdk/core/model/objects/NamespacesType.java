@@ -7,6 +7,4 @@ public interface NamespacesType extends BaseObjectType {
     AddressSpaceFileType getAddressSpaceFile();
 
 
-    void atomicSet(Runnable runnable);
-
 }

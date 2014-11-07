@@ -8,6 +8,4 @@ public interface StateType extends BaseObjectType {
 
     void setStateNumber(UInteger stateNumber);
 
-    void atomicSet(Runnable runnable);
-
 }

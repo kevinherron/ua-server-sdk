@@ -6,6 +6,4 @@ public interface CertificateRequestedAuditEventType extends AuditUpdateMethodEve
 
     void setApplicationUri(String applicationUri);
 
-    void atomicSet(Runnable runnable);
-
 }

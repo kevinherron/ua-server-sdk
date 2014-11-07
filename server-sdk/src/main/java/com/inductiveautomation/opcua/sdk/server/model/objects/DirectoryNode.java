@@ -17,7 +17,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 public class DirectoryNode extends FolderNode implements DirectoryType {
 
     public DirectoryNode(
-            UaNamespace nodeManager,
+            UaNamespace namespace,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -26,17 +26,13 @@ public class DirectoryNode extends FolderNode implements DirectoryType {
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
     public FolderType getApplications() {
         Optional<com.inductiveautomation.opcua.sdk.core.nodes.ObjectNode> applications = getObjectComponent("Applications");
 
         return applications.map(node -> (FolderType) node).orElse(null);
-    }
-
-    public synchronized void atomicSet(Runnable runnable) {
-        runnable.run();
     }
 
 }

@@ -5,6 +5,4 @@ public interface DirectoryType extends FolderType {
     FolderType getApplications();
 
 
-    void atomicSet(Runnable runnable);
-
 }

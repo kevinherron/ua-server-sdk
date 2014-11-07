@@ -6,6 +6,4 @@ public interface AuditChannelEventType extends AuditSecurityEventType {
 
     void setSecureChannelId(String secureChannelId);
 
-    void atomicSet(Runnable runnable);
-
 }

@@ -5,26 +5,24 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 
 public interface AlarmConditionType extends AcknowledgeableConditionType {
 
-    NodeId getInputNode();
-
-    Boolean getSuppressedOrShelved();
-
-    Double getMaxTimeShelved();
-
     TwoStateVariableType getEnabledState();
 
     TwoStateVariableType getActiveState();
 
+    NodeId getInputNode();
+
     TwoStateVariableType getSuppressedState();
 
     ShelvedStateMachineType getShelvingState();
+
+    Boolean getSuppressedOrShelved();
+
+    Double getMaxTimeShelved();
 
     void setInputNode(NodeId inputNode);
 
     void setSuppressedOrShelved(Boolean suppressedOrShelved);
 
     void setMaxTimeShelved(Double maxTimeShelved);
-
-    void atomicSet(Runnable runnable);
 
 }

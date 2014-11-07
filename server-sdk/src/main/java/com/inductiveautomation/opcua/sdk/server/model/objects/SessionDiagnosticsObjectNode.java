@@ -21,7 +21,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 public class SessionDiagnosticsObjectNode extends BaseObjectNode implements SessionDiagnosticsObjectType {
 
     public SessionDiagnosticsObjectNode(
-            UaNamespace nodeManager,
+            UaNamespace namespace,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -30,7 +30,7 @@ public class SessionDiagnosticsObjectNode extends BaseObjectNode implements Sess
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
     public SessionDiagnosticsVariableType getSessionDiagnostics() {
@@ -68,9 +68,4 @@ public class SessionDiagnosticsObjectNode extends BaseObjectNode implements Sess
             n.setValue(new DataValue(new Variant(subscriptionDiagnosticsArray)));
         });
     }
-
-    public synchronized void atomicSet(Runnable runnable) {
-        runnable.run();
-    }
-
 }

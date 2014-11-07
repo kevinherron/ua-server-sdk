@@ -18,7 +18,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 public class OperationLimitsNode extends BaseObjectNode implements OperationLimitsType {
 
     public OperationLimitsNode(
-            UaNamespace nodeManager,
+            UaNamespace namespace,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -27,7 +27,7 @@ public class OperationLimitsNode extends BaseObjectNode implements OperationLimi
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
     public UInteger getMaxNodesPerRead() {
@@ -173,9 +173,4 @@ public class OperationLimitsNode extends BaseObjectNode implements OperationLimi
             n.setValue(new DataValue(new Variant(maxMonitoredItemsPerCall)));
         });
     }
-
-    public synchronized void atomicSet(Runnable runnable) {
-        runnable.run();
-    }
-
 }

@@ -6,6 +6,4 @@ public interface NonTransparentRedundancyType extends ServerRedundancyType {
 
     void setServerUriArray(String[] serverUriArray);
 
-    void atomicSet(Runnable runnable);
-
 }

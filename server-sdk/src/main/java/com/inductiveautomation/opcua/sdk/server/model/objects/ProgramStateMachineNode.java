@@ -24,7 +24,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 public class ProgramStateMachineNode extends FiniteStateMachineNode implements ProgramStateMachineType {
 
     public ProgramStateMachineNode(
-            UaNamespace nodeManager,
+            UaNamespace namespace,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -33,7 +33,7 @@ public class ProgramStateMachineNode extends FiniteStateMachineNode implements P
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
     public FiniteStateVariableType getCurrentState() {
@@ -239,9 +239,4 @@ public class ProgramStateMachineNode extends FiniteStateMachineNode implements P
             n.setValue(new DataValue(new Variant(programDiagnostics)));
         });
     }
-
-    public synchronized void atomicSet(Runnable runnable) {
-        runnable.run();
-    }
-
 }

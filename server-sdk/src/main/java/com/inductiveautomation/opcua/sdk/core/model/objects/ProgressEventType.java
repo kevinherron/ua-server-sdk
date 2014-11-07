@@ -12,6 +12,4 @@ public interface ProgressEventType extends BaseEventType {
 
     void setProgress(UShort progress);
 
-    void atomicSet(Runnable runnable);
-
 }
