@@ -59,16 +59,16 @@ public class UaNodeBuilder implements NodeBuilder<UaNode, Reference> {
     private final Reflections variableReflections =
             new Reflections("com.inductiveautomation.opcua.sdk.server.model.variables");
 
-    private final UaNamespace nodeManager;
+    private final UaNamespace namespace;
 
-    public UaNodeBuilder(UaNamespace nodeManager) {
-        this.nodeManager = nodeManager;
+    public UaNodeBuilder(UaNamespace namespace) {
+        this.namespace = namespace;
     }
 
     @Override
     public UaNode buildDataTypeNode(DataTypeNodeAttributes attributes, List<Reference> references) {
         UaDataTypeNode node = new UaDataTypeNode(
-                nodeManager,
+                namespace,
                 attributes.getNodeAttributes().getNodeId(),
                 attributes.getNodeAttributes().getBrowseName(),
                 attributes.getNodeAttributes().getDisplayName(),
@@ -86,7 +86,7 @@ public class UaNodeBuilder implements NodeBuilder<UaNode, Reference> {
     @Override
     public UaNode buildMethodNode(MethodNodeAttributes attributes, List<Reference> references) {
         UaMethodNode node = new UaMethodNode(
-                nodeManager,
+                namespace,
                 attributes.getNodeAttributes().getNodeId(),
                 attributes.getNodeAttributes().getBrowseName(),
                 attributes.getNodeAttributes().getDisplayName(),
@@ -130,7 +130,7 @@ public class UaNodeBuilder implements NodeBuilder<UaNode, Reference> {
                 Constructor<?> ctor = clazz.getConstructors()[0];
 
                 UaObjectNode n = (UaObjectNode) ctor.newInstance(
-                        nodeManager,
+                        namespace,
                         attributes.getNodeAttributes().getNodeId(),
                         attributes.getNodeAttributes().getBrowseName(),
                         attributes.getNodeAttributes().getDisplayName(),
@@ -149,7 +149,7 @@ public class UaNodeBuilder implements NodeBuilder<UaNode, Reference> {
         }
 
         UaObjectNode node =  new UaObjectNode(
-                nodeManager,
+                namespace,
                 attributes.getNodeAttributes().getNodeId(),
                 attributes.getNodeAttributes().getBrowseName(),
                 attributes.getNodeAttributes().getDisplayName(),
@@ -167,7 +167,7 @@ public class UaNodeBuilder implements NodeBuilder<UaNode, Reference> {
     @Override
     public UaNode buildObjectTypeNode(ObjectTypeNodeAttributes attributes, List<Reference> references) {
         UaObjectTypeNode node = new UaObjectTypeNode(
-                nodeManager,
+                namespace,
                 attributes.getNodeAttributes().getNodeId(),
                 attributes.getNodeAttributes().getBrowseName(),
                 attributes.getNodeAttributes().getDisplayName(),
@@ -187,7 +187,7 @@ public class UaNodeBuilder implements NodeBuilder<UaNode, Reference> {
 
 
         UaReferenceTypeNode node = new UaReferenceTypeNode(
-                nodeManager,
+                namespace,
                 attributes.getNodeAttributes().getNodeId(),
                 attributes.getNodeAttributes().getBrowseName(),
                 attributes.getNodeAttributes().getDisplayName(),
@@ -232,7 +232,7 @@ public class UaNodeBuilder implements NodeBuilder<UaNode, Reference> {
                 Constructor<?> ctor = clazz.getConstructors()[0];
 
                 UaVariableNode n = (UaVariableNode) ctor.newInstance(
-                        nodeManager,
+                        namespace,
                         attributes.getNodeAttributes().getNodeId(),
                         attributes.getNodeAttributes().getBrowseName(),
                         attributes.getNodeAttributes().getDisplayName(),
@@ -258,7 +258,7 @@ public class UaNodeBuilder implements NodeBuilder<UaNode, Reference> {
         }
 
         UaVariableNode node = new UaVariableNode(
-                nodeManager,
+                namespace,
                 attributes.getNodeAttributes().getNodeId(),
                 attributes.getNodeAttributes().getBrowseName(),
                 attributes.getNodeAttributes().getDisplayName(),
@@ -283,7 +283,7 @@ public class UaNodeBuilder implements NodeBuilder<UaNode, Reference> {
     @Override
     public UaNode buildVariableTypeNode(VariableTypeNodeAttributes attributes, List<Reference> references) {
         UaVariableTypeNode node = new UaVariableTypeNode(
-                nodeManager,
+                namespace,
                 attributes.getNodeAttributes().getNodeId(),
                 attributes.getNodeAttributes().getBrowseName(),
                 attributes.getNodeAttributes().getDisplayName(),
@@ -305,7 +305,7 @@ public class UaNodeBuilder implements NodeBuilder<UaNode, Reference> {
     @Override
     public UaNode buildViewNode(ViewNodeAttributes attributes, List<Reference> references) {
         UaViewNode node = new UaViewNode(
-                nodeManager,
+                namespace,
                 attributes.getNodeAttributes().getNodeId(),
                 attributes.getNodeAttributes().getBrowseName(),
                 attributes.getNodeAttributes().getDisplayName(),
