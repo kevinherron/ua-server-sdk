@@ -107,30 +107,34 @@ public class SubscriptionServices implements SubscriptionServiceSet {
         for (UInteger subscriptionId : subscriptionIds) {
             Subscription subscription = server.getSubscriptions().get(subscriptionId);
 
-            Session otherSession = subscription.getSession();
-
-            if (!sessionsHaveSameUser(session, otherSession)) {
-                results.add(new TransferResult(new StatusCode(StatusCodes.Bad_UserAccessDenied), new UInteger[0]));
+            if (subscription == null) {
+                results.add(new TransferResult(new StatusCode(StatusCodes.Bad_SubscriptionIdInvalid), new UInteger[0]));
             } else {
-                UInteger[] availableSequenceNumbers;
+                Session otherSession = subscription.getSession();
 
-                synchronized (subscription) {
-                    otherSession.getSubscriptionManager().removeSubscription(subscriptionId);
+                if (!sessionsHaveSameUser(session, otherSession)) {
+                    results.add(new TransferResult(new StatusCode(StatusCodes.Bad_UserAccessDenied), new UInteger[0]));
+                } else {
+                    UInteger[] availableSequenceNumbers;
 
-                    subscription.setSubscriptionManager(session.getSubscriptionManager());
-                    subscriptionManager.addSubscription(subscription);
+                    synchronized (subscription) {
+                        otherSession.getSubscriptionManager().removeSubscription(subscriptionId);
 
-                    availableSequenceNumbers = subscription.getAvailableSequenceNumbers();
+                        subscription.setSubscriptionManager(session.getSubscriptionManager());
+                        subscriptionManager.addSubscription(subscription);
 
-                    if (request.getSendInitialValues()) {
-                        subscription.getMonitoredItems().values().stream()
-                                .filter(item -> item instanceof MonitoredDataItem)
-                                .map(item -> (MonitoredDataItem) item)
-                                .forEach(MonitoredDataItem::clearLastValue);
+                        availableSequenceNumbers = subscription.getAvailableSequenceNumbers();
+
+                        if (request.getSendInitialValues()) {
+                            subscription.getMonitoredItems().values().stream()
+                                    .filter(item -> item instanceof MonitoredDataItem)
+                                    .map(item -> (MonitoredDataItem) item)
+                                    .forEach(MonitoredDataItem::clearLastValue);
+                        }
                     }
-                }
 
-                results.add(new TransferResult(StatusCode.Good, availableSequenceNumbers));
+                    results.add(new TransferResult(StatusCode.Good, availableSequenceNumbers));
+                }
             }
         }
 
