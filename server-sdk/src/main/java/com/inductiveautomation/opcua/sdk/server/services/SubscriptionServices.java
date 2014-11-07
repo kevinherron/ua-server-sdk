@@ -28,7 +28,6 @@ import com.inductiveautomation.opcua.sdk.server.subscriptions.SubscriptionManage
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.application.services.ServiceRequest;
 import com.inductiveautomation.opcua.stack.core.application.services.SubscriptionServiceSet;
-import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DiagnosticInfo;
 import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
@@ -47,7 +46,6 @@ import com.inductiveautomation.opcua.stack.core.types.structured.SetPublishingMo
 import com.inductiveautomation.opcua.stack.core.types.structured.TransferResult;
 import com.inductiveautomation.opcua.stack.core.types.structured.TransferSubscriptionsRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.TransferSubscriptionsResponse;
-import com.inductiveautomation.opcua.stack.core.types.structured.UserNameIdentityToken;
 
 import static com.inductiveautomation.opcua.sdk.server.util.ConversionUtil.a;
 
@@ -146,20 +144,10 @@ public class SubscriptionServices implements SubscriptionServiceSet {
     }
 
     private boolean sessionsHaveSameUser(Session s1, Session s2) {
-        Object t1 = s1.getIdentityObject();
-        Object t2 = s2.getIdentityObject();
+        Object identity1 = s1.getIdentityObject();
+        Object identity2 = s2.getIdentityObject();
 
-        if (t1 instanceof UserNameIdentityToken && t2 instanceof UserNameIdentityToken) {
-            ByteString c1 = s1.getClientCertificateBytes();
-            ByteString c2 = s2.getClientCertificateBytes();
-
-            String u1 = ((UserNameIdentityToken) t1).getUserName();
-            String u2 = ((UserNameIdentityToken) t2).getUserName();
-
-            return Objects.equals(c1, c2) && Objects.equals(u1, u2);
-        }
-
-        return false;
+        return Objects.equals(identity1, identity2);
     }
 
 }
