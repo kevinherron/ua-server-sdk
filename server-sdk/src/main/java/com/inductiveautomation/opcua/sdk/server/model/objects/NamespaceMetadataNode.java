@@ -58,9 +58,15 @@ public class NamespaceMetadataNode extends BaseObjectNode implements NamespaceMe
     }
 
     public IdType[] getStaticNodeIdIdentifierTypes() {
-        Optional<Integer> staticNodeIdIdentifierTypes = getProperty("StaticNodeIdIdentifierTypes");
+        Optional<Integer[]> staticNodeIdIdentifierTypes = getProperty("StaticNodeIdIdentifierTypes");
 
-        return staticNodeIdIdentifierTypes.map(IdType[]::from).orElse(null);
+        return staticNodeIdIdentifierTypes.map(values -> {
+            IdType[] staticNodeIdentifierTypes = new IdType[values.length];
+            for (int i = 0; i < values.length; i++) {
+                staticNodeIdentifierTypes[i] = IdType.from(values[i]);
+            }
+            return staticNodeIdentifierTypes;
+        }).orElse(null);
     }
 
     public String[] getStaticNumericNodeIdRange() {
@@ -107,9 +113,15 @@ public class NamespaceMetadataNode extends BaseObjectNode implements NamespaceMe
 
     public synchronized void setStaticNodeIdIdentifierTypes(IdType[] staticNodeIdIdentifierTypes) {
         getPropertyNode("StaticNodeIdIdentifierTypes").ifPresent(n -> {
-            Integer value = staticNodeIdIdentifierTypes.getValue();
-
-            n.setValue(new DataValue(new Variant(value)));
+            if (staticNodeIdIdentifierTypes != null) {
+                Integer[] values = new Integer[staticNodeIdIdentifierTypes.length];
+                for (int i = 0; i < values.length; i++) {
+                    values[i] = staticNodeIdIdentifierTypes[i].getValue();
+                }
+                n.setValue(new DataValue(new Variant(values)));
+            } else {
+                n.setValue(new DataValue(new Variant(new Integer[0])));
+            }
         });
     }
 
