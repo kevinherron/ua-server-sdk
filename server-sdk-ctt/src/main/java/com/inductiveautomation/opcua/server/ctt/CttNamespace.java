@@ -151,7 +151,7 @@ public class CttNamespace implements UaNamespace {
 
             UaVariableNode node = new UaVariableNodeBuilder(this)
                     .setNodeId(new NodeId(NamespaceIndex, "/Static/AllProfiles/Scalar/" + name))
-                    .setAccessLevel(ubyte(AccessLevel.getMask(AccessLevel.ReadWrite)))
+                    .setAccessLevel(ubyte(AccessLevel.getMask(AccessLevel.READ_WRITE)))
                     .setBrowseName(new QualifiedName(NamespaceIndex, name))
                     .setDisplayName(LocalizedText.english(name))
                     .setDataType(typeId)
@@ -212,7 +212,7 @@ public class CttNamespace implements UaNamespace {
 
             UaVariableNode node = new UaVariableNodeBuilder(this)
                     .setNodeId(new NodeId(NamespaceIndex, "/Static/AllProfiles/Array/" + name))
-                    .setAccessLevel(ubyte(AccessLevel.getMask(AccessLevel.ReadWrite)))
+                    .setAccessLevel(ubyte(AccessLevel.getMask(AccessLevel.READ_WRITE)))
                     .setBrowseName(new QualifiedName(NamespaceIndex, name))
                     .setDisplayName(LocalizedText.english(name))
                     .setDataType(typeId)

@@ -20,21 +20,19 @@ import java.util.EnumSet;
 
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UByte;
 
-import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.ubyte;
-
 public enum AccessLevel {
 
     CurrentRead(0x01),
     CurrentWrite(0x02),
     HistoryRead(0x04),
     HistoryWrite(0x08),
-    SemanticChange(0x10); // TODO What's this?
+    SemanticChange(0x10);
 
-    public static final EnumSet<AccessLevel> None = EnumSet.noneOf(AccessLevel.class);
-    public static final EnumSet<AccessLevel> ReadOnly = EnumSet.of(CurrentRead);
-    public static final EnumSet<AccessLevel> ReadWrite = EnumSet.of(CurrentRead, CurrentWrite);
-    public static final EnumSet<AccessLevel> HistoryReadOnly = EnumSet.of(HistoryRead);
-    public static final EnumSet<AccessLevel> HistoryReadWrite = EnumSet.of(HistoryRead, HistoryWrite);
+    public static final EnumSet<AccessLevel> NONE = EnumSet.noneOf(AccessLevel.class);
+    public static final EnumSet<AccessLevel> READ_ONLY = EnumSet.of(CurrentRead);
+    public static final EnumSet<AccessLevel> READ_WRITE = EnumSet.of(CurrentRead, CurrentWrite);
+    public static final EnumSet<AccessLevel> HISTORY_READ_ONLY = EnumSet.of(HistoryRead);
+    public static final EnumSet<AccessLevel> HISTORY_READ_WRITE = EnumSet.of(HistoryRead, HistoryWrite);
 
     private final int value;
 
