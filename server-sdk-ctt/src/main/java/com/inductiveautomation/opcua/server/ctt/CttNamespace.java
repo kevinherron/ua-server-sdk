@@ -110,7 +110,7 @@ public class CttNamespace implements UaNamespace {
             logger.error("Error adding reference to Connections folder.", e);
         }
 
-        subscriptionModel = new SubscriptionModel(this, server.getExecutorService());
+        subscriptionModel = new SubscriptionModel(this, server.getExecutorService(), server.getScheduledExecutorService());
 
         addStaticScalarNodes();
         addStaticArrayNodes();

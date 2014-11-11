@@ -62,7 +62,7 @@ import org.slf4j.LoggerFactory;
 public class OpcUaServer {
 
     private static final ThreadFactory THREAD_FACTORY = new ThreadFactoryBuilder()
-            .setNameFormat("shared-scheduled-executor-%d")
+            .setNameFormat("ua-shared-scheduler-%d")
             .setDaemon(true).build();
 
     private static final ScheduledExecutorService SHARED_SCHEDULED_EXECUTOR =

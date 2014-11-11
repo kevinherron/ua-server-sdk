@@ -28,7 +28,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.WriteValue;
 public interface ReadWriteManager {
 
     /**
-     * Read one or more values from nodes belonging to this {@link NodeManager}.
+     * Read one or more values from nodes belonging to this {@link ReadWriteManager}.
      *
      * @param readValueIds The values to read.
      * @param maxAge       Requested max age.
@@ -41,7 +41,7 @@ public interface ReadWriteManager {
               CompletableFuture<List<DataValue>> future);
 
     /**
-     * Write one or more values to nodes belonging to this {@link NodeManager}.
+     * Write one or more values to nodes belonging to this {@link ReadWriteManager}.
      *
      * @param writeValues The values to write.
      * @param future      The future for the requested write results.

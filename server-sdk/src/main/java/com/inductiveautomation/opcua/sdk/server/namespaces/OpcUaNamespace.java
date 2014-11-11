@@ -93,7 +93,7 @@ public class OpcUaNamespace implements UaNamespace {
             logger.error("Error parsing NodeSet.", t);
         }
 
-        subscriptionModel = new SubscriptionModel(this, server.getExecutorService());
+        subscriptionModel = new SubscriptionModel(this, server.getExecutorService(), server.getScheduledExecutorService());
 
         configureServerObject();
     }

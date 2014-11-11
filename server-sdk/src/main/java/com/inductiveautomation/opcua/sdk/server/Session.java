@@ -19,8 +19,6 @@ package com.inductiveautomation.opcua.sdk.server;
 import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -55,8 +53,6 @@ import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Un
 
 public class Session implements SessionServiceSet {
 
-    private static final ScheduledExecutorService ScheduledExecutor = Executors.newSingleThreadScheduledExecutor();
-
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final List<LifecycleListener> listeners = Lists.newCopyOnWriteArrayList();
@@ -81,6 +77,7 @@ public class Session implements SessionServiceSet {
     private final SubscriptionServices subscriptionServices;
     private final ViewServices viewServices;
 
+    private final OpcUaServer server;
     private final NodeId sessionId;
     private final Duration sessionTimeout;
 
@@ -89,6 +86,7 @@ public class Session implements SessionServiceSet {
                    Duration sessionTimeout,
                    long secureChannelId) {
 
+        this.server = server;
         this.sessionId = sessionId;
         this.sessionTimeout = sessionTimeout;
         this.secureChannelId = secureChannelId;
@@ -103,7 +101,7 @@ public class Session implements SessionServiceSet {
         subscriptionServices = new SubscriptionServices(subscriptionManager);
         viewServices = new ViewServices();
 
-        checkTimeoutFuture = ScheduledExecutor.schedule(
+        checkTimeoutFuture = server.getScheduledExecutorService().schedule(
                 this::checkTimeout, sessionTimeout.toNanos(), TimeUnit.NANOSECONDS);
     }
 
@@ -163,7 +161,8 @@ public class Session implements SessionServiceSet {
             logger.trace("Session id={} timeout scheduled for +{}s.",
                     sessionId, Duration.ofNanos(remaining).getSeconds());
 
-            checkTimeoutFuture = ScheduledExecutor.schedule(this::checkTimeout, remaining, TimeUnit.NANOSECONDS);
+            checkTimeoutFuture = server.getScheduledExecutorService()
+                    .schedule(this::checkTimeout, remaining, TimeUnit.NANOSECONDS);
         }
     }
 

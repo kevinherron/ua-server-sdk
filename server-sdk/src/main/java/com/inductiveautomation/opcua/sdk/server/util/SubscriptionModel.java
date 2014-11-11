@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -33,17 +32,15 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.math.DoubleMath;
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
-import com.inductiveautomation.opcua.sdk.server.api.ReadWriteManager;
 import com.inductiveautomation.opcua.sdk.server.api.DataItem;
 import com.inductiveautomation.opcua.sdk.server.api.MonitoredItem;
+import com.inductiveautomation.opcua.sdk.server.api.ReadWriteManager;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
 import com.inductiveautomation.opcua.stack.core.util.ExecutionQueue;
 
 public class SubscriptionModel {
-
-    private static final ScheduledExecutorService SharedScheduler = Executors.newSingleThreadScheduledExecutor();
 
     private final Set<DataItem> itemSet = Collections.newSetFromMap(Maps.newConcurrentMap());
 
@@ -52,13 +49,18 @@ public class SubscriptionModel {
     private final ExecutionQueue<Runnable> executionQueue;
 
     private final ReadWriteManager readWriteManager;
-    private final ExecutorService executorService;
+    private final ExecutorService executor;
+    private final ScheduledExecutorService scheduler;
 
-    public SubscriptionModel(ReadWriteManager readWriteManager, ExecutorService executorService) {
+    public SubscriptionModel(ReadWriteManager readWriteManager,
+                             ExecutorService executor,
+                             ScheduledExecutorService scheduler) {
+
         this.readWriteManager = readWriteManager;
-        this.executorService = executorService;
+        this.executor = executor;
+        this.scheduler = scheduler;
 
-        executionQueue = new ExecutionQueue<>(ExecutionQueue.RUNNABLE_EXECUTOR, executorService);
+        executionQueue = new ExecutionQueue<>(ExecutionQueue.RUNNABLE_EXECUTOR, executor);
     }
 
     public void onDataItemsCreated(List<DataItem> items) {
@@ -97,7 +99,7 @@ public class SubscriptionModel {
         schedule.forEach(ScheduledUpdate::cancel);
         schedule.clear();
         schedule.addAll(updates);
-        schedule.forEach(SharedScheduler::execute);
+        schedule.forEach(scheduler::execute);
     }
 
     private class ScheduledUpdate implements Runnable {
@@ -148,11 +150,11 @@ public class SubscriptionModel {
                 }
 
                 if (!cancelled) {
-                    SharedScheduler.schedule(this, samplingInterval, TimeUnit.MILLISECONDS);
+                    scheduler.schedule(this, samplingInterval, TimeUnit.MILLISECONDS);
                 }
-            }, executorService);
+            }, executor);
 
-            executorService.execute(() -> readWriteManager.read(ids, 0d, TimestampsToReturn.Both, future));
+            executor.execute(() -> readWriteManager.read(ids, 0d, TimestampsToReturn.Both, future));
         }
 
     }

@@ -59,8 +59,8 @@ public class PublishQueue {
             long minWaitingSince = Long.MAX_VALUE;
 
             for (WaitingSubscription waiting : waitingSubscriptions) {
-                int priority = waiting.subscription.getPriority();
-                long waitingSince = waiting.waitingSince.getTime();
+                int priority = waiting.getSubscription().getPriority();
+                long waitingSince = waiting.getWaitingSince().getTime();
 
                 if (priority > maxPriority) {
                     maxPriority = priority;
