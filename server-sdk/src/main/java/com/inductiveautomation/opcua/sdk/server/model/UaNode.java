@@ -280,6 +280,14 @@ public abstract class UaNode implements Node {
                 NodeClass.Variable,
                 true
         ));
+
+        node.addReference(new Reference(
+                node.getNodeId(),
+                Identifiers.HasProperty,
+                getNodeId().expanded(),
+                getNodeClass(),
+                false
+        ));
     }
 
     protected Optional<UaNode> removePropertyNode(QualifiedName browseName) {
