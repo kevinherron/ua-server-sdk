@@ -44,7 +44,7 @@ public class UaFolderNode extends UaObjectNode {
      *
      * @param node the node to be organized by this folder.
      */
-    public void organizes(UaNode node) {
+    public void addOrganizes(UaNode node) {
         addReference(new Reference(
                 getNodeId(),
                 Identifiers.Organizes,
@@ -54,6 +54,30 @@ public class UaFolderNode extends UaObjectNode {
         ));
 
         node.addReference(new Reference(
+                node.getNodeId(),
+                Identifiers.Organizes,
+                getNodeId().expanded(),
+                getNodeClass(),
+                false
+        ));
+    }
+
+    /**
+     * Remove the 'Organizes' reference from this folder to {@code node} and the inverse 'Organized By' reference from
+     * {@code node} back to this folder.
+     *
+     * @param node the node to be organized by this folder.
+     */
+    public void removeOrganizes(UaNode node) {
+        removeReference(new Reference(
+                getNodeId(),
+                Identifiers.Organizes,
+                node.getNodeId().expanded(),
+                node.getNodeClass(),
+                true
+        ));
+
+        node.removeReference(new Reference(
                 node.getNodeId(),
                 Identifiers.Organizes,
                 getNodeId().expanded(),

@@ -151,9 +151,9 @@ public class UaObjectNode extends UaNode implements ObjectNode {
      * Add a 'HasComponent' reference from this Object to {@code node} and an inverse 'ComponentOf' reference from
      * {@code node} back to this Object.
      *
-     * @param node the node to be organized by this folder.
+     * @param node the node to add as a component of this Object.
      */
-    public void hasComponent(UaNode node) {
+    public void addComponent(UaNode node) {
         addReference(new Reference(
                 getNodeId(),
                 Identifiers.HasComponent,
@@ -163,6 +163,30 @@ public class UaObjectNode extends UaNode implements ObjectNode {
         ));
 
         node.addReference(new Reference(
+                node.getNodeId(),
+                Identifiers.HasComponent,
+                getNodeId().expanded(),
+                getNodeClass(),
+                false
+        ));
+    }
+
+    /**
+     * Remove the 'HasComponent' reference from this Object to {@code node} and the inverse 'ComponentOf' reference
+     * from {@code node} back to this Object.
+     *
+     * @param node the node to remove as a component of this Object.
+     */
+    public void removeComponent(UaNode node) {
+        removeReference(new Reference(
+                getNodeId(),
+                Identifiers.HasComponent,
+                node.getNodeId().expanded(),
+                node.getNodeClass(),
+                true
+        ));
+
+        node.removeReference(new Reference(
                 node.getNodeId(),
                 Identifiers.HasComponent,
                 getNodeId().expanded(),
