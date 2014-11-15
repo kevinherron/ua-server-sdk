@@ -24,6 +24,7 @@ import com.inductiveautomation.opcua.sdk.server.Session;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.UaException;
 import com.inductiveautomation.opcua.stack.core.channel.SecureChannel;
+import com.inductiveautomation.opcua.stack.core.security.SecurityAlgorithm;
 import com.inductiveautomation.opcua.stack.core.types.structured.AnonymousIdentityToken;
 import com.inductiveautomation.opcua.stack.core.types.structured.IssuedIdentityToken;
 import com.inductiveautomation.opcua.stack.core.types.structured.UserNameIdentityToken;
@@ -114,7 +115,10 @@ public abstract class IdentityValidator {
      * @return the decrypted data.
      * @throws UaException if decryption fails.
      */
-    protected byte[] decryptTokenData(SecureChannel secureChannel, byte[] dataBytes) throws UaException {
+    protected byte[] decryptTokenData(SecureChannel secureChannel,
+                                      SecurityAlgorithm algorithm,
+                                      byte[] dataBytes) throws UaException {
+
         int cipherTextBlockSize = secureChannel.getLocalAsymmetricCipherTextBlockSize();
         int blockCount = dataBytes.length / cipherTextBlockSize;
 
@@ -126,7 +130,7 @@ public abstract class IdentityValidator {
         ByteBuffer passwordNioBuffer = ByteBuffer.wrap(dataBytes);
 
         try {
-            Cipher cipher = getCipher(secureChannel);
+            Cipher cipher = getCipher(secureChannel, algorithm);
 
             for (int blockNumber = 0; blockNumber < blockCount; blockNumber++) {
                 passwordNioBuffer.limit(passwordNioBuffer.position() + cipherTextBlockSize);
@@ -140,9 +144,9 @@ public abstract class IdentityValidator {
         return plainTextBytes;
     }
 
-    private Cipher getCipher(SecureChannel channel) throws UaException {
+    private Cipher getCipher(SecureChannel channel, SecurityAlgorithm algorithm) throws UaException {
         try {
-            String transformation = channel.getSecurityPolicy().getAsymmetricEncryptionAlgorithm().getTransformation();
+            String transformation = algorithm.getTransformation();
             Cipher cipher = Cipher.getInstance(transformation);
             cipher.init(Cipher.DECRYPT_MODE, channel.getKeyPair().getPrivate());
             return cipher;

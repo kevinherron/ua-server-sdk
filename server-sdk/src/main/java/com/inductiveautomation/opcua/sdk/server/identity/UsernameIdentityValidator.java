@@ -23,6 +23,7 @@ import com.inductiveautomation.opcua.sdk.server.Session;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.UaException;
 import com.inductiveautomation.opcua.stack.core.channel.SecureChannel;
+import com.inductiveautomation.opcua.stack.core.security.SecurityAlgorithm;
 import com.inductiveautomation.opcua.stack.core.security.SecurityPolicy;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
 import com.inductiveautomation.opcua.stack.core.types.structured.AnonymousIdentityToken;
@@ -69,11 +70,32 @@ public class UsernameIdentityValidator extends IdentityValidator {
         ByteString lastNonce = session.getLastNonce();
         int lastNonceLength = lastNonce.length();
 
+        if (username == null || username.isEmpty()) {
+            throw new UaException(StatusCodes.Bad_IdentityTokenInvalid);
+        }
+
+        SecurityAlgorithm algorithm;
+
+        String algorithmUri = token.getEncryptionAlgorithm();
+        if (algorithmUri == null || algorithmUri.isEmpty()) {
+            algorithm = channel.getSecurityPolicy().getAsymmetricEncryptionAlgorithm();
+        } else {
+            try {
+                algorithm = SecurityAlgorithm.fromUri(algorithmUri);
+            } catch (UaException e) {
+                throw new UaException(StatusCodes.Bad_IdentityTokenInvalid);
+            }
+
+            if (algorithm != SecurityAlgorithm.Rsa15 && algorithm != SecurityAlgorithm.RsaOaep) {
+                throw new UaException(StatusCodes.Bad_IdentityTokenInvalid);
+            }
+        }
+
         byte[] tokenBytes = token.getPassword().bytes();
         if (tokenBytes == null) tokenBytes = new byte[0];
 
         if (securityPolicy != SecurityPolicy.None) {
-            byte[] plainTextBytes = decryptTokenData(channel, tokenBytes);
+            byte[] plainTextBytes = decryptTokenData(channel, algorithm, tokenBytes);
 
             int length = ((plainTextBytes[3] & 0xFF) << 24) |
                     ((plainTextBytes[2] & 0xFF) << 16) |
