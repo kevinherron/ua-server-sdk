@@ -173,7 +173,8 @@ public class Subscription {
 
     public synchronized void removeMonitoredItems(List<BaseMonitoredItem<?>> deletedItems) {
         for (BaseMonitoredItem<?> item : deletedItems) {
-            itemsById.remove(item.getId(), item);
+            itemsById.remove(item.getId());
+            linksById.remove(item.getId());
         }
 
         resetLifetimeCounter();
