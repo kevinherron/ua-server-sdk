@@ -23,6 +23,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableList;
 import com.inductiveautomation.opcua.sdk.core.AttributeIds;
@@ -40,10 +42,16 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
 import com.inductiveautomation.opcua.stack.core.types.builtin.Variant;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.NodeClass;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.inductiveautomation.opcua.sdk.server.util.StreamUtil.opt2stream;
 
 public abstract class UaNode implements Node {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(UaNode.class);
+
+    private final AtomicInteger refCount = new AtomicInteger(0);
 
     private final List<Reference> references = new CopyOnWriteArrayList<>();
 
@@ -189,22 +197,61 @@ public abstract class UaNode implements Node {
         return ImmutableList.copyOf(references);
     }
 
-    public void addReference(Reference reference) {
+    public synchronized void addReference(Reference reference) {
         references.add(reference);
+
+        if (reference.isInverse()) {
+            int count = refCount.incrementAndGet();
+            LOGGER.debug("{} refCount={}", getNodeId(), count);
+
+            if (count == 1) {
+                namespace.addNode(this);
+            }
+        }
     }
 
-    public void addReferences(Collection<Reference> c) {
-        references.addAll(c);
+    public synchronized void addReferences(Collection<Reference> c) {
+        c.forEach(this::addReference);
     }
 
-    public void removeReference(Reference reference) {
+    public synchronized void removeReference(Reference reference) {
         references.remove(reference);
+
+        if (reference.isInverse()) {
+            int count = refCount.decrementAndGet();
+            LOGGER.debug("{} refCount={}", getNodeId(), count);
+
+            if (count == 0) {
+                deallocate();
+            }
+        }
     }
 
-    public void removeReferences(Collection<Reference> c) {
-        references.removeAll(c);
+    public synchronized void removeReferences(Collection<Reference> c) {
+        c.forEach(this::removeReference);
     }
 
+    protected synchronized void deallocate() {
+        LOGGER.debug("{} deallocate()", getNodeId());
+
+        ExpandedNodeId expanded = getNodeId().expanded();
+
+        List<UaNode> referencedNodes = getReferences().stream()
+                .filter(Reference::isForward)
+                .flatMap(r -> opt2stream(getNode(r.getTargetNodeId())))
+                .collect(Collectors.toList());
+
+        for (UaNode node : referencedNodes) {
+            List<Reference> inverseReferences = node.getReferences().stream()
+                    .filter(Reference::isInverse)
+                    .filter(r -> r.getTargetNodeId().equals(expanded))
+                    .collect(Collectors.toList());
+
+            node.removeReferences(inverseReferences);
+        }
+
+        namespace.removeNode(getNodeId());
+    }
 
     public <T> Optional<T> getProperty(Property<T> property) {
         return getProperty(property.getBrowseName());
@@ -226,13 +273,23 @@ public abstract class UaNode implements Node {
 
     public <T> void setProperty(Property<T> property, T value) {
         VariableNode node = getPropertyNode(property.getBrowseName()).orElseGet(() -> {
-            UaPropertyNode propertyNode = createPropertyNode(property.getBrowseName());
+            NodeId propertyNodeId = new NodeId(
+                    getNodeId().getNamespaceIndex(),
+                    String.format("%s.%s", getNodeId().getIdentifier().toString(), browseName.getName())
+            );
+
+            UaPropertyNode propertyNode = new UaPropertyNode(
+                    getNamespace(),
+                    propertyNodeId,
+                    browseName,
+                    LocalizedText.english(browseName.getName())
+            );
 
             propertyNode.setDataType(property.getDataType());
             propertyNode.setValueRank(property.getValueRank());
             propertyNode.setArrayDimensions(property.getArrayDimensions());
 
-            addPropertyNode(propertyNode);
+            addProperty(propertyNode);
 
             return propertyNode;
         });
@@ -258,21 +315,7 @@ public abstract class UaNode implements Node {
         }
     }
 
-    protected UaPropertyNode createPropertyNode(QualifiedName browseName) {
-        String identifier = String.format("%s.%s", getNodeId().getIdentifier().toString(), browseName.getName());
-        NodeId nodeId = new NodeId(getNodeId().getNamespaceIndex(), identifier);
-
-        return new UaPropertyNode(
-                getNamespace(),
-                nodeId,
-                browseName,
-                LocalizedText.english(browseName.getName())
-        );
-    }
-
-    protected void addPropertyNode(UaPropertyNode node) {
-        namespace.addNode(node);
-
+    public void addProperty(UaPropertyNode node) {
         addReference(new Reference(
                 getNodeId(),
                 Identifiers.HasProperty,
@@ -290,8 +333,22 @@ public abstract class UaNode implements Node {
         ));
     }
 
-    protected Optional<UaNode> removePropertyNode(QualifiedName browseName) {
-        return getPropertyNode(browseName).flatMap(n -> getNamespace().removeNode(n.getNodeId()));
+    public void removeProperty(UaPropertyNode node) {
+        removeReference(new Reference(
+                getNodeId(),
+                Identifiers.HasProperty,
+                node.getNodeId().expanded(),
+                NodeClass.Variable,
+                true
+        ));
+
+        node.removeReference(new Reference(
+                node.getNodeId(),
+                Identifiers.HasProperty,
+                getNodeId().expanded(),
+                getNodeClass(),
+                false
+        ));
     }
 
     protected Optional<ObjectNode> getObjectComponent(String browseName) {
