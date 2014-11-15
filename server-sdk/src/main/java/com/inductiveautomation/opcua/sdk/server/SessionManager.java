@@ -321,26 +321,13 @@ public class SessionManager implements
             if (session == null) {
                 throw new UaException(StatusCodes.Bad_SessionIdInvalid);
             } else {
-                /*
-                 * Associate session with new secure channel if client certificate and identity token match.
-                 */
-
-                ByteString certificateBytes = secureChannel.getRemoteCertificateBytes();
-
-                if (request.getUserIdentityToken() == null || request.getUserIdentityToken().getObject() == null) {
-                    throw new UaException(StatusCodes.Bad_IdentityTokenInvalid, "identity token not provided");
-                }
-
-                Object tokenObject = request.getUserIdentityToken().getObject();
-                Object identityObject = validateIdentityToken(secureChannel, session, tokenObject);
-
-                if (identityObject.equals(session.getIdentityObject()) &&
-                        certificateBytes.equals(session.getClientCertificateBytes())) {
-
-                    session.setSecureChannelId(secureChannelId);
-
-                    logger.debug("Session id={} is now associated with secureChannelId={}",
-                            session.getSessionId(), secureChannelId);
+                if (session.getSecureChannelId() == secureChannelId) {
+                    /*
+                     * Identity change
+                     */
+                    Object tokenObject = request.getUserIdentityToken().getObject();
+                    Object identityObject = validateIdentityToken(secureChannel, session, tokenObject);
+                    session.setIdentityObject(identityObject);
 
                     StatusCode[] results = new StatusCode[clientSoftwareCertificates.length];
                     Arrays.fill(results, StatusCode.Good);
@@ -358,7 +345,44 @@ public class SessionManager implements
 
                     serviceRequest.setResponse(response);
                 } else {
-                    throw new UaException(StatusCodes.Bad_SecurityChecksFailed);
+                    /*
+                     * Associate session with new secure channel if client certificate and identity token match.
+                     */
+                    ByteString certificateBytes = secureChannel.getRemoteCertificateBytes();
+
+                    if (request.getUserIdentityToken() == null || request.getUserIdentityToken().getObject() == null) {
+                        throw new UaException(StatusCodes.Bad_IdentityTokenInvalid, "identity token not provided");
+                    }
+
+                    Object tokenObject = request.getUserIdentityToken().getObject();
+                    Object identityObject = validateIdentityToken(secureChannel, session, tokenObject);
+
+                    if (identityObject.equals(session.getIdentityObject()) &&
+                            certificateBytes.equals(session.getClientCertificateBytes())) {
+
+                        session.setSecureChannelId(secureChannelId);
+
+                        logger.debug("Session id={} is now associated with secureChannelId={}",
+                                session.getSessionId(), secureChannelId);
+
+                        StatusCode[] results = new StatusCode[clientSoftwareCertificates.length];
+                        Arrays.fill(results, StatusCode.Good);
+
+                        ByteString serverNonce = NonceUtil.generateNonce(32);
+
+                        session.setLastNonce(serverNonce);
+
+                        ActivateSessionResponse response = new ActivateSessionResponse(
+                                serviceRequest.createResponseHeader(),
+                                serverNonce,
+                                results,
+                                new DiagnosticInfo[0]
+                        );
+
+                        serviceRequest.setResponse(response);
+                    } else {
+                        throw new UaException(StatusCodes.Bad_SecurityChecksFailed);
+                    }
                 }
             }
         } else {
@@ -433,7 +457,7 @@ public class SessionManager implements
                 }
             }
 
-            throw new UaException(StatusCodes.Bad_IdentityTokenRejected, "policy not found: " + policyId);
+            throw new UaException(StatusCodes.Bad_IdentityTokenInvalid, "policy not found: " + policyId);
         } else {
             throw new UaException(StatusCodes.Bad_IdentityTokenInvalid);
         }
