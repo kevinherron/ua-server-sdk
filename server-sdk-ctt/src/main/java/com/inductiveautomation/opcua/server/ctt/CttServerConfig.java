@@ -95,7 +95,7 @@ public class CttServerConfig implements OpcUaServerConfig {
 
     @Override
     public EnumSet<SecurityPolicy> getSecurityPolicies() {
-        return EnumSet.of(SecurityPolicy.None, SecurityPolicy.Basic128Rsa15);
+        return EnumSet.of(SecurityPolicy.None, SecurityPolicy.Basic128Rsa15, SecurityPolicy.Basic256);
     }
 
     @Override
