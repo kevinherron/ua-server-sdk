@@ -106,13 +106,16 @@ public abstract class BaseMonitoredItem<ValueType> implements MonitoredItem {
         if (queueSize.intValue() != this.queueSize) {
             setQueueSize(queueSize);
 
-            RingBuffer<ValueType> nq = new RingBuffer<>(this.queueSize);
-            while (queue.size() > 0) {
-                nq.add(queue.remove());
+            RingBuffer<ValueType> oldQueue = queue;
+            queue = new RingBuffer<>(this.queueSize);
+
+            while (oldQueue.size() > 0) {
+                enqueue(oldQueue.remove());
             }
-            queue = nq;
         }
     }
+
+    protected abstract void enqueue(ValueType value);
 
     public void setMonitoringMode(MonitoringMode monitoringMode) {
         this.monitoringMode = monitoringMode;

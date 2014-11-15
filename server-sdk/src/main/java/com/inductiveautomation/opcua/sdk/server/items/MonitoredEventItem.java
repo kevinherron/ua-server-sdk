@@ -55,6 +55,11 @@ public class MonitoredEventItem extends BaseMonitoredItem<Variant[]> implements 
     }
 
     @Override
+    protected void enqueue(Variant[] value) {
+
+    }
+
+    @Override
     public ExtensionObject getFilterResult() {
         return null;
     }

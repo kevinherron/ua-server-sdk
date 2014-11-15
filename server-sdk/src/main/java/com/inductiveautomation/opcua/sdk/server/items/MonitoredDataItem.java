@@ -74,18 +74,27 @@ public class MonitoredDataItem extends BaseMonitoredItem<DataValue> implements D
         if (valuePassesFilter) {
             lastValue = value;
 
-            if (queue.size() < queue.maxSize()) {
+            enqueue(value);
+        }
+    }
+
+    @Override
+    protected void enqueue(DataValue value) {
+        if (queue.size() < queue.maxSize()) {
+            queue.add(value);
+        } else {
+            if (getQueueSize() > 1) {
+                /* Set overflow if queueSize > 1... */
+                value = value.withStatus(value.getStatusCode().withOverflow());
+            } else if (value.getStatusCode().isOverflowSet()) {
+                /* But make sure it's clear otherwise. */
+                value = value.withStatus(value.getStatusCode().withoutOverflow());
+            }
+
+            if (discardOldest) {
                 queue.add(value);
             } else {
-                if (getQueueSize() > 1) {
-                    value = value.withStatus(value.getStatusCode().withOverflow());
-                }
-
-                if (discardOldest) {
-                    queue.add(value);
-                } else {
-                    queue.set(queue.maxSize() - 1, value);
-                }
+                queue.set(queue.maxSize() - 1, value);
             }
         }
     }
