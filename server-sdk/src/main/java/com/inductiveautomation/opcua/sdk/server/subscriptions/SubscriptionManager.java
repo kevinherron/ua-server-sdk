@@ -772,42 +772,39 @@ public class SubscriptionManager {
 
         synchronized (subscription) {
             Map<UInteger, BaseMonitoredItem<?>> itemsById = subscription.getMonitoredItems();
-            Map<UInteger, TriggeringLinks> linksById = subscription.getTriggeringLinks();
 
-            BaseMonitoredItem<?> trigger = itemsById.get(triggerId);
-            if (trigger == null) {
+            BaseMonitoredItem<?> triggerItem = itemsById.get(triggerId);
+            if (triggerItem == null) {
                 service.setServiceFault(StatusCodes.Bad_MonitoredItemIdInvalid);
                 return;
             }
 
-            TriggeringLinks links = linksById.computeIfAbsent(triggerId, id -> new TriggeringLinks(trigger));
+            List<StatusCode> removeResults = Arrays.stream(linksToRemove)
+                    .map(linkedItemId -> {
+                        BaseMonitoredItem<?> item = itemsById.get(linkedItemId);
+                        if (item != null) {
+                            if (triggerItem.getTriggeredItems().remove(linkedItemId) != null) {
+                                return StatusCode.Good;
+                            } else {
+                                return new StatusCode(StatusCodes.Bad_MonitoredItemIdInvalid);
+                            }
+                        } else {
+                            return new StatusCode(StatusCodes.Bad_MonitoredItemIdInvalid);
+                        }
+                    })
+                    .collect(Collectors.toList());
 
             List<StatusCode> addResults = Arrays.stream(linksToAdd)
-                    .map(id -> {
-                        BaseMonitoredItem<?> item = itemsById.get(id);
-                        if (item != null) {
-                            links.getTriggeredItems().put(id, item);
+                    .map(linkedItemId -> {
+                        BaseMonitoredItem<?> linkedItem = itemsById.get(linkedItemId);
+                        if (linkedItem != null) {
+                            triggerItem.getTriggeredItems().put(linkedItemId, linkedItem);
                             return StatusCode.Good;
                         } else {
                             return new StatusCode(StatusCodes.Bad_MonitoredItemIdInvalid);
                         }
                     })
                     .collect(Collectors.toList());
-
-            List<StatusCode> removeResults = Arrays.stream(linksToRemove)
-                    .map(id -> {
-                        BaseMonitoredItem<?> item = links.getTriggeredItems().remove(id);
-                        if (item != null) {
-                            return StatusCode.Good;
-                        } else {
-                            return new StatusCode(StatusCodes.Bad_MonitoredItemIdInvalid);
-                        }
-                    })
-                    .collect(Collectors.toList());
-
-            if (links.isEmpty()) {
-                linksById.remove(triggerId);
-            }
 
             SetTriggeringResponse response = new SetTriggeringResponse(
                     service.createResponseHeader(),

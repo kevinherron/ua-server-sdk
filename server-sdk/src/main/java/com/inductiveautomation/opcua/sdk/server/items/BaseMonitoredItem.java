@@ -16,7 +16,9 @@
 
 package com.inductiveautomation.opcua.sdk.server.items;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.google.common.primitives.Ints;
 import com.inductiveautomation.opcua.sdk.server.api.MonitoredItem;
@@ -32,6 +34,9 @@ import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
 public abstract class BaseMonitoredItem<ValueType> implements MonitoredItem {
 
     private static final int MAX_QUEUE_SIZE = 0xFFFF;
+
+    protected volatile Map<UInteger, BaseMonitoredItem<?>> triggeredItems;
+    protected volatile boolean triggered = false;
 
     protected volatile RingBuffer<ValueType> queue;
 
@@ -82,11 +87,17 @@ public abstract class BaseMonitoredItem<ValueType> implements MonitoredItem {
             notifications.add(wrapQueueValue(queue.remove()));
         }
 
-        return queue.isEmpty();
+        boolean queueIsEmpty = queue.isEmpty();
+
+        if (queueIsEmpty && triggered) {
+            triggered = false;
+        }
+
+        return queueIsEmpty;
     }
 
     public synchronized boolean hasNotifications() {
-        return queue.size() > 0 && monitoringMode == MonitoringMode.Reporting;
+        return (queue.size() > 0 && monitoringMode == MonitoringMode.Reporting);
     }
 
     public synchronized void modify(TimestampsToReturn timestamps,
@@ -158,6 +169,16 @@ public abstract class BaseMonitoredItem<ValueType> implements MonitoredItem {
 
     public MonitoringMode getMonitoringMode() {
         return monitoringMode;
+    }
+
+    public synchronized Map<UInteger, BaseMonitoredItem<?>> getTriggeredItems() {
+        if (triggeredItems == null) triggeredItems = new HashMap<>();
+
+        return triggeredItems;
+    }
+
+    public synchronized boolean isTriggered() {
+        return triggered;
     }
 
     public abstract ExtensionObject getFilterResult();

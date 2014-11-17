@@ -75,6 +75,10 @@ public class MonitoredDataItem extends BaseMonitoredItem<DataValue> implements D
             lastValue = value;
 
             enqueue(value);
+
+            if (triggeredItems != null) {
+                triggeredItems.values().forEach(item -> item.triggered = true);
+            }
         }
     }
 

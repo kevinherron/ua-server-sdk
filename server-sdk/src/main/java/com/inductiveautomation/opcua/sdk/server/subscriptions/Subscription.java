@@ -17,6 +17,7 @@
 package com.inductiveautomation.opcua.sdk.server.subscriptions;
 
 import java.math.RoundingMode;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -53,7 +54,6 @@ import com.inductiveautomation.opcua.stack.core.types.structured.PublishRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.PublishResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.ResponseHeader;
 import com.inductiveautomation.opcua.stack.core.types.structured.SetPublishingModeRequest;
-import com.inductiveautomation.opcua.stack.core.types.structured.SetTriggeringRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.StatusChangeNotification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,7 +76,6 @@ public class Subscription {
 
     private final AtomicLong itemIds = new AtomicLong(1L);
     private final Map<UInteger, BaseMonitoredItem<?>> itemsById = Maps.newConcurrentMap();
-    private final Map<UInteger, TriggeringLinks> linksById = Maps.newConcurrentMap();
 
     private final AtomicReference<State> state = new AtomicReference<>(State.Normal);
     private final AtomicReference<StateListener> stateListener = new AtomicReference<>();
@@ -174,7 +173,6 @@ public class Subscription {
     public synchronized void removeMonitoredItems(List<BaseMonitoredItem<?>> deletedItems) {
         for (BaseMonitoredItem<?> item : deletedItems) {
             itemsById.remove(item.getId());
-            linksById.remove(item.getId());
         }
 
         resetLifetimeCounter();
@@ -182,16 +180,8 @@ public class Subscription {
         logger.debug("[id={}] deleted {} MonitoredItems.", subscriptionId, deletedItems.size());
     }
 
-    public synchronized void setTriggering(SetTriggeringRequest request) {
-
-    }
-
     public synchronized Map<UInteger, BaseMonitoredItem<?>> getMonitoredItems() {
         return itemsById;
-    }
-
-    public synchronized Map<UInteger, TriggeringLinks> getTriggeringLinks() {
-        return linksById;
     }
 
     /**
@@ -324,7 +314,7 @@ public class Subscription {
         NotificationMessage notificationMessage = new NotificationMessage(
                 sequenceNumber, DateTime.now(), new ExtensionObject[0]);
 
-        UInteger[] available = availableMessages.keySet().toArray(new UInteger[availableMessages.size()]);
+        UInteger[] available = getAvailableSequenceNumbers();
 
         UInteger requestHandle = service.getRequest().getRequestHeader().getRequestHandle();
         StatusCode[] acknowledgeResults = subscriptionManager.getAcknowledgeResults(requestHandle);
@@ -370,7 +360,7 @@ public class Subscription {
         lastIterator.forEachRemaining(items::add);
 
         itemsById.values().stream()
-                .filter(BaseMonitoredItem::hasNotifications)
+                .filter(item -> item.hasNotifications() || item.isTriggered())
                 .forEach(items::add);
 
         PeekingIterator<BaseMonitoredItem<?>> iterator = Iterators.peekingIterator(items.iterator());
@@ -396,14 +386,6 @@ public class Subscription {
                 BaseMonitoredItem<?> item = iterator.peek();
 
                 boolean gatheredAllForItem = gather(item, notifications, maxNotificationsPerPublish);
-
-                TriggeringLinks link = linksById.get(item.getId());
-
-                if (link != null) {
-                    for (BaseMonitoredItem<?> triggeredItem : link.getTriggeredItems().values()) {
-                        gatheredAllForItem |= gather(triggeredItem, notifications, maxNotificationsPerPublish);
-                    }
-                }
 
                 if (gatheredAllForItem && iterator.hasNext()) {
                     iterator.next();
@@ -470,7 +452,7 @@ public class Subscription {
         );
 
         availableMessages.put(notificationMessage.getSequenceNumber(), notificationMessage);
-        UInteger[] available = availableMessages.keySet().toArray(new UInteger[availableMessages.size()]);
+        UInteger[] available = getAvailableSequenceNumbers();
 
         UInteger requestHandle = service.getRequest().getRequestHeader().getRequestHandle();
         StatusCode[] acknowledgeResults = subscriptionManager.getAcknowledgeResults(requestHandle);
@@ -489,7 +471,8 @@ public class Subscription {
     }
 
     private boolean notificationsAvailable() {
-        return itemsById.values().stream().anyMatch(BaseMonitoredItem::hasNotifications);
+        return itemsById.values().stream()
+                .anyMatch(item -> item.hasNotifications() || item.isTriggered());
     }
 
     private void setState(State state) {
@@ -534,7 +517,9 @@ public class Subscription {
 
     public synchronized UInteger[] getAvailableSequenceNumbers() {
         Set<UInteger> uIntegers = availableMessages.keySet();
-        return uIntegers.toArray(new UInteger[uIntegers.size()]);
+        UInteger[] available = uIntegers.toArray(new UInteger[uIntegers.size()]);
+        Arrays.sort(available);
+        return available;
     }
 
     public synchronized SubscriptionManager getSubscriptionManager() {
