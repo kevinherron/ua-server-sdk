@@ -102,6 +102,7 @@ public class SubscriptionManager {
     private final PublishQueue publishQueue = new PublishQueue();
 
     private final Map<UInteger, Subscription> subscriptions = Maps.newConcurrentMap();
+    private final List<Subscription> transferred = Lists.newCopyOnWriteArrayList();
 
     private final Session session;
     private final OpcUaServer server;
@@ -688,6 +689,12 @@ public class SubscriptionManager {
     public void publish(ServiceRequest<PublishRequest, PublishResponse> service) {
         PublishRequest request = service.getRequest();
 
+        if (!transferred.isEmpty()) {
+            Subscription subscription = transferred.remove(0);
+            subscription.returnStatusChangeNotification(service);
+            return;
+        }
+
         if (subscriptions.isEmpty()) {
             service.setServiceFault(StatusCodes.Bad_NoSubscription);
             return;
@@ -852,6 +859,16 @@ public class SubscriptionManager {
 
     StatusCode[] getAcknowledgeResults(UInteger requestHandle) {
         return acknowledgeResults.remove(requestHandle);
+    }
+
+    public void sendStatusChangeNotification(Subscription subscription) {
+        ServiceRequest<PublishRequest, PublishResponse> service = publishQueue.poll();
+
+        if (service != null) {
+            subscription.returnStatusChangeNotification(service);
+        } else {
+            transferred.add(subscription);
+        }
     }
 
 }

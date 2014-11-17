@@ -330,7 +330,7 @@ public class Subscription {
                 subscriptionId, sequenceNumber);
     }
 
-    private void returnStatusChangeNotification(ServiceRequest<PublishRequest, PublishResponse> service) {
+    void returnStatusChangeNotification(ServiceRequest<PublishRequest, PublishResponse> service) {
         StatusChangeNotification statusChange = new StatusChangeNotification(
                 new StatusCode(StatusCodes.Bad_Timeout), null);
 

@@ -116,6 +116,7 @@ public class SubscriptionServices implements SubscriptionServiceSet {
                     UInteger[] availableSequenceNumbers;
 
                     synchronized (subscription) {
+                        otherSession.getSubscriptionManager().sendStatusChangeNotification(subscription);
                         otherSession.getSubscriptionManager().removeSubscription(subscriptionId);
 
                         subscription.setSubscriptionManager(session.getSubscriptionManager());
