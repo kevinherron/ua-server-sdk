@@ -108,9 +108,7 @@ public class OpcUaServer {
                 String endpointUrl = endpointUrl(
                         config.getHostname(),
                         address,
-                        config.getBindPort(),
-                        securityPolicy,
-                        messageSecurityMode
+                        config.getBindPort()
                 );
 
                 logger.info("Binding endpoint {} to {} [{}/{}]",
@@ -146,9 +144,7 @@ public class OpcUaServer {
         return bootstrap.build();
     }
 
-    private String endpointUrl(String hostname, String address, int port,
-                               SecurityPolicy securityPolicy,
-                               MessageSecurityMode securityMode) {
+    private String endpointUrl(String hostname, String address, int port) {
 
         StringBuilder sb = new StringBuilder();
 
@@ -160,7 +156,6 @@ public class OpcUaServer {
                 if (!config.getServerName().isEmpty()) {
                     sb.append("/").append(config.getServerName());
                 }
-                sb.append("/").append(securityPolicy).append("/").append(securityMode);
                 return sb.toString();
             }
         } catch (UnknownHostException ignored) {
@@ -170,7 +165,6 @@ public class OpcUaServer {
         if (!config.getServerName().isEmpty()) {
             sb.append("/").append(config.getServerName());
         }
-        sb.append("/").append(securityPolicy).append("/").append(securityMode);
         return sb.toString();
     }
 
