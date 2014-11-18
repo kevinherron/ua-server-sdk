@@ -146,7 +146,7 @@ public class SessionManager implements
         SubscriptionServiceSet,
         ViewServiceSet {
 
-    private static final int MAX_SESSION_COUNT = 500;
+    private static final int MAX_SESSION_COUNT = 550;
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
