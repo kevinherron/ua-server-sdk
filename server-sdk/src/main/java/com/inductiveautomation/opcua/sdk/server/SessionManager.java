@@ -146,8 +146,6 @@ public class SessionManager implements
         SubscriptionServiceSet,
         ViewServiceSet {
 
-    private static final int MAX_SESSION_COUNT = 550;
-
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final Map<NodeId, Session> createdSessions = Maps.newConcurrentMap();
@@ -206,7 +204,8 @@ public class SessionManager implements
     public void onCreateSession(ServiceRequest<CreateSessionRequest, CreateSessionResponse> serviceRequest) throws UaException {
         CreateSessionRequest request = serviceRequest.getRequest();
 
-        if (createdSessions.size() + activeSessions.size() >= MAX_SESSION_COUNT) {
+        long maxSessionCount = server.getConfig().getLimits().getMaxSessionCount().longValue();
+        if (createdSessions.size() + activeSessions.size() >= maxSessionCount) {
             serviceRequest.setServiceFault(StatusCodes.Bad_TooManySessions);
             return;
         }

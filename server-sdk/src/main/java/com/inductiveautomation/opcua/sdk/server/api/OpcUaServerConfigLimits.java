@@ -16,6 +16,8 @@
 
 package com.inductiveautomation.opcua.sdk.server.api;
 
+import java.util.concurrent.TimeUnit;
+
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UShort;
 
@@ -24,8 +26,16 @@ import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Un
 
 public interface OpcUaServerConfigLimits {
 
+    default UInteger getMaxSessionCount() {
+        return uint(550);
+    }
+
     default Double getMinSupportedSampleRate() {
         return 100.0;
+    }
+
+    default Double getMaxSupportedSampleRate() {
+        return (double) TimeUnit.MILLISECONDS.convert(24, TimeUnit.HOURS);
     }
 
     default UShort getMaxBrowseContinuationPoints() {

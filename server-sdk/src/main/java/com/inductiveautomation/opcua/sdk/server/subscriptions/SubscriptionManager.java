@@ -87,9 +87,6 @@ import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Un
 
 public class SubscriptionManager {
 
-    public static final double MIN_SAMPLING_INTERVAL = 100;
-    public static final double MAX_SAMPLING_INTERVAL = 60 * 60 * 1000;
-
     private static final QualifiedName DEFAULT_BINARY_ENCODING = new QualifiedName(0, "DefaultBinary");
     private static final QualifiedName DEFAULT_XML_ENCODING = new QualifiedName(0, "DefaultXML");
 
@@ -364,9 +361,12 @@ public class SubscriptionManager {
                             }
                         } else {
                             double samplingInterval = parameters.getSamplingInterval();
+                            double minSupportedSampleRate = server.getConfig().getLimits().getMinSupportedSampleRate();
+                            double maxSupportedSampleRate = server.getConfig().getLimits().getMaxSupportedSampleRate();
+
                             if (samplingInterval < 0) samplingInterval = subscription.getPublishingInterval();
-                            if (samplingInterval < MIN_SAMPLING_INTERVAL) samplingInterval = MIN_SAMPLING_INTERVAL;
-                            if (samplingInterval > MAX_SAMPLING_INTERVAL) samplingInterval = MAX_SAMPLING_INTERVAL;
+                            if (samplingInterval < minSupportedSampleRate) samplingInterval = minSupportedSampleRate;
+                            if (samplingInterval > maxSupportedSampleRate) samplingInterval = maxSupportedSampleRate;
 
                             String indexRange = createRequest.getItemToMonitor().getIndexRange();
                             if (indexRange != null) {
@@ -489,9 +489,12 @@ public class SubscriptionManager {
                         );
                     } else {
                         double samplingInterval = parameters.getSamplingInterval();
+                        double minSupportedSampleRate = server.getConfig().getLimits().getMinSupportedSampleRate();
+                        double maxSupportedSampleRate = server.getConfig().getLimits().getMaxSupportedSampleRate();
+
                         if (samplingInterval < 0) samplingInterval = subscription.getPublishingInterval();
-                        if (samplingInterval < MIN_SAMPLING_INTERVAL) samplingInterval = MIN_SAMPLING_INTERVAL;
-                        if (samplingInterval > MAX_SAMPLING_INTERVAL) samplingInterval = MAX_SAMPLING_INTERVAL;
+                        if (samplingInterval < minSupportedSampleRate) samplingInterval = minSupportedSampleRate;
+                        if (samplingInterval > maxSupportedSampleRate) samplingInterval = maxSupportedSampleRate;
 
                         item.modify(
                                 timestamps,
