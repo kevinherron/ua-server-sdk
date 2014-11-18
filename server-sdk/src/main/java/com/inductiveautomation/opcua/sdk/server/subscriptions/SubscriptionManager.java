@@ -42,6 +42,7 @@ import com.inductiveautomation.opcua.stack.core.UaException;
 import com.inductiveautomation.opcua.stack.core.application.services.ServiceRequest;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DiagnosticInfo;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
+import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
 import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
@@ -88,6 +89,9 @@ public class SubscriptionManager {
 
     public static final double MIN_SAMPLING_INTERVAL = 100;
     public static final double MAX_SAMPLING_INTERVAL = 60 * 60 * 1000;
+
+    private static final QualifiedName DEFAULT_BINARY_ENCODING = new QualifiedName(0, "DefaultBinary");
+    private static final QualifiedName DEFAULT_XML_ENCODING = new QualifiedName(0, "DefaultXML");
 
     private static final AtomicLong SUBSCRIPTION_IDS = new AtomicLong(0L);
 
@@ -309,6 +313,7 @@ public class SubscriptionManager {
                     MonitoredItemCreateRequest createRequest = itemsToCreate[i];
                     NodeId nodeId = createRequest.getItemToMonitor().getNodeId();
                     UInteger attributeId = createRequest.getItemToMonitor().getAttributeId();
+                    QualifiedName dataEncoding = createRequest.getItemToMonitor().getDataEncoding();
 
                     try {
                         NamespaceManager namespaceManager = server.getNamespaceManager();
@@ -319,6 +324,18 @@ public class SubscriptionManager {
 
                         if (!namespaceManager.attributeExists(nodeId, attributeId)) {
                             throw new UaException(StatusCodes.Bad_AttributeIdInvalid);
+                        }
+
+                        if (dataEncoding.isNotNull()) {
+                            if (attributeId.intValue() != AttributeIds.Value) {
+                                throw new UaException(StatusCodes.Bad_DataEncodingInvalid,
+                                        "data encoding invalid for non-value attribute");
+                            }
+                            if (!dataEncoding.equals(DEFAULT_BINARY_ENCODING) &&
+                                    !dataEncoding.equals(DEFAULT_XML_ENCODING)) {
+                                throw new UaException(StatusCodes.Bad_DataEncodingUnsupported,
+                                        "data encoding not supported: " + dataEncoding.getName());
+                            }
                         }
 
                         MonitoringParameters parameters = createRequest.getRequestedParameters();
