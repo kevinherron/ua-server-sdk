@@ -41,12 +41,10 @@ public class CttServer {
     public CttServer(OpcUaServerConfig config) {
         server = new OpcUaServer(config);
 
-        server.getNamespaceManager().getNamespaceTable().putUri(
-                CttNamespace.NamespaceUri,
-                CttNamespace.NamespaceIndex
+        server.getNamespaceManager().registerAndAdd(
+                CttNamespace.NAMESPACE_URI,
+                namespaceIndex -> new CttNamespace(server, namespaceIndex)
         );
-
-        server.getNamespaceManager().addNamespace(new CttNamespace(server));
     }
 
     public void startup() throws UaException {

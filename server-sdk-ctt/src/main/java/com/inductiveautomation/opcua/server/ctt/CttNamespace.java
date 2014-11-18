@@ -74,8 +74,7 @@ import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Un
 
 public class CttNamespace implements UaNamespace {
 
-    public static final String NamespaceUri = "ctt";
-    public static final UShort NamespaceIndex = ushort(2);
+    public static final String NAMESPACE_URI = "urn:inductiveautomation:ctt-namespace";
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -85,16 +84,18 @@ public class CttNamespace implements UaNamespace {
     private final SubscriptionModel subscriptionModel;
 
     private final OpcUaServer server;
+    private final UShort namespaceIndex;
 
-    public CttNamespace(OpcUaServer server) {
+    public CttNamespace(OpcUaServer server, UShort namespaceIndex) {
         this.server = server;
+        this.namespaceIndex = namespaceIndex;
 
-        NodeId cttNodeId = new NodeId(NamespaceIndex, "CTT");
+        NodeId cttNodeId = new NodeId(namespaceIndex, "CTT");
 
         cttFolder = new UaFolderNode(
                 this,
                 cttNodeId,
-                new QualifiedName(NamespaceIndex, "CTT"),
+                new QualifiedName(namespaceIndex, "CTT"),
                 LocalizedText.english("CTT")
         );
 
@@ -150,9 +151,9 @@ public class CttNamespace implements UaNamespace {
             Variant variant = (Variant) os[2];
 
             UaVariableNode node = new UaVariableNodeBuilder(this)
-                    .setNodeId(new NodeId(NamespaceIndex, "/Static/AllProfiles/Scalar/" + name))
+                    .setNodeId(new NodeId(namespaceIndex, "/Static/AllProfiles/Scalar/" + name))
                     .setAccessLevel(ubyte(AccessLevel.getMask(AccessLevel.READ_WRITE)))
-                    .setBrowseName(new QualifiedName(NamespaceIndex, name))
+                    .setBrowseName(new QualifiedName(namespaceIndex, name))
                     .setDisplayName(LocalizedText.english(name))
                     .setDataType(typeId)
                     .setTypeDefinition(Identifiers.BaseDataVariableType)
@@ -211,9 +212,9 @@ public class CttNamespace implements UaNamespace {
             Variant variant = new Variant(array);
 
             UaVariableNode node = new UaVariableNodeBuilder(this)
-                    .setNodeId(new NodeId(NamespaceIndex, "/Static/AllProfiles/Array/" + name))
+                    .setNodeId(new NodeId(namespaceIndex, "/Static/AllProfiles/Array/" + name))
                     .setAccessLevel(ubyte(AccessLevel.getMask(AccessLevel.READ_WRITE)))
-                    .setBrowseName(new QualifiedName(NamespaceIndex, name))
+                    .setBrowseName(new QualifiedName(namespaceIndex, name))
                     .setDisplayName(LocalizedText.english(name))
                     .setDataType(typeId)
                     .setTypeDefinition(Identifiers.BaseDataVariableType)
@@ -241,8 +242,8 @@ public class CttNamespace implements UaNamespace {
         UaObjectNode folder = addFoldersToRoot(cttFolder, "/Methods");
 
         UaMethodNode methodNode = UaMethodNode.builder(this)
-                .setNodeId(new NodeId(NamespaceIndex, "/Methods/sqrt(x)"))
-                .setBrowseName(new QualifiedName(NamespaceIndex, "sqrt(x)"))
+                .setNodeId(new NodeId(namespaceIndex, "/Methods/sqrt(x)"))
+                .setBrowseName(new QualifiedName(namespaceIndex, "sqrt(x)"))
                 .setDisplayName(new LocalizedText(null, "sqrt(x)"))
                 .setDescription(LocalizedText.english("Returns the correctly rounded positive square root of a double value."))
                 .build();
@@ -331,8 +332,8 @@ public class CttNamespace implements UaNamespace {
             if (!prefix.startsWith("/")) prefix = "/" + prefix;
 
             UaObjectNode node = UaObjectNode.builder(this)
-                    .setNodeId(new NodeId(NamespaceIndex, prefix + name))
-                    .setBrowseName(new QualifiedName(NamespaceIndex, name))
+                    .setNodeId(new NodeId(namespaceIndex, prefix + name))
+                    .setBrowseName(new QualifiedName(namespaceIndex, name))
                     .setDisplayName(LocalizedText.english(name))
                     .setTypeDefinition(Identifiers.FolderType)
                     .build();
@@ -346,8 +347,8 @@ public class CttNamespace implements UaNamespace {
             if (!prefix.startsWith("/")) prefix = "/" + prefix;
 
             UaObjectNode node = UaObjectNode.builder(this)
-                    .setNodeId(new NodeId(NamespaceIndex, prefix + name))
-                    .setBrowseName(new QualifiedName(NamespaceIndex, name))
+                    .setNodeId(new NodeId(namespaceIndex, prefix + name))
+                    .setBrowseName(new QualifiedName(namespaceIndex, name))
                     .setDisplayName(LocalizedText.english(name))
                     .setTypeDefinition(Identifiers.FolderType)
                     .build();
@@ -361,12 +362,12 @@ public class CttNamespace implements UaNamespace {
 
     @Override
     public UShort getNamespaceIndex() {
-        return NamespaceIndex;
+        return namespaceIndex;
     }
 
     @Override
     public String getNamespaceUri() {
-        return NamespaceUri;
+        return NAMESPACE_URI;
     }
 
     @Override
