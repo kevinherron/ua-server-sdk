@@ -30,13 +30,21 @@ import com.inductiveautomation.opcua.sdk.server.api.OpcUaServerConfig;
 import com.inductiveautomation.opcua.sdk.server.identity.IdentityValidator;
 import com.inductiveautomation.opcua.sdk.server.identity.UsernameIdentityValidator;
 import com.inductiveautomation.opcua.stack.core.security.SecurityPolicy;
+import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
+import com.inductiveautomation.opcua.stack.core.types.structured.BuildInfo;
 import com.inductiveautomation.opcua.stack.core.types.structured.UserTokenPolicy;
 import org.slf4j.LoggerFactory;
 
 public class CttServerConfig implements OpcUaServerConfig {
 
-    private static final String SERVER_ALIAS = "ctt-server-certificate3";
+    private static final BuildInfo BUILD_INFO = new BuildInfo(
+            "http://www.inductiveautomation.com/opc-ua/sdk",
+            "Inductive Automation", "OPC-UA SDK",
+            "dev", "dev", DateTime.now()
+    );
+
+    private static final String SERVER_ALIAS = "iop-certificate2";
     private static final char[] PASSWORD = "test".toCharArray();
 
     private volatile Certificate certificate;
@@ -112,6 +120,11 @@ public class CttServerConfig implements OpcUaServerConfig {
             return ("user1".equals(username) && "password1".equals(password)) ||
                     ("user2".equals(username) && "password2".equals(password));
         });
+    }
+
+    @Override
+    public BuildInfo getBuildInfo() {
+        return BUILD_INFO;
     }
 
 }
