@@ -17,6 +17,7 @@
 package com.inductiveautomation.opcua.sdk.server.services.helpers;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
@@ -64,9 +65,6 @@ import static com.inductiveautomation.opcua.sdk.server.util.UaEnumUtil.nodeClass
 
 public class BrowseHelper {
 
-    private static final int MaxNodesPerBrowse = 0xFFFF;
-    private static final int MaxContinuationPoints = 1024;
-
     private static final StatusCode Bad_ContinuationPointInvalid = new StatusCode(StatusCodes.Bad_ContinuationPointInvalid);
     private static final StatusCode Bad_NoContinuationPoints = new StatusCode(StatusCodes.Bad_NoContinuationPoints);
 
@@ -80,7 +78,7 @@ public class BrowseHelper {
 
         BrowseRequest request = service.getRequest();
 
-        if (request.getNodesToBrowse().length > MaxNodesPerBrowse) {
+        if (request.getNodesToBrowse().length > server.getConfig().getLimits().getMaxNodesPerBrowse().intValue()) {
             service.setServiceFault(StatusCodes.Bad_TooManyOperations);
             return;
         }
@@ -116,12 +114,13 @@ public class BrowseHelper {
 
         BrowseNextRequest request = service.getRequest();
 
-        if (request.getContinuationPoints().length > MaxContinuationPoints) {
-            service.setServiceFault(StatusCodes.Bad_TooManyOperations);
-            return;
-        }
+        if (request.getContinuationPoints().length >
+                server.getConfig().getLimits().getMaxBrowseContinuationPoints().intValue()) {
 
-        server.getExecutorService().execute(new BrowseNext(service));
+            service.setServiceFault(StatusCodes.Bad_TooManyOperations);
+        } else {
+            server.getExecutorService().execute(new BrowseNext(service));
+        }
     }
 
     private class Browse implements Runnable {
@@ -173,7 +172,9 @@ public class BrowseHelper {
 
         private BrowseResult browseResult(List<ReferenceDescription> references, int max) {
             if (references.size() > max) {
-                if (continuations.size() > MaxContinuationPoints) {
+                if (continuations.size() >
+                        server.getConfig().getLimits().getMaxBrowseContinuationPoints().intValue()) {
+
                     return new BrowseResult(Bad_NoContinuationPoints, null, new ReferenceDescription[0]);
                 } else {
                     List<ReferenceDescription> subList = references.subList(0, max);
@@ -246,7 +247,7 @@ public class BrowseHelper {
             if (resultMaskSet.contains(BrowseResultMask.TypeDefinition)) {
                 Optional<List<Reference>> references = namespaceManager.getReferences(targetNodeId);
 
-                Optional<Reference> typeReference = references.map(rs -> rs.stream())
+                Optional<Reference> typeReference = references.map(Collection::stream)
                         .orElse(Stream.empty())
                         .filter(r -> r.getReferenceTypeId().equals(Identifiers.HasTypeDefinition))
                         .findFirst();

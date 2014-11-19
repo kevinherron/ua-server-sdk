@@ -42,8 +42,6 @@ import static com.inductiveautomation.opcua.sdk.server.util.FutureUtils.sequence
 
 public class WriteHelper {
 
-    private static final int MaxNodesPerWrite = 0xFFFF;
-
     public static void write(ServiceRequest<WriteRequest, WriteResponse> service) {
         WriteRequest request = service.getRequest();
 
@@ -54,7 +52,7 @@ public class WriteHelper {
             return;
         }
 
-        if (request.getNodesToWrite().length > MaxNodesPerWrite) {
+        if (request.getNodesToWrite().length > server.getConfig().getLimits().getMaxNodesPerWrite().intValue()) {
             service.setServiceFault(StatusCodes.Bad_TooManyOperations);
             return;
         }

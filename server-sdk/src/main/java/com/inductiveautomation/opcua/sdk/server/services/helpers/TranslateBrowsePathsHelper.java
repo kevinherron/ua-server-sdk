@@ -49,8 +49,6 @@ import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Un
 
 public class TranslateBrowsePathsHelper {
 
-    private static final int MaxNodesPerTranslate = 0xFFFF;
-
     private final NamespaceManager namespaceManager;
 
     public TranslateBrowsePathsHelper(NamespaceManager namespaceManager) {
@@ -64,20 +62,21 @@ public class TranslateBrowsePathsHelper {
 
         BrowsePath[] browsePaths = service.getRequest().getBrowsePaths();
 
-        if (browsePaths.length > MaxNodesPerTranslate) {
+        if (browsePaths.length >
+                server.getConfig().getLimits().getMaxNodesPerTranslateBrowsePathsToNodeIds().intValue()) {
+
             service.setServiceFault(StatusCodes.Bad_TooManyOperations);
-            return;
+        } else {
+            List<BrowsePathResult> results = Arrays.stream(browsePaths)
+                    .map(this::translate)
+                    .collect(Collectors.toList());
+
+            ResponseHeader header = service.createResponseHeader();
+            TranslateBrowsePathsToNodeIdsResponse response = new TranslateBrowsePathsToNodeIdsResponse(
+                    header, a(results, BrowsePathResult.class), new DiagnosticInfo[0]);
+
+            service.setResponse(response);
         }
-
-        List<BrowsePathResult> results = Arrays.stream(browsePaths)
-                .map(this::translate)
-                .collect(Collectors.toList());
-
-        ResponseHeader header = service.createResponseHeader();
-        TranslateBrowsePathsToNodeIdsResponse response = new TranslateBrowsePathsToNodeIdsResponse(
-                header, a(results, BrowsePathResult.class), new DiagnosticInfo[0]);
-
-        service.setResponse(response);
     }
 
     private BrowsePathResult translate(BrowsePath browsePath) {
