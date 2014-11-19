@@ -61,7 +61,7 @@ public interface OpcUaServerConfig {
     }
 
     default BuildInfo getBuildInfo() {
-        return new BuildInfo("", "", "", "", "", DateTime.MinValue);
+        return new BuildInfo("", "", "", "", "", DateTime.MIN_VALUE);
     }
 
     default String getHostname() {

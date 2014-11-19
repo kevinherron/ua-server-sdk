@@ -115,7 +115,7 @@ public class AnnotationBasedInvocationHandler implements MethodInvocationHandler
             if (!dataTypeMatch) {
                 inputArgumentResults[i] = new StatusCode(StatusCodes.Bad_TypeMismatch);
             } else {
-                inputArgumentResults[i] = StatusCode.Good;
+                inputArgumentResults[i] = StatusCode.GOOD;
             }
 
             inputs[i] = variant.getValue();
@@ -156,7 +156,7 @@ public class AnnotationBasedInvocationHandler implements MethodInvocationHandler
                     }
 
                     future.complete(new CallMethodResult(
-                            StatusCode.Good, inputArgumentResults,
+                            StatusCode.GOOD, inputArgumentResults,
                             new DiagnosticInfo[0], values
                     ));
                 }

@@ -64,7 +64,7 @@ public class Session implements SessionServiceSet {
     private volatile Object identityObject;
     private volatile ByteString clientCertificateBytes;
 
-    private volatile ByteString lastNonce = ByteString.NullValue;
+    private volatile ByteString lastNonce = ByteString.NULL_VALUE;
 
     private volatile long lastActivity = System.nanoTime();
     private volatile ScheduledFuture<?> checkTimeoutFuture;

@@ -251,7 +251,7 @@ public class AttributeReader {
 
     /** DataValue for a non-value attribute; no source timestamp included. */
     private static DataValue dv(Object o) {
-        return new DataValue(new Variant(o), StatusCode.Good, null, DateTime.now());
+        return new DataValue(new Variant(o), StatusCode.GOOD, null, DateTime.now());
     }
 
 }

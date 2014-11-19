@@ -106,7 +106,7 @@ public class MonitoredDataItem extends BaseMonitoredItem<DataValue> implements D
     @Override
     public synchronized void setQuality(StatusCode quality) {
         if (lastValue == null) {
-            setValue(new DataValue(Variant.NullValue, quality, DateTime.now(), DateTime.now()));
+            setValue(new DataValue(Variant.NULL_VALUE, quality, DateTime.now(), DateTime.now()));
         } else {
             DataValue value = new DataValue(
                     lastValue.getValue(),

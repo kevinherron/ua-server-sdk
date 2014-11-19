@@ -392,7 +392,7 @@ public class UaVariableNode extends UaNode implements VariableNode {
         private Optional<UInteger> userWriteMask = Optional.of(uint(0));
 
         private DataValue value = new DataValue(
-                Variant.NullValue, new StatusCode(StatusCodes.Uncertain_InitialValue),
+                Variant.NULL_VALUE, new StatusCode(StatusCodes.Uncertain_InitialValue),
                 DateTime.now(), DateTime.now()
         );
 

@@ -241,7 +241,7 @@ public class SubscriptionManager {
                     }
                 });
 
-                results[i] = StatusCode.Good;
+                results[i] = StatusCode.GOOD;
             } else {
                 results[i] = new StatusCode(StatusCodes.Bad_SubscriptionIdInvalid);
             }
@@ -272,7 +272,7 @@ public class SubscriptionManager {
                 results[i] = new StatusCode(StatusCodes.Bad_SubscriptionIdInvalid);
             } else {
                 subscription.setPublishingMode(request);
-                results[i] = StatusCode.Good;
+                results[i] = StatusCode.GOOD;
             }
         }
 
@@ -389,7 +389,7 @@ public class SubscriptionManager {
                         createdItems.add(item);
 
                         createResults[i] = new MonitoredItemCreateResult(
-                                StatusCode.Good,
+                                StatusCode.GOOD,
                                 item.getId(),
                                 item.getSamplingInterval(),
                                 uint(item.getQueueSize()),
@@ -508,7 +508,7 @@ public class SubscriptionManager {
                         modifiedItems.add(item);
 
                         modifyResults[i] = new MonitoredItemModifyResult(
-                                StatusCode.Good,
+                                StatusCode.GOOD,
                                 item.getSamplingInterval(),
                                 uint(item.getQueueSize()),
                                 item.getFilterResult()
@@ -592,7 +592,7 @@ public class SubscriptionManager {
                     } else {
                         deletedItems.add(item);
 
-                        deleteResults[i] = StatusCode.Good;
+                        deleteResults[i] = StatusCode.GOOD;
                     }
                 }
 
@@ -674,7 +674,7 @@ public class SubscriptionManager {
 
                     modified.add(item);
 
-                    results[i] = StatusCode.Good;
+                    results[i] = StatusCode.GOOD;
                 } else {
                     results[i] = new StatusCode(StatusCodes.Bad_MonitoredItemIdInvalid);
                 }
@@ -811,7 +811,7 @@ public class SubscriptionManager {
                         BaseMonitoredItem<?> item = itemsById.get(linkedItemId);
                         if (item != null) {
                             if (triggerItem.getTriggeredItems().remove(linkedItemId) != null) {
-                                return StatusCode.Good;
+                                return StatusCode.GOOD;
                             } else {
                                 return new StatusCode(StatusCodes.Bad_MonitoredItemIdInvalid);
                             }
@@ -826,7 +826,7 @@ public class SubscriptionManager {
                         BaseMonitoredItem<?> linkedItem = itemsById.get(linkedItemId);
                         if (linkedItem != null) {
                             triggerItem.getTriggeredItems().put(linkedItemId, linkedItem);
-                            return StatusCode.Good;
+                            return StatusCode.GOOD;
                         } else {
                             return new StatusCode(StatusCodes.Bad_MonitoredItemIdInvalid);
                         }

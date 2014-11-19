@@ -132,7 +132,7 @@ public class SubscriptionServices implements SubscriptionServiceSet {
                         }
                     }
 
-                    results.add(new TransferResult(StatusCode.Good, availableSequenceNumbers));
+                    results.add(new TransferResult(StatusCode.GOOD, availableSequenceNumbers));
                 }
             }
         }

@@ -601,7 +601,7 @@ public class Subscription {
         if (availableMessages.remove(sequenceNumber) != null) {
             logger.debug("[id={}] sequence number acknowledged: {}", subscriptionId, sequenceNumber);
 
-            return StatusCode.Good;
+            return StatusCode.GOOD;
         } else {
             logger.debug("[id={}] sequence number unknown: {}", subscriptionId, sequenceNumber);
 

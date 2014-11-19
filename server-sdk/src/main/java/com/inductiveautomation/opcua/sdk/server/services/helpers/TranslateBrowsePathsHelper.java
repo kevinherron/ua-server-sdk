@@ -87,7 +87,7 @@ public class TranslateBrowsePathsHelper {
         try {
             List<BrowsePathTarget> targets = follow(startingNode, Lists.newArrayList(relativePath.getElements()));
 
-            return new BrowsePathResult(StatusCode.Good, targets.toArray(new BrowsePathTarget[targets.size()]));
+            return new BrowsePathResult(StatusCode.GOOD, targets.toArray(new BrowsePathTarget[targets.size()]));
         } catch (UaException e) {
             return new BrowsePathResult(e.getStatusCode(), new BrowsePathTarget[0]);
         }
@@ -176,7 +176,7 @@ public class TranslateBrowsePathsHelper {
 
     private boolean matchesTarget(QualifiedName browseName, QualifiedName targetName) {
         return targetName == null ||
-                targetName.equals(QualifiedName.NullValue) ||
+                targetName.equals(QualifiedName.NULL_VALUE) ||
                 targetName.equals(browseName);
     }
 

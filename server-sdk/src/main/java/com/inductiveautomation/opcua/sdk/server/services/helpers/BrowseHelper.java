@@ -71,7 +71,7 @@ public class BrowseHelper {
     private static final StatusCode Bad_NoContinuationPoints = new StatusCode(StatusCodes.Bad_NoContinuationPoints);
 
     private static final BrowseResult NodeIdUnknownResult =
-            new BrowseResult(new StatusCode(StatusCodes.Bad_NodeIdUnknown), ByteString.NullValue, new ReferenceDescription[0]);
+            new BrowseResult(new StatusCode(StatusCodes.Bad_NodeIdUnknown), ByteString.NULL_VALUE, new ReferenceDescription[0]);
 
     private final Map<ByteString, BrowseContinuationPoint> continuations = Maps.newConcurrentMap();
 
@@ -183,10 +183,10 @@ public class BrowseHelper {
                     BrowseContinuationPoint c = new BrowseContinuationPoint(references, max);
                     continuations.put(c.identifier, c);
 
-                    return new BrowseResult(StatusCode.Good, c.identifier, current.toArray(new ReferenceDescription[current.size()]));
+                    return new BrowseResult(StatusCode.GOOD, c.identifier, current.toArray(new ReferenceDescription[current.size()]));
                 }
             } else {
-                return new BrowseResult(StatusCode.Good, null, references.toArray(new ReferenceDescription[references.size()]));
+                return new BrowseResult(StatusCode.GOOD, null, references.toArray(new ReferenceDescription[references.size()]));
             }
         }
 
@@ -255,13 +255,13 @@ public class BrowseHelper {
             }
 
             return new ReferenceDescription(
-                    referenceTypeId.orElse(NodeId.NullValue),
+                    referenceTypeId.orElse(NodeId.NULL_VALUE),
                     reference.isForward(),
                     targetNodeId,
-                    browseName.orElse(QualifiedName.NullValue),
-                    displayName.orElse(LocalizedText.NullValue),
+                    browseName.orElse(QualifiedName.NULL_VALUE),
+                    displayName.orElse(LocalizedText.NULL_VALUE),
                     nodeClass,
-                    typeDefinition.orElse(ExpandedNodeId.NullValue));
+                    typeDefinition.orElse(ExpandedNodeId.NULL_VALUE));
         }
 
     }
@@ -302,7 +302,7 @@ public class BrowseHelper {
             BrowseContinuationPoint c = continuations.remove(bs);
 
             return c != null ?
-                    new BrowseResult(StatusCode.Good, null, null) :
+                    new BrowseResult(StatusCode.GOOD, null, null) :
                     new BrowseResult(Bad_ContinuationPointInvalid, null, null);
         }
 
@@ -321,13 +321,13 @@ public class BrowseHelper {
                     continuations.put(c.identifier, c);
 
                     return new BrowseResult(
-                            StatusCode.Good,
+                            StatusCode.GOOD,
                             c.identifier,
                             current.toArray(new ReferenceDescription[current.size()])
                     );
                 } else {
                     return new BrowseResult(
-                            StatusCode.Good,
+                            StatusCode.GOOD,
                             null,
                             references.toArray(new ReferenceDescription[references.size()])
                     );

@@ -482,7 +482,7 @@ public class CttNamespace implements UaNamespace {
                             o, writeValue.getAttributeId(), writeValue.getNodeId());
                 }
 
-                results.add(StatusCode.Good);
+                results.add(StatusCode.GOOD);
             } catch (UaException e) {
                 results.add(e.getStatusCode());
             }

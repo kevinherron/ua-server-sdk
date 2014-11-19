@@ -221,9 +221,9 @@ public class SessionManager implements
         try {
             serverCertificate = server.getCertificate() != null ?
                     ByteString.of(server.getCertificate().getEncoded()) :
-                    ByteString.NullValue;
+                    ByteString.NULL_VALUE;
         } catch (CertificateEncodingException e) {
-            serverCertificate = ByteString.NullValue;
+            serverCertificate = ByteString.NULL_VALUE;
         }
 
         SignedSoftwareCertificate[] serverSoftwareCertificates = server.getSoftwareCertificates();
@@ -336,7 +336,7 @@ public class SessionManager implements
                     session.setIdentityObject(identityObject);
 
                     StatusCode[] results = new StatusCode[clientSoftwareCertificates.length];
-                    Arrays.fill(results, StatusCode.Good);
+                    Arrays.fill(results, StatusCode.GOOD);
 
                     ByteString serverNonce = NonceUtil.generateNonce(32);
 
@@ -372,7 +372,7 @@ public class SessionManager implements
                                 session.getSessionId(), secureChannelId);
 
                         StatusCode[] results = new StatusCode[clientSoftwareCertificates.length];
-                        Arrays.fill(results, StatusCode.Good);
+                        Arrays.fill(results, StatusCode.GOOD);
 
                         ByteString serverNonce = NonceUtil.generateNonce(32);
 
@@ -410,7 +410,7 @@ public class SessionManager implements
             session.setClientCertificateBytes(secureChannel.getRemoteCertificateBytes());
 
             StatusCode[] results = new StatusCode[clientSoftwareCertificates.length];
-            Arrays.fill(results, StatusCode.Good);
+            Arrays.fill(results, StatusCode.GOOD);
 
             ByteString serverNonce = NonceUtil.generateNonce(32);
 
