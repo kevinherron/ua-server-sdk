@@ -322,6 +322,7 @@ public class OpcUaNamespace implements UaNamespace {
         serverStatus.setSecondsTillShutdown(uint(0));
         serverStatus.setShutdownReason(LocalizedText.NULL_VALUE);
         serverStatus.setState(ServerState.Running);
+        serverStatus.setStartTime(DateTime.now());
 
         UaVariableNode currentTime = (UaVariableNode) nodes.get(Identifiers.Server_ServerStatus_CurrentTime);
         DerivedVariableNode derivedCurrentTime = new DerivedVariableNode(this, currentTime) {
