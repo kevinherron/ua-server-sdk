@@ -293,8 +293,11 @@ public class SessionManager implements
             for (List<?> idAndValue : subjectAltNames) {
                 if (idAndValue != null && idAndValue.size() == 2) {
                     if (idAndValue.get(0).equals(6)) {
-                        String uri = (String) idAndValue.get(1);
-                        if (!applicationUri.equals(uri)) {
+                        String certificateUri = (String) idAndValue.get(1);
+                        if (!applicationUri.equals(certificateUri)) {
+                            logger.warn("Bad_CertificateUriInvalid: certificateUri={}, applicationUri={}",
+                                    certificateUri, applicationUri);
+
                             throw new UaException(StatusCodes.Bad_CertificateUriInvalid,
                                     String.format("certificate uri did not match application uri"));
                         }
@@ -303,9 +306,13 @@ public class SessionManager implements
                 }
             }
 
+            logger.warn("Bad_CertificateUriInvalid: SubjectAltName URI not found");
+
             throw new UaException(StatusCodes.Bad_CertificateUriInvalid,
                     "certificate subject alt name uri not found");
         } catch (CertificateParsingException e) {
+            logger.warn("Bad_CertificateUriInvalid: error parsing client certificate");
+
             throw new UaException(StatusCodes.Bad_CertificateInvalid);
         }
     }
