@@ -44,7 +44,7 @@ public class CttServerConfig implements OpcUaServerConfig {
             "dev", "dev", DateTime.now()
     );
 
-    private static final String SERVER_ALIAS = "iop-certificate2";
+    private static final String SERVER_ALIAS = "iop-certificate";
     private static final char[] PASSWORD = "test".toCharArray();
 
     private volatile Certificate certificate;
