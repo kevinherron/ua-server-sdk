@@ -295,23 +295,26 @@ public class SessionManager implements
                     if (idAndValue.get(0).equals(6)) {
                         String certificateUri = (String) idAndValue.get(1);
                         if (!applicationUri.equals(certificateUri)) {
-                            logger.warn("Bad_CertificateUriInvalid: certificateUri={}, applicationUri={}",
+                            String message = String.format(
+                                    "Certificate URI does not match. certificateUri=%s, applicationUri=%s",
                                     certificateUri, applicationUri);
 
-                            throw new UaException(StatusCodes.Bad_CertificateUriInvalid,
-                                    String.format("certificate uri did not match application uri"));
+                            logger.warn(message);
+
+                            throw new UaException(StatusCodes.Bad_CertificateUriInvalid, message);
                         }
                         return;
                     }
                 }
             }
 
-            logger.warn("Bad_CertificateUriInvalid: SubjectAltName URI not found");
+            String message = String.format("Certificate URI not found. applicationUri=%s", applicationUri);
 
-            throw new UaException(StatusCodes.Bad_CertificateUriInvalid,
-                    "certificate subject alt name uri not found");
+            logger.warn(message);
+
+            throw new UaException(StatusCodes.Bad_CertificateUriInvalid, message);
         } catch (CertificateParsingException e) {
-            logger.warn("Bad_CertificateUriInvalid: error parsing client certificate");
+            logger.warn("Error parsing client certificate.", e);
 
             throw new UaException(StatusCodes.Bad_CertificateInvalid);
         }
