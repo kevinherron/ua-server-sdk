@@ -16,19 +16,16 @@
 
 package com.inductiveautomation.opcua.sdk.server.namespaces;
 
-import javax.xml.bind.JAXBException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.inductiveautomation.opcua.nodeset.UaNodeSet;
-import com.inductiveautomation.opcua.nodeset.UaNodeSetParser;
 import com.inductiveautomation.opcua.sdk.core.NamespaceTable;
 import com.inductiveautomation.opcua.sdk.core.Reference;
 import com.inductiveautomation.opcua.sdk.core.model.objects.OperationLimitsType;
@@ -48,6 +45,7 @@ import com.inductiveautomation.opcua.sdk.server.model.UaObjectNode;
 import com.inductiveautomation.opcua.sdk.server.model.UaVariableNode;
 import com.inductiveautomation.opcua.sdk.server.model.methods.GetMonitoredItems;
 import com.inductiveautomation.opcua.sdk.server.model.objects.ServerNode;
+import com.inductiveautomation.opcua.sdk.server.namespaces.loader.UaNodeLoader;
 import com.inductiveautomation.opcua.sdk.server.util.AnnotationBasedInvocationHandler;
 import com.inductiveautomation.opcua.sdk.server.util.SubscriptionModel;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
@@ -87,11 +85,7 @@ public class OpcUaNamespace implements UaNamespace {
     public OpcUaNamespace(OpcUaServer server) {
         this.server = server;
 
-        try {
-            parseNodes();
-        } catch (Throwable t) {
-            logger.error("Error parsing NodeSet.", t);
-        }
+        loadNodes();
 
         subscriptionModel = new SubscriptionModel(this, server.getExecutorService(), server.getScheduledExecutorService());
 
@@ -288,20 +282,19 @@ public class OpcUaNamespace implements UaNamespace {
         return (ServerNode) nodes.get(Identifiers.Server);
     }
 
-    private void parseNodes() throws JAXBException {
-        logger.info("Parsing Opc.Ua.NodeSet2.xml...");
-        InputStream nodeSetXml = getClass().getClassLoader().getResourceAsStream("Opc.Ua.NodeSet2.xml");
+    private void loadNodes() {
+        try {
+            long startTime = System.nanoTime();
 
-        UaNodeSetParser<UaNode, Reference> parser = new UaNodeSetParser<>(
-                new UaNodeBuilder(this),
-                new UaReferenceBuilder()
-        );
+            new UaNodeLoader(this);
 
-        UaNodeSet<UaNode, Reference> nodeSet = parser.parse(nodeSetXml);
+            long endTime = System.nanoTime();
+            long deltaMs = TimeUnit.MILLISECONDS.convert(endTime - startTime, TimeUnit.NANOSECONDS);
 
-        nodes.putAll(nodeSet.getNodeMap());
-
-        logger.info("...parsed {} nodes.", nodes.size());
+            logger.info("Loaded {} nodes in {}ms.", nodes.size(), deltaMs);
+        } catch (Exception e) {
+            logger.error("Error loading nodes.", e);
+        }
     }
 
     private void configureServerObject() {

@@ -39,22 +39,11 @@
             <artifactId>stack-server</artifactId>
             <version>${opc-ua-stack.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.inductiveautomation.opcua</groupId>
-            <artifactId>uanodeset-parser</artifactId>
-            <version>${uanodesetparser.version}</version>
-        </dependency>
 
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-core</artifactId>
             <version>3.1.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.reflections</groupId>
-            <artifactId>reflections</artifactId>
-            <version>0.9.9-RC1</version>
         </dependency>
 
         <dependency>

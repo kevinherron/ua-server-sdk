@@ -22,13 +22,22 @@ import java.util.concurrent.Future;
 import com.inductiveautomation.opcua.sdk.server.OpcUaServer;
 import com.inductiveautomation.opcua.sdk.server.api.OpcUaServerConfig;
 import com.inductiveautomation.opcua.stack.core.UaException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CttServer {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(CttServer.class);
+
     public static void main(String[] args) throws Exception {
+        LOGGER.info("Starting up...");
+
         CttServer server = new CttServer(new CttServerConfig());
 
-        Runtime.getRuntime().addShutdownHook(new Thread(server::shutdown));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            LOGGER.info("Shutting down...");
+            server.shutdown();
+        }));
 
         server.startup();
         server.shutdownFuture().get();
