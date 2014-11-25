@@ -19,7 +19,6 @@ package com.inductiveautomation.opcua.sdk.server;
 import java.math.RoundingMode;
 import java.nio.ByteBuffer;
 import java.security.KeyPair;
-import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
@@ -217,15 +216,7 @@ public class SessionManager implements
 
         ServerSecureChannel secureChannel = serviceRequest.getSecureChannel();
 
-        ByteString serverCertificate;
-        try {
-            serverCertificate = server.getCertificate() != null ?
-                    ByteString.of(server.getCertificate().getEncoded()) :
-                    ByteString.NULL_VALUE;
-        } catch (CertificateEncodingException e) {
-            serverCertificate = ByteString.NULL_VALUE;
-        }
-
+        ByteString serverCertificate = serviceRequest.getSecureChannel().getEndpointDescription().getServerCertificate();
         SignedSoftwareCertificate[] serverSoftwareCertificates = server.getSoftwareCertificates();
         EndpointDescription[] serverEndpoints = server.getEndpointDescriptions();
 
