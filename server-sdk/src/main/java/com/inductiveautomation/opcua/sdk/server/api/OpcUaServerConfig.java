@@ -18,9 +18,6 @@ package com.inductiveautomation.opcua.sdk.server.api;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.security.KeyPair;
-import java.security.cert.Certificate;
-import java.security.cert.X509Certificate;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -28,6 +25,7 @@ import com.google.common.collect.Lists;
 import com.inductiveautomation.opcua.sdk.server.identity.AnonymousIdentityValidator;
 import com.inductiveautomation.opcua.sdk.server.identity.IdentityValidator;
 import com.inductiveautomation.opcua.stack.core.Stack;
+import com.inductiveautomation.opcua.stack.core.application.CertificateManager;
 import com.inductiveautomation.opcua.stack.core.security.SecurityPolicy;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
@@ -49,21 +47,9 @@ public interface OpcUaServerConfig {
             null, null, null
     );
 
-    default List<String> getBindAddresses() {
-        return Lists.newArrayList("0.0.0.0");
-    }
+    CertificateManager getCertificateManager();
 
-    default EnumSet<SecurityPolicy> getSecurityPolicies() {
-        return EnumSet.allOf(SecurityPolicy.class);
-    }
-
-    default int getBindPort() {
-        return Stack.DEFAULT_PORT;
-    }
-
-    default BuildInfo getBuildInfo() {
-        return new BuildInfo("", "", "", "", "", DateTime.MIN_VALUE);
-    }
+    EnumSet<SecurityPolicy> getSecurityPolicies();
 
     default String getHostname() {
         try {
@@ -72,6 +58,14 @@ public interface OpcUaServerConfig {
         } catch (UnknownHostException e) {
             return "localhost";
         }
+    }
+
+    default List<String> getBindAddresses() {
+        return Lists.newArrayList("0.0.0.0");
+    }
+
+    default int getBindPort() {
+        return Stack.DEFAULT_PORT;
     }
 
     /**
@@ -105,12 +99,8 @@ public interface OpcUaServerConfig {
         return "un-configured product URI";
     }
 
-    default KeyPair getKeyPair() {
-        return null;
-    }
-
-    default X509Certificate getCertificate() {
-        return null;
+    default BuildInfo getBuildInfo() {
+        return new BuildInfo("", "", "", "", "", DateTime.MIN_VALUE);
     }
 
     default OpcUaServerConfigLimits getLimits() {

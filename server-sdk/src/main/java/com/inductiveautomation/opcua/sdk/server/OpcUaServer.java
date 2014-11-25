@@ -16,11 +16,9 @@
 
 package com.inductiveautomation.opcua.sdk.server;
 
-import javax.annotation.Nullable;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.KeyPair;
-import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Map;
@@ -103,7 +101,7 @@ public class OpcUaServer {
             String bindUrl = String.format("opc.tcp://%s:%d/%s", address, config.getBindPort(), config.getServerName());
 
             for (SecurityPolicy securityPolicy : config.getSecurityPolicies()) {
-                MessageSecurityMode messageSecurityMode = securityPolicy == SecurityPolicy.None ?
+                MessageSecurityMode messageSecurity = securityPolicy == SecurityPolicy.None ?
                         MessageSecurityMode.None : MessageSecurityMode.SignAndEncrypt;
 
                 String endpointUrl = endpointUrl(
@@ -112,10 +110,13 @@ public class OpcUaServer {
                         config.getBindPort()
                 );
 
-                logger.info("Binding endpoint {} to {} [{}/{}]",
-                        endpointUrl, bindUrl, securityPolicy, messageSecurityMode);
 
-                server.addEndpoint(endpointUrl, address, securityPolicy, messageSecurityMode);
+                for (X509Certificate certificate : config.getCertificateManager().getCertificates()) {
+                    logger.info("Binding endpoint {} to {} [{}/{}]",
+                            endpointUrl, bindUrl, securityPolicy, messageSecurity);
+
+                    server.addEndpoint(endpointUrl, address, certificate, securityPolicy, messageSecurity);
+                }
             }
         }
 
@@ -137,8 +138,7 @@ public class OpcUaServer {
         bootstrap.setApplicationName(config.getApplicationName());
         bootstrap.setApplicationUri(config.getApplicationUri());
         bootstrap.setProductUri(config.getProductUri());
-        bootstrap.setKeyPair(config.getKeyPair());
-        bootstrap.setCertificate(config.getCertificate());
+        bootstrap.setCertificateManager(config.getCertificateManager());
 
         config.getUserTokenPolicies().stream().forEach(bootstrap::addUserTokenPolicy);
 
@@ -198,16 +198,11 @@ public class OpcUaServer {
     }
 
     public Optional<KeyPair> getKeyPair(ByteString thumbprint) {
-        return server.getKeyPair(thumbprint);
-    }
-
-    @Nullable
-    public Certificate getCertificate() {
-        return server.getCertificate();
+        return server.getCertificateManager().getKeyPair(thumbprint);
     }
 
     public Optional<X509Certificate> getCertificate(ByteString thumbprint) {
-        return server.getCertificate(thumbprint);
+        return server.getCertificateManager().getCertificate(thumbprint);
     }
 
     public ExecutorService getExecutorService() {

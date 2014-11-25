@@ -16,6 +16,7 @@
 
 package com.inductiveautomation.opcua.server.ctt;
 
+import java.io.File;
 import java.security.Key;
 import java.security.KeyPair;
 import java.security.KeyStore;
@@ -29,6 +30,8 @@ import com.google.common.collect.Lists;
 import com.inductiveautomation.opcua.sdk.server.api.OpcUaServerConfig;
 import com.inductiveautomation.opcua.sdk.server.identity.IdentityValidator;
 import com.inductiveautomation.opcua.sdk.server.identity.UsernameIdentityValidator;
+import com.inductiveautomation.opcua.stack.core.application.CertificateManager;
+import com.inductiveautomation.opcua.stack.core.application.DirectoryCertificateManager;
 import com.inductiveautomation.opcua.stack.core.security.SecurityPolicy;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
@@ -47,6 +50,7 @@ public class CttServerConfig implements OpcUaServerConfig {
     private static final String SERVER_ALIAS = "ctt-server";
     private static final char[] PASSWORD = "test".toCharArray();
 
+    private volatile CertificateManager certificateManager;
     private volatile X509Certificate certificate;
     private volatile KeyPair keyPair;
 
@@ -69,6 +73,8 @@ public class CttServerConfig implements OpcUaServerConfig {
             certificate = null;
             keyPair = null;
         }
+
+        certificateManager = new DirectoryCertificateManager(keyPair, certificate, new File("./security"));
     }
 
     @Override
@@ -92,13 +98,8 @@ public class CttServerConfig implements OpcUaServerConfig {
     }
 
     @Override
-    public KeyPair getKeyPair() {
-        return keyPair;
-    }
-
-    @Override
-    public X509Certificate getCertificate() {
-        return certificate;
+    public CertificateManager getCertificateManager() {
+        return certificateManager;
     }
 
     @Override
