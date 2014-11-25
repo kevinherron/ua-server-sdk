@@ -21,7 +21,7 @@ import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -47,7 +47,7 @@ public class CttServerConfig implements OpcUaServerConfig {
     private static final String SERVER_ALIAS = "ctt-server";
     private static final char[] PASSWORD = "test".toCharArray();
 
-    private volatile Certificate certificate;
+    private volatile X509Certificate certificate;
     private volatile KeyPair keyPair;
 
     public CttServerConfig() {
@@ -59,7 +59,7 @@ public class CttServerConfig implements OpcUaServerConfig {
             Key serverPrivateKey = keyStore.getKey(SERVER_ALIAS, PASSWORD);
 
             if (serverPrivateKey instanceof PrivateKey) {
-                certificate = keyStore.getCertificate(SERVER_ALIAS);
+                certificate = (X509Certificate) keyStore.getCertificate(SERVER_ALIAS);
                 PublicKey serverPublicKey = certificate.getPublicKey();
                 keyPair = new KeyPair(serverPublicKey, (PrivateKey) serverPrivateKey);
             }
@@ -97,7 +97,7 @@ public class CttServerConfig implements OpcUaServerConfig {
     }
 
     @Override
-    public Certificate getCertificate() {
+    public X509Certificate getCertificate() {
         return certificate;
     }
 

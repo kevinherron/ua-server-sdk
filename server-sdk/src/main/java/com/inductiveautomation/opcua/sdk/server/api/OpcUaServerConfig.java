@@ -20,6 +20,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.KeyPair;
 import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -108,7 +109,7 @@ public interface OpcUaServerConfig {
         return null;
     }
 
-    default Certificate getCertificate() {
+    default X509Certificate getCertificate() {
         return null;
     }
 

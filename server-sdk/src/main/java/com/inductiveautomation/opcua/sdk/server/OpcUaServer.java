@@ -21,6 +21,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.KeyPair;
 import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -205,7 +206,7 @@ public class OpcUaServer {
         return server.getCertificate();
     }
 
-    public Optional<Certificate> getCertificate(ByteString thumbprint) {
+    public Optional<X509Certificate> getCertificate(ByteString thumbprint) {
         return server.getCertificate(thumbprint);
     }
 
