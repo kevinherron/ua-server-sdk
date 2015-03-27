@@ -28,4 +28,17 @@
 
     <artifactId>client-sdk</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.inductiveautomation.opcua</groupId>
+            <artifactId>stack-client</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.codepoetics</groupId>
+            <artifactId>protonpack</artifactId>
+            <version>1.4</version>
+        </dependency>
+    </dependencies>
+
 </project>
