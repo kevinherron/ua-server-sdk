@@ -16,5 +16,30 @@
 
 package com.inductiveautomation.opcua.sdk.client.fsm.states;
 
-public class Inactive {
+import com.inductiveautomation.opcua.sdk.client.api.UaSession;
+import com.inductiveautomation.opcua.sdk.client.fsm.ClientState;
+import com.inductiveautomation.opcua.sdk.client.fsm.ClientStateContext;
+import com.inductiveautomation.opcua.sdk.client.fsm.ClientStateEvent;
+
+import java.util.concurrent.CompletableFuture;
+
+public class Inactive implements ClientState {
+
+    private final CompletableFuture<UaSession> sessionFuture = new CompletableFuture<>();
+
+    @Override
+    public void activate(ClientStateEvent event, ClientStateContext context) {
+
+    }
+
+    @Override
+    public ClientState transition(ClientStateEvent event, ClientStateContext context) {
+        switch (event) {
+            case CREATE_SESSION_REQUESTED:
+                return new CreatingSession();
+        }
+
+        return this;
+    }
+
 }

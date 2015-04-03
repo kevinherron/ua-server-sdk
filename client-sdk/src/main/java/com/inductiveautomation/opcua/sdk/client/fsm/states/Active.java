@@ -16,5 +16,20 @@
 
 package com.inductiveautomation.opcua.sdk.client.fsm.states;
 
-public class Active {
+import com.inductiveautomation.opcua.sdk.client.fsm.ClientState;
+import com.inductiveautomation.opcua.sdk.client.fsm.ClientStateContext;
+import com.inductiveautomation.opcua.sdk.client.fsm.ClientStateEvent;
+
+public class Active implements ClientState {
+
+    @Override
+    public void activate(ClientStateEvent event, ClientStateContext context) {
+
+    }
+
+    @Override
+    public ClientState transition(ClientStateEvent event, ClientStateContext context) {
+        return null;
+    }
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015
+ * Copyright 2014
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 
-package com.inductiveautomation.opcua.sdk.client.fsm.states;
+package com.inductiveautomation.opcua.sdk.server.api;
 
-public class RecoveringSession {
+import com.inductiveautomation.opcua.sdk.server.OpcUaServer;
+import com.inductiveautomation.opcua.sdk.server.Session;
+
+public interface OperationContext {
+
+    OpcUaServer getServer();
+    Session getSession();
+
 }

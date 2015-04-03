@@ -21,46 +21,57 @@ import com.inductiveautomation.opcua.sdk.client.fsm.ClientState;
 import com.inductiveautomation.opcua.sdk.client.fsm.ClientStateContext;
 import com.inductiveautomation.opcua.sdk.client.fsm.ClientStateEvent;
 import com.inductiveautomation.opcua.stack.client.UaTcpClient;
-import com.inductiveautomation.opcua.stack.core.types.structured.*;
+import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
+import com.inductiveautomation.opcua.stack.core.types.structured.CreateSessionRequest;
+import com.inductiveautomation.opcua.stack.core.types.structured.CreateSessionResponse;
+import com.inductiveautomation.opcua.stack.core.util.NonceUtil;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 
-public class ActivatingSession implements ClientState {
+public class CreatingSession implements ClientState {
 
-    private final CreateSessionResponse createSessionResponse;
-
-    public ActivatingSession(CreateSessionResponse createSessionResponse) {
-        this.createSessionResponse = createSessionResponse;
-    }
+    private final AtomicReference<CreateSessionResponse> response = new AtomicReference<>();
 
     @Override
     public void activate(ClientStateEvent event, ClientStateContext context) {
         OpcUaClient client = context.getClient();
         UaTcpClient stackClient = client.getStackClient();
 
-        ActivateSessionRequest request = new ActivateSessionRequest(
+        CreateSessionRequest request = new CreateSessionRequest(
                 client.newRequestHeader(),
-                new SignatureData(null, null),
-                new SignedSoftwareCertificate[0],
-                new String[0],
+                stackClient.getApplication(),
                 null,
-                new SignatureData(null, null)
-        );
+                stackClient.getEndpointUrl(),
+                client.getConfig().getSessionName().get(),
+                NonceUtil.generateNonce(16),
+                ByteString.NULL_VALUE,
+                client.getConfig().getSessionTimeout(),
+                client.getConfig().getMaxResponseMessageSize());
 
-        CompletableFuture<ActivateSessionResponse> future = stackClient.sendRequest(request);
+        CompletableFuture<CreateSessionResponse> future = stackClient.sendRequest(request);
 
         future.whenComplete((r, ex) -> {
             if (r != null) {
-
+                response.set(r);
+                context.handleEvent(ClientStateEvent.CREATE_SESSION_SUCCEEDED);
             } else {
-
+                context.handleEvent(ClientStateEvent.CREATE_SESSION_FAILED);
             }
         });
     }
 
     @Override
     public ClientState transition(ClientStateEvent event, ClientStateContext context) {
-        return null;
+        switch (event) {
+            case CREATE_SESSION_FAILED:
+                return new Inactive();
+
+            case CREATE_SESSION_SUCCEEDED:
+                return new ActivatingSession(response.get());
+        }
+
+        return this;
     }
 
 }

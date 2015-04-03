@@ -19,6 +19,7 @@ package com.inductiveautomation.opcua.sdk.client.api;
 import com.codepoetics.protonpack.StreamUtils;
 import com.inductiveautomation.opcua.stack.core.types.builtin.*;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
+import com.inductiveautomation.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import com.inductiveautomation.opcua.stack.core.types.structured.*;
 
 import java.util.List;
@@ -37,22 +38,35 @@ public interface UaClient {
     /**
      * Read the nodes and attributes identified by the provided {@link ReadValueId}s.
      *
-     * @param readValueIds the {@link ReadValueId}s identifying the nodes and attributes to read.
-     * @returna {@link CompletableFuture} containing a list of {@link DataValue}s, the size and order matching the
+     * @param readValueIds       the {@link ReadValueId}s identifying the nodes and attributes to read.
+     * @param maxAge             the requested max age of the value, in milliseconds. If maxAge is set to 0, the Server
+     *                           shall attempt to read a new value from the data source. If maxAge is set to the max
+     *                           Int32 value or greater, the Server shall attempt to get a cached value. Negative values
+     *                           are invalid for maxAge.
+     * @param timestampsToReturn the requested {@link TimestampsToReturn}.
+     * @return {@link CompletableFuture} containing a list of {@link DataValue}s, the size and order matching the
      * provided {@link ReadValueId}s.
      */
-    CompletableFuture<List<DataValue>> read(List<ReadValueId> readValueIds);
+    CompletableFuture<List<DataValue>> read(List<ReadValueId> readValueIds,
+                                            double maxAge, TimestampsToReturn timestampsToReturn);
 
     /**
      * For each of the nodes identified by the provided {@link NodeId}s, read the attribute identified by the
      * corresponding attribute id.
      *
-     * @param nodeIds      the {@link NodeId}s identifying the nodes to read.
-     * @param attributeIds the attribute ids to read, the size and order matching the provided {@link NodeId}s.
+     * @param nodeIds            the {@link NodeId}s identifying the nodes to read.
+     * @param attributeIds       the attribute ids to read, the size and order matching the provided {@link NodeId}s.
+     * @param maxAge             the requested max age of the value, in milliseconds. If maxAge is set to 0, the Server
+     *                           shall attempt to read a new value from the data source. If maxAge is set to the max
+     *                           Int32 value or greater, the Server shall attempt to get a cached value. Negative values
+     *                           are invalid for maxAge.
+     * @param timestampsToReturn the requested {@link TimestampsToReturn}.
      * @return a {@link CompletableFuture} containing a list of {@link DataValue}s, the size and order matching the
      * provided {@link NodeId}s.
      */
-    default CompletableFuture<List<DataValue>> read(List<NodeId> nodeIds, List<UInteger> attributeIds) {
+    default CompletableFuture<List<DataValue>> read(List<NodeId> nodeIds, List<UInteger> attributeIds,
+                                                    double maxAge, TimestampsToReturn timestampsToReturn) {
+
         if (nodeIds.size() != attributeIds.size()) {
             CompletableFuture<List<DataValue>> failed = new CompletableFuture<>();
             failed.completeExceptionally(new IllegalArgumentException("nodeIds.size() != attributeIds.size()"));
@@ -62,23 +76,30 @@ public interface UaClient {
                     nodeIds.stream(), attributeIds.stream(),
                     (nId, aId) -> new ReadValueId(nId, aId, null, QualifiedName.NULL_VALUE));
 
-            return read(stream.collect(Collectors.toList()));
+            return read(stream.collect(Collectors.toList()), maxAge, timestampsToReturn);
         }
     }
 
     /**
      * Read the value attribute of the node identified by each of the provided {@link NodeId}s.
      *
-     * @param nodeIds the {@link NodeId}s identifying the nodes to read.
+     * @param nodeIds            the {@link NodeId}s identifying the nodes to read.
+     * @param maxAge             the requested max age of the value, in milliseconds. If maxAge is set to 0, the Server
+     *                           shall attempt to read a new value from the data source. If maxAge is set to the max
+     *                           Int32 value or greater, the Server shall attempt to get a cached value. Negative values
+     *                           are invalid for maxAge.
+     * @param timestampsToReturn the requested {@link TimestampsToReturn}.
      * @return a {@link CompletableFuture} containing a list of {@link DataValue}s, the size and order matching the
      * provided {@link NodeId}s.
      */
-    default CompletableFuture<List<DataValue>> readValues(List<NodeId> nodeIds) {
+    default CompletableFuture<List<DataValue>> readValues(List<NodeId> nodeIds,
+                                                          double maxAge, TimestampsToReturn timestampsToReturn) {
+
         List<ReadValueId> readValueIds = nodeIds.stream()
                 .map(nodeId -> new ReadValueId(nodeId, uint(13), null, QualifiedName.NULL_VALUE))
                 .collect(Collectors.toList());
 
-        return read(readValueIds);
+        return read(readValueIds, maxAge, timestampsToReturn);
     }
 
     CompletableFuture<List<StatusCode>> write(List<WriteValue> writeValues);
@@ -107,8 +128,6 @@ public interface UaClient {
 
     CompletableFuture<List<BrowseResult>> browseNext(boolean releaseContinuationPoints,
                                                      List<ByteString> continuationPoints);
-
-
 
 
 }

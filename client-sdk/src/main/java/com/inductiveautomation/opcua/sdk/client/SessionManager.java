@@ -14,16 +14,24 @@
  * limitations under the License.
  */
 
-package com.inductiveautomation.opcua.sdk.client.fsm;
+package com.inductiveautomation.opcua.sdk.client;
 
-import com.inductiveautomation.opcua.sdk.client.OpcUaClient;
+import com.inductiveautomation.opcua.sdk.client.api.UaSession;
 
-public class StateContext {
+import java.util.concurrent.CompletableFuture;
+
+public class SessionManager {
 
     private final OpcUaClient client;
 
-    public StateContext(OpcUaClient client) {
+    public SessionManager(OpcUaClient client) {
         this.client = client;
+    }
+
+    public CompletableFuture<UaSession> getSession() {
+        CompletableFuture<UaSession> future = new CompletableFuture<>();
+
+        return future;
     }
 
 }

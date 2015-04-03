@@ -16,29 +16,23 @@
 
 package com.inductiveautomation.opcua.sdk.client.fsm;
 
-public enum Event {
+public interface ClientState {
 
-    ConnectionLost,
+    /**
+     * Activate this state.
+     *
+     * @param event   the {@link ClientStateEvent} that caused this state to be activated.
+     * @param context the {@link ClientStateContext}.
+     */
+    void activate(ClientStateEvent event, ClientStateContext context);
 
-    CreateNewSessionRequested,
-    CreateNewSessionSucceeded,
-    CreateNewSessionFailed,
-
-    CreateSubscriptionsRequested,
-    CreateSubscriptionsSucceeded,
-    CreateSubscriptionsFailed,
-
-    ResumeExistingSessionRequested,
-    ResumeExistingSessionSucceeded,
-    ResumeExistingSessionFailed,
-
-    RepublishRequested,
-    RepublishSucceeded,
-    RepublishFailedMessageNotAvailable,
-    RepublishFailedSubscriptionIdInvalid,
-
-    TransferSubscriptionRequested,
-    TransferSubscriptionSucceeded,
-    TransferSubscriptionFailed
+    /**
+     * Given {@code event}, return the next {@link ClientState}.
+     *
+     * @param event   the {@link ClientStateEvent}.
+     * @param context the {@link ClientStateContext}.
+     * @return the next {@link ClientState}.
+     */
+    ClientState transition(ClientStateEvent event, ClientStateContext context);
 
 }
