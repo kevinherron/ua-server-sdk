@@ -16,20 +16,34 @@
 
 package com.inductiveautomation.opcua.sdk.client.api;
 
-import com.codepoetics.protonpack.StreamUtils;
-import com.inductiveautomation.opcua.stack.core.types.builtin.*;
-import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
-import com.inductiveautomation.opcua.stack.core.types.enumerated.TimestampsToReturn;
-import com.inductiveautomation.opcua.stack.core.types.structured.*;
-
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.codepoetics.protonpack.StreamUtils;
+import com.inductiveautomation.opcua.sdk.client.OpcUaClientConfig;
+import com.inductiveautomation.opcua.sdk.client.OpcUaSubscription;
+import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
+import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
+import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
+import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
+import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
+import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UByte;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
+import com.inductiveautomation.opcua.stack.core.types.enumerated.TimestampsToReturn;
+import com.inductiveautomation.opcua.stack.core.types.structured.BrowseDescription;
+import com.inductiveautomation.opcua.stack.core.types.structured.BrowseResult;
+import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
+import com.inductiveautomation.opcua.stack.core.types.structured.ViewDescription;
+import com.inductiveautomation.opcua.stack.core.types.structured.WriteValue;
+
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
 public interface UaClient {
+
+    OpcUaClientConfig getConfig();
 
     CompletableFuture<UaClient> connect();
 
@@ -129,5 +143,16 @@ public interface UaClient {
     CompletableFuture<List<BrowseResult>> browseNext(boolean releaseContinuationPoints,
                                                      List<ByteString> continuationPoints);
 
+
+    CompletableFuture<UaSubscription> createSubscription(double publishingInterval,
+                                                         UInteger lifetimeCount,
+                                                         UInteger maxKeepAliveCount,
+                                                         UInteger maxNotificationsPerPublish,
+                                                         boolean publishingEnabled,
+                                                         UByte priority);
+
+    CompletableFuture<UaSubscription> modifySubscription(UaSubscription subscription);
+
+    CompletableFuture<UaSubscription> deleteSubscription(UaSubscription subscription);
 
 }
