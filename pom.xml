@@ -22,7 +22,7 @@
 
     <groupId>com.inductiveautomation.opcua</groupId>
     <artifactId>opc-ua-sdk</artifactId>
-    <version>0.2.0-SNAPSHOT</version>
+    <version>0.3.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>OPC-UA SDK</name>
@@ -52,9 +52,10 @@
     </licenses>
 
     <modules>
-        <module>client-sdk</module>
-        <module>server-sdk</module>
-        <module>server-sdk-ctt</module>
+        <module>ctt-server</module>
+        <module>sdk-client</module>
+        <module>sdk-core</module>
+        <module>sdk-server</module>
     </modules>
 
     <properties>
