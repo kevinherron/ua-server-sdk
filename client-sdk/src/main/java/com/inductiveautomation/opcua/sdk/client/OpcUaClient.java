@@ -248,7 +248,7 @@ public class OpcUaClient implements UaClient {
 
         Timeout timeout = scheduleRequestTimeout(request, future);
 
-        stackClient.sendRequest(request).whenComplete((response, ex2) -> {
+        stackClient.sendRequest(request).whenComplete((response, ex) -> {
             timeout.cancel();
 
             if (response != null) {
@@ -262,7 +262,7 @@ public class OpcUaClient implements UaClient {
                     // TODO log this, increment a count, notify a listener?
                 }
             } else {
-                future.completeExceptionally(ex2);
+                future.completeExceptionally(ex);
             }
         });
     }
