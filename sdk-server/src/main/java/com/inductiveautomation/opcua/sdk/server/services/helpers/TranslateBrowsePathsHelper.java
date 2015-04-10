@@ -44,7 +44,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.ResponseHeader;
 import com.inductiveautomation.opcua.stack.core.types.structured.TranslateBrowsePathsToNodeIdsRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.TranslateBrowsePathsToNodeIdsResponse;
 
-import static com.inductiveautomation.opcua.sdk.server.util.ConversionUtil.a;
+import static com.inductiveautomation.opcua.sdk.core.util.ConversionUtil.a;
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
 public class TranslateBrowsePathsHelper {

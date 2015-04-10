@@ -39,6 +39,11 @@
             <artifactId>stack-server</artifactId>
             <version>${opc-ua-stack.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.inductiveautomation.opcua</groupId>
+            <artifactId>sdk-core</artifactId>
+            <version>0.3.0-SNAPSHOT</version>
+        </dependency>
 
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>

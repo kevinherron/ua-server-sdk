@@ -37,7 +37,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.ReadResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
 import com.inductiveautomation.opcua.stack.core.types.structured.ResponseHeader;
 
-import static com.inductiveautomation.opcua.sdk.server.util.ConversionUtil.a;
+import static com.inductiveautomation.opcua.sdk.core.util.ConversionUtil.a;
 import static com.inductiveautomation.opcua.sdk.server.util.FutureUtils.sequence;
 
 public class ReadHelper {

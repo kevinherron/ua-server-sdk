@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.inductiveautomation.opcua.sdk.server.util;
+package com.inductiveautomation.opcua.sdk.core.util;
 
 import java.lang.reflect.Array;
 import java.util.List;

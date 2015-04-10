@@ -36,7 +36,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.CallRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.CallResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.ResponseHeader;
 
-import static com.inductiveautomation.opcua.sdk.server.util.ConversionUtil.a;
+import static com.inductiveautomation.opcua.sdk.core.util.ConversionUtil.a;
 import static com.inductiveautomation.opcua.sdk.server.util.FutureUtils.sequence;
 
 public class MethodServices implements MethodServiceSet {

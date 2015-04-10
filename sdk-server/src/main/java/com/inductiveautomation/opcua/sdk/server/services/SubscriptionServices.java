@@ -47,7 +47,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.TransferResult;
 import com.inductiveautomation.opcua.stack.core.types.structured.TransferSubscriptionsRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.TransferSubscriptionsResponse;
 
-import static com.inductiveautomation.opcua.sdk.server.util.ConversionUtil.a;
+import static com.inductiveautomation.opcua.sdk.core.util.ConversionUtil.a;
 
 public class SubscriptionServices implements SubscriptionServiceSet {
 

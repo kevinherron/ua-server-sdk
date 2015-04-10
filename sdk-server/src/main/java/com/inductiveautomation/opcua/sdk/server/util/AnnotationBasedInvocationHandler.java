@@ -45,7 +45,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.CallMethodReque
 import com.inductiveautomation.opcua.stack.core.types.structured.CallMethodResult;
 import com.inductiveautomation.opcua.stack.core.util.TypeUtil;
 
-import static com.inductiveautomation.opcua.sdk.server.util.ConversionUtil.a;
+import static com.inductiveautomation.opcua.sdk.core.util.ConversionUtil.a;
 
 public class AnnotationBasedInvocationHandler implements MethodInvocationHandler {
 
