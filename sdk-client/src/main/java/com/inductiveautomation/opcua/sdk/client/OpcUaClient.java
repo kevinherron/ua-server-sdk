@@ -61,12 +61,16 @@ import com.inductiveautomation.opcua.stack.core.types.structured.WriteValue;
 import com.inductiveautomation.opcua.stack.core.util.LongSequence;
 import io.netty.util.HashedWheelTimer;
 import io.netty.util.Timeout;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.inductiveautomation.opcua.sdk.core.util.ConversionUtil.a;
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
 public class OpcUaClient implements UaClient {
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final Map<UInteger, CompletableFuture<?>> pending = Maps.newConcurrentMap();
     private final HashedWheelTimer wheelTimer = Stack.sharedWheelTimer();
@@ -485,6 +489,7 @@ public class OpcUaClient implements UaClient {
                         if (!future.isDone()) future.completeExceptionally(t);
                     }
                 } else {
+                    logger.warn("Response arrived after timeout elapsed: {}", response);
                     // TODO log this, increment a count, notify a listener?
                 }
             } else {
