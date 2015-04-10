@@ -17,31 +17,42 @@
 package com.inductiveautomation.opcua.sdk.client.fsm.states;
 
 import com.inductiveautomation.opcua.sdk.client.OpcUaClient;
-import com.inductiveautomation.opcua.sdk.client.fsm.ClientState;
-import com.inductiveautomation.opcua.sdk.client.fsm.ClientStateContext;
-import com.inductiveautomation.opcua.sdk.client.fsm.ClientStateEvent;
+import com.inductiveautomation.opcua.sdk.client.api.UaSession;
+import com.inductiveautomation.opcua.sdk.client.fsm.SessionState;
+import com.inductiveautomation.opcua.sdk.client.fsm.SessionStateContext;
+import com.inductiveautomation.opcua.sdk.client.fsm.SessionStateEvent;
 import com.inductiveautomation.opcua.stack.client.UaTcpClient;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
 import com.inductiveautomation.opcua.stack.core.types.structured.CreateSessionRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.CreateSessionResponse;
 import com.inductiveautomation.opcua.stack.core.util.NonceUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class CreatingSession implements ClientState {
+public class CreatingSession implements SessionState {
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final AtomicReference<CreateSessionResponse> response = new AtomicReference<>();
 
+    private final CompletableFuture<UaSession> sessionFuture;
+
+    public CreatingSession(CompletableFuture<UaSession> sessionFuture) {
+        this.sessionFuture = sessionFuture;
+    }
+
     @Override
-    public void activate(ClientStateEvent event, ClientStateContext context) {
+    public void activate(SessionStateEvent event, SessionStateContext context) {
         OpcUaClient client = context.getClient();
         UaTcpClient stackClient = client.getStackClient();
 
         CreateSessionRequest request = new CreateSessionRequest(
                 client.newRequestHeader(),
                 stackClient.getApplication(),
-                null,
+                "serverUri", // TODO
                 stackClient.getEndpointUrl(),
                 client.getConfig().getSessionName().get(),
                 NonceUtil.generateNonce(16),
@@ -53,25 +64,35 @@ public class CreatingSession implements ClientState {
 
         future.whenComplete((r, ex) -> {
             if (r != null) {
+                logger.debug("CreateSession succeeded, id={}, timeout={}",
+                        r.getSessionId(), r.getRevisedSessionTimeout());
+
                 response.set(r);
-                context.handleEvent(ClientStateEvent.CREATE_SESSION_SUCCEEDED);
+                context.handleEvent(SessionStateEvent.CREATE_SESSION_SUCCEEDED);
             } else {
-                context.handleEvent(ClientStateEvent.CREATE_SESSION_FAILED);
+                logger.debug("CreateSession failed: {}", ex.getMessage(), ex);
+
+                context.handleEvent(SessionStateEvent.CREATE_SESSION_FAILED);
             }
         });
     }
 
     @Override
-    public ClientState transition(ClientStateEvent event, ClientStateContext context) {
+    public SessionState transition(SessionStateEvent event, SessionStateContext context) {
         switch (event) {
             case CREATE_SESSION_FAILED:
                 return new Inactive();
 
             case CREATE_SESSION_SUCCEEDED:
-                return new ActivatingSession(response.get());
+                return new ActivatingSession(sessionFuture, response.get());
         }
 
         return this;
+    }
+
+    @Override
+    public CompletableFuture<UaSession> sessionFuture() {
+        return sessionFuture;
     }
 
 }

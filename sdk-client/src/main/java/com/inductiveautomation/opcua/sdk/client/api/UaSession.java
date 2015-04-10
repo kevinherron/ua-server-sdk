@@ -21,6 +21,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.structured.SignedSoftwareCertificate;
 
 import java.security.cert.X509Certificate;
+import java.util.Optional;
 
 public interface UaSession {
 
@@ -34,7 +35,7 @@ public interface UaSession {
 
     UInteger getMaxRequestSize();
 
-    X509Certificate getServerCertificate();
+    Optional<X509Certificate> getServerCertificate();
 
     SignedSoftwareCertificate[] getServerSoftwareCertificates();
 

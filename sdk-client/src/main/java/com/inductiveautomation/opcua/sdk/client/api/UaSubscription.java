@@ -27,9 +27,9 @@ import java.util.function.Supplier;
 public interface UaSubscription {
 
     UInteger getSubscriptionId();
-    double getPublishingInterval();
-    UInteger getLifetimeCount();
-    UInteger getMaxKeepAliveCount();
+    double getRequestedPublishInterval();
+    UInteger getRequestedLifetimeCount();
+    UInteger getRequestedKeepAliveCount();
     UInteger getMaxNotificationsPerPublish();
     boolean isPublishingEnabled();
     UByte getPriority();

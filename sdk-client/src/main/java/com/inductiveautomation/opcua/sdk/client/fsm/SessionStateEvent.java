@@ -16,7 +16,7 @@
 
 package com.inductiveautomation.opcua.sdk.client.fsm;
 
-public enum ClientStateEvent {
+public enum SessionStateEvent {
 
     CONNECTION_LOST,
 

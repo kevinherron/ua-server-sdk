@@ -16,10 +16,17 @@
 
 package com.inductiveautomation.opcua.sdk.client;
 
+import java.util.Arrays;
+import java.util.function.Supplier;
+
+import com.inductiveautomation.opcua.sdk.client.api.UaClient;
+import com.inductiveautomation.opcua.sdk.client.api.UaClient.IdentityTokenProvider;
 import com.inductiveautomation.opcua.stack.client.UaTcpClient;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
-
-import java.util.function.Supplier;
+import com.inductiveautomation.opcua.stack.core.types.enumerated.UserTokenType;
+import com.inductiveautomation.opcua.stack.core.types.structured.AnonymousIdentityToken;
+import com.inductiveautomation.opcua.stack.core.types.structured.SignatureData;
+import com.inductiveautomation.opcua.stack.core.types.structured.UserTokenPolicy;
 
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
@@ -30,18 +37,21 @@ public class OpcUaClientConfig {
     private final double sessionTimeout;
     private final UInteger maxResponseMessageSize;
     private final double requestTimeout;
+    private final IdentityTokenProvider identityTokenProvider;
 
     public OpcUaClientConfig(UaTcpClient stackClient,
                              Supplier<String> sessionName,
                              double sessionTimeout,
                              UInteger maxResponseMessageSize,
-                             double requestTimeout) {
+                             double requestTimeout,
+                             IdentityTokenProvider identityTokenProvider) {
 
         this.stackClient = stackClient;
         this.sessionName = sessionName;
         this.sessionTimeout = sessionTimeout;
         this.maxResponseMessageSize = maxResponseMessageSize;
         this.requestTimeout = requestTimeout;
+        this.identityTokenProvider = identityTokenProvider;
     }
 
     public UaTcpClient getStackClient() {
@@ -64,6 +74,10 @@ public class OpcUaClientConfig {
         return requestTimeout;
     }
 
+    public UaClient.IdentityTokenProvider getIdentityTokenProvider() {
+        return identityTokenProvider;
+    }
+
     public static OpcUaClientConfigBuilder builder() {
         return new OpcUaClientConfigBuilder();
     }
@@ -76,6 +90,19 @@ public class OpcUaClientConfig {
         private double sessionTimeout = 60000;
         private UInteger maxResponseMessageSize = uint(0);
         private double requestTimeout = 60000;
+
+        private UaClient.IdentityTokenProvider identityTokenProvider = e -> {
+            String policyId = Arrays.stream(e.getUserIdentityTokens())
+                    .filter(t -> t.getTokenType() == UserTokenType.Anonymous)
+                    .findFirst()
+                    .map(UserTokenPolicy::getPolicyId)
+                    .orElseThrow(() -> new Exception("no anonymous token policy found"));
+
+            return new Object[] {
+                    new AnonymousIdentityToken(policyId),
+                    new SignatureData()
+            };
+        };
 
         public OpcUaClientConfigBuilder setStackClient(UaTcpClient stackClient) {
             this.stackClient = stackClient;
@@ -102,8 +129,20 @@ public class OpcUaClientConfig {
             return this;
         }
 
+        public OpcUaClientConfigBuilder setIdentityTokenProvider(IdentityTokenProvider identityTokenProvider) {
+            this.identityTokenProvider = identityTokenProvider;
+            return this;
+        }
+
         public OpcUaClientConfig build() {
-            return new OpcUaClientConfig(stackClient, sessionName, sessionTimeout, maxResponseMessageSize, requestTimeout);
+            return new OpcUaClientConfig(
+                    stackClient,
+                    sessionName,
+                    sessionTimeout,
+                    maxResponseMessageSize,
+                    requestTimeout,
+                    identityTokenProvider
+            );
         }
 
     }

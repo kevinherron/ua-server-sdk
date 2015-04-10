@@ -16,20 +16,44 @@
 
 package com.inductiveautomation.opcua.sdk.client.fsm.states;
 
-import com.inductiveautomation.opcua.sdk.client.fsm.ClientState;
-import com.inductiveautomation.opcua.sdk.client.fsm.ClientStateContext;
-import com.inductiveautomation.opcua.sdk.client.fsm.ClientStateEvent;
+import com.inductiveautomation.opcua.sdk.client.api.UaSession;
+import com.inductiveautomation.opcua.sdk.client.fsm.SessionState;
+import com.inductiveautomation.opcua.sdk.client.fsm.SessionStateContext;
+import com.inductiveautomation.opcua.sdk.client.fsm.SessionStateEvent;
 
-public class CreatingSubscriptions implements ClientState {
+import java.util.concurrent.CompletableFuture;
 
-    @Override
-    public void activate(ClientStateEvent event, ClientStateContext context) {
+public class CreatingSubscriptions implements SessionState {
 
+    private final UaSession session;
+    private final CompletableFuture<UaSession> sessionFuture;
+
+    public CreatingSubscriptions(UaSession session, CompletableFuture<UaSession> sessionFuture) {
+        this.session = session;
+        this.sessionFuture = sessionFuture;
     }
 
     @Override
-    public ClientState transition(ClientStateEvent event, ClientStateContext context) {
-        return null;
+    public void activate(SessionStateEvent event, SessionStateContext context) {
+        context.handleEvent(SessionStateEvent.CREATE_SUBSCRIPTIONS_SUCCEEDED);
+    }
+
+    @Override
+    public SessionState transition(SessionStateEvent event, SessionStateContext context) {
+        switch (event) {
+            case CREATE_SUBSCRIPTIONS_FAILED:
+                return new Inactive();
+
+            case CREATE_SUBSCRIPTIONS_SUCCEEDED:
+                return new Active(session, sessionFuture);
+        }
+        
+        return this;
+    }
+
+    @Override
+    public CompletableFuture<UaSession> sessionFuture() {
+        return sessionFuture;
     }
 
 }

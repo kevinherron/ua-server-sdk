@@ -16,20 +16,34 @@
 
 package com.inductiveautomation.opcua.sdk.client.fsm.states;
 
-import com.inductiveautomation.opcua.sdk.client.fsm.ClientState;
-import com.inductiveautomation.opcua.sdk.client.fsm.ClientStateContext;
-import com.inductiveautomation.opcua.sdk.client.fsm.ClientStateEvent;
+import com.inductiveautomation.opcua.sdk.client.api.UaSession;
+import com.inductiveautomation.opcua.sdk.client.fsm.SessionState;
+import com.inductiveautomation.opcua.sdk.client.fsm.SessionStateContext;
+import com.inductiveautomation.opcua.sdk.client.fsm.SessionStateEvent;
 
-public class ResumingSession implements ClientState {
+import java.util.concurrent.CompletableFuture;
+
+public class ResumingSession implements SessionState {
+
+    private final CompletableFuture<UaSession> sessionFuture;
+
+    public ResumingSession(CompletableFuture<UaSession> sessionFuture) {
+        this.sessionFuture = sessionFuture;
+    }
 
     @Override
-    public void activate(ClientStateEvent event, ClientStateContext context) {
+    public void activate(SessionStateEvent event, SessionStateContext context) {
 
     }
 
     @Override
-    public ClientState transition(ClientStateEvent event, ClientStateContext context) {
+    public SessionState transition(SessionStateEvent event, SessionStateContext context) {
         return null;
+    }
+
+    @Override
+    public CompletableFuture<UaSession> sessionFuture() {
+        return sessionFuture;
     }
 
 }
