@@ -55,6 +55,7 @@
         <module>ctt-server</module>
         <module>sdk-client</module>
         <module>sdk-core</module>
+        <module>sdk-examples</module>
         <module>sdk-server</module>
     </modules>
 
