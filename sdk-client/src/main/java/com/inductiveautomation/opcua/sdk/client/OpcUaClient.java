@@ -9,6 +9,7 @@ import java.util.function.Consumer;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.inductiveautomation.opcua.sdk.client.api.UaClient;
+import com.inductiveautomation.opcua.sdk.client.api.UaSession;
 import com.inductiveautomation.opcua.sdk.client.fsm.SessionStateContext;
 import com.inductiveautomation.opcua.sdk.client.fsm.SessionStateEvent;
 import com.inductiveautomation.opcua.stack.client.UaTcpClient;
@@ -130,7 +131,9 @@ public class OpcUaClient implements UaClient {
 
     @Override
     public CompletableFuture<UaClient> disconnect() {
-        return null;
+        stateContext.handleEvent(SessionStateEvent.CONNECTION_LOST);
+
+        return CompletableFuture.completedFuture(this);
     }
 
     @Override
@@ -471,10 +474,44 @@ public class OpcUaClient implements UaClient {
         return future;
     }
 
+    @Override
+    public CompletableFuture<UaSession> getSession() {
+        return stateContext.getSession();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T extends UaResponseMessage> CompletableFuture<T> sendRequest(UaRequestMessage request) {
+        CompletableFuture<T> future = new CompletableFuture<>();
+
+        Timeout timeout = scheduleRequestTimeout(request, future);
+
+        stackClient.sendRequest(request).whenComplete((response, ex) -> {
+            timeout.cancel();
+
+            if (response != null) {
+                if (pending.remove(response.getResponseHeader().getRequestHandle()) != null) {
+                    try {
+                        future.complete((T) response);
+                    } catch (Throwable t) {
+                        if (!future.isDone()) future.completeExceptionally(t);
+                    }
+                } else {
+                    logger.warn("Response arrived after timeout elapsed: {}", response);
+                    // TODO log this, increment a count, notify a listener?
+                }
+            } else {
+                future.completeExceptionally(ex);
+            }
+        });
+
+        return future;
+    }
+
     @SuppressWarnings("unchecked")
     <T extends UaResponseMessage> void sendRequest(CompletableFuture<?> future,
-                                                           UaRequestMessage request,
-                                                           Consumer<T> responseConsumer) {
+                                                   UaRequestMessage request,
+                                                   Consumer<T> responseConsumer) {
 
         Timeout timeout = scheduleRequestTimeout(request, future);
 

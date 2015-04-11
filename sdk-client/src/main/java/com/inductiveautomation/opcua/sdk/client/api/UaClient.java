@@ -24,6 +24,8 @@ import java.util.stream.Stream;
 import com.codepoetics.protonpack.StreamUtils;
 import com.google.common.collect.Lists;
 import com.inductiveautomation.opcua.sdk.client.OpcUaClientConfig;
+import com.inductiveautomation.opcua.stack.core.serialization.UaRequestMessage;
+import com.inductiveautomation.opcua.stack.core.serialization.UaResponseMessage;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
@@ -64,6 +66,10 @@ public interface UaClient {
     CompletableFuture<UaClient> connect();
 
     CompletableFuture<UaClient> disconnect();
+
+    CompletableFuture<UaSession> getSession();
+
+    <T extends UaResponseMessage> CompletableFuture<T> sendRequest(UaRequestMessage request);
 
     /**
      * Read the nodes and attributes identified by the provided {@link ReadValueId}s.
