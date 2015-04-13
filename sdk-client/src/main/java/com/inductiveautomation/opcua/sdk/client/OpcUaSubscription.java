@@ -142,7 +142,7 @@ public class OpcUaSubscription implements UaSubscription {
                     future.complete(Collections.nCopies(items.size(), StatusCode.GOOD));
                 };
 
-                client.sendRequest(future, request, consumer);
+//                client.sendRequest(future, request, consumer);
             } else {
                 future.completeExceptionally(ex);
             }

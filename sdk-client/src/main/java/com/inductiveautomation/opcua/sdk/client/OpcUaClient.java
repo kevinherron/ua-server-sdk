@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -375,70 +374,45 @@ public class OpcUaClient implements UaClient {
                                                                                 TimestampsToReturn timestampsToReturn,
                                                                                 List<MonitoredItemCreateRequest> itemsToCreate) {
 
-        CompletableFuture<CreateMonitoredItemsResponse> future = new CompletableFuture<>();
+        return getSession().thenCompose(session -> {
+            CreateMonitoredItemsRequest request = new CreateMonitoredItemsRequest(
+                    newRequestHeader(session.getAuthToken()),
+                    subscriptionId,
+                    timestampsToReturn,
+                    a(itemsToCreate, MonitoredItemCreateRequest.class));
 
-        stateContext.getSession().whenComplete((session, ex) -> {
-            if (session != null) {
-                CreateMonitoredItemsRequest request = new CreateMonitoredItemsRequest(
-                        newRequestHeader(session.getAuthToken()),
-                        subscriptionId,
-                        timestampsToReturn,
-                        a(itemsToCreate, MonitoredItemCreateRequest.class)
-                );
-
-                sendRequest(future, request, future::complete);
-            } else {
-                future.completeExceptionally(ex);
-            }
+            return sendRequest(request);
         });
-
-        return future;
     }
 
     @Override
     public CompletableFuture<ModifyMonitoredItemsResponse> modifyMonitoredItems(UInteger subscriptionId,
                                                                                 TimestampsToReturn timestampsToReturn,
                                                                                 List<MonitoredItemModifyRequest> itemsToModify) {
-        CompletableFuture<ModifyMonitoredItemsResponse> future = new CompletableFuture<>();
 
-        stateContext.getSession().whenComplete((session, ex) -> {
-            if (session != null) {
-                ModifyMonitoredItemsRequest request = new ModifyMonitoredItemsRequest(
-                        newRequestHeader(session.getAuthToken()),
-                        subscriptionId,
-                        timestampsToReturn,
-                        a(itemsToModify, MonitoredItemModifyRequest.class)
-                );
+        return getSession().thenCompose(session -> {
+            ModifyMonitoredItemsRequest request = new ModifyMonitoredItemsRequest(
+                    newRequestHeader(session.getAuthToken()),
+                    subscriptionId,
+                    timestampsToReturn,
+                    a(itemsToModify, MonitoredItemModifyRequest.class));
 
-                sendRequest(future, request, future::complete);
-            } else {
-                future.completeExceptionally(ex);
-            }
+            return sendRequest(request);
         });
-
-        return future;
     }
 
     @Override
     public CompletableFuture<DeleteMonitoredItemsResponse> deleteMonitoredItems(UInteger subscriptionId,
                                                                                 List<UInteger> monitoredItemIds) {
-        CompletableFuture<DeleteMonitoredItemsResponse> future = new CompletableFuture<>();
 
-        stateContext.getSession().whenComplete((session, ex) -> {
-            if (session != null) {
-                DeleteMonitoredItemsRequest request = new DeleteMonitoredItemsRequest(
-                        newRequestHeader(session.getAuthToken()),
-                        subscriptionId,
-                        a(monitoredItemIds, UInteger.class)
-                );
+        return getSession().thenCompose(session -> {
+            DeleteMonitoredItemsRequest request = new DeleteMonitoredItemsRequest(
+                    newRequestHeader(session.getAuthToken()),
+                    subscriptionId,
+                    a(monitoredItemIds, UInteger.class));
 
-                sendRequest(future, request, future::complete);
-            } else {
-                future.completeExceptionally(ex);
-            }
+            return sendRequest(request);
         });
-
-        return future;
     }
 
     @Override
@@ -446,24 +420,15 @@ public class OpcUaClient implements UaClient {
                                                                           MonitoringMode monitoringMode,
                                                                           List<UInteger> monitoredItemIds) {
 
-        CompletableFuture<SetMonitoringModeResponse> future = new CompletableFuture<>();
+        return getSession().thenCompose(session -> {
+            SetMonitoringModeRequest request = new SetMonitoringModeRequest(
+                    newRequestHeader(session.getAuthToken()),
+                    subscriptionId,
+                    monitoringMode,
+                    a(monitoredItemIds, UInteger.class));
 
-        stateContext.getSession().whenComplete((session, ex) -> {
-            if (session != null) {
-                SetMonitoringModeRequest request = new SetMonitoringModeRequest(
-                        newRequestHeader(session.getAuthToken()),
-                        subscriptionId,
-                        monitoringMode,
-                        a(monitoredItemIds, UInteger.class)
-                );
-
-                sendRequest(future, request, future::complete);
-            } else {
-                future.completeExceptionally(ex);
-            }
+            return sendRequest(request);
         });
-
-        return future;
     }
 
     @Override
@@ -472,29 +437,20 @@ public class OpcUaClient implements UaClient {
                                                                   List<UInteger> linksToAdd,
                                                                   List<UInteger> linksToRemove) {
 
-        CompletableFuture<SetTriggeringResponse> future = new CompletableFuture<>();
+        return getSession().thenCompose(session -> {
+            SetTriggeringRequest request = new SetTriggeringRequest(
+                    newRequestHeader(session.getAuthToken()),
+                    subscriptionId,
+                    triggeringItemId,
+                    a(linksToAdd, UInteger.class),
+                    a(linksToRemove, UInteger.class));
 
-        stateContext.getSession().whenComplete((session, ex) -> {
-            if (session != null) {
-                SetTriggeringRequest request = new SetTriggeringRequest(
-                        newRequestHeader(session.getAuthToken()),
-                        subscriptionId,
-                        triggeringItemId,
-                        a(linksToAdd, UInteger.class),
-                        a(linksToRemove, UInteger.class)
-                );
-
-                sendRequest(future, request, future::complete);
-            } else {
-                future.completeExceptionally(ex);
-            }
+            return sendRequest(request);
         });
-
-        return future;
     }
 
     @Override
-    public CompletableFuture<UaSession> getSession() {
+    public final CompletableFuture<UaSession> getSession() {
         return stateContext.getSession();
     }
 
@@ -525,33 +481,6 @@ public class OpcUaClient implements UaClient {
         });
 
         return future;
-    }
-
-    @SuppressWarnings("unchecked")
-    <T extends UaResponseMessage> void sendRequest(CompletableFuture<?> future,
-                                                   UaRequestMessage request,
-                                                   Consumer<T> responseConsumer) {
-
-        Timeout timeout = scheduleRequestTimeout(request, future);
-
-        stackClient.sendRequest(request).whenComplete((response, ex) -> {
-            timeout.cancel();
-
-            if (response != null) {
-                if (pending.remove(response.getResponseHeader().getRequestHandle()) != null) {
-                    try {
-                        responseConsumer.accept((T) response);
-                    } catch (Throwable t) {
-                        if (!future.isDone()) future.completeExceptionally(t);
-                    }
-                } else {
-                    logger.warn("Response arrived after timeout elapsed: {}", response);
-                    // TODO log this, increment a count, notify a listener?
-                }
-            } else {
-                future.completeExceptionally(ex);
-            }
-        });
     }
 
     private Timeout scheduleRequestTimeout(UaRequestMessage request, CompletableFuture<?> future) {
