@@ -53,11 +53,15 @@ import com.inductiveautomation.opcua.stack.core.types.structured.ModifySubscript
 import com.inductiveautomation.opcua.stack.core.types.structured.ModifySubscriptionResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.MonitoredItemCreateRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.MonitoredItemModifyRequest;
+import com.inductiveautomation.opcua.stack.core.types.structured.PublishRequest;
+import com.inductiveautomation.opcua.stack.core.types.structured.PublishResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.ReadRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.ReadResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
 import com.inductiveautomation.opcua.stack.core.types.structured.RegisterNodesRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.RegisterNodesResponse;
+import com.inductiveautomation.opcua.stack.core.types.structured.RepublishRequest;
+import com.inductiveautomation.opcua.stack.core.types.structured.RepublishResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.RequestHeader;
 import com.inductiveautomation.opcua.stack.core.types.structured.SetMonitoringModeRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.SetMonitoringModeResponse;
@@ -65,6 +69,9 @@ import com.inductiveautomation.opcua.stack.core.types.structured.SetPublishingMo
 import com.inductiveautomation.opcua.stack.core.types.structured.SetPublishingModeResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.SetTriggeringRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.SetTriggeringResponse;
+import com.inductiveautomation.opcua.stack.core.types.structured.SubscriptionAcknowledgement;
+import com.inductiveautomation.opcua.stack.core.types.structured.TransferSubscriptionsRequest;
+import com.inductiveautomation.opcua.stack.core.types.structured.TransferSubscriptionsResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.TranslateBrowsePathsToNodeIdsRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.TranslateBrowsePathsToNodeIdsResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.UnregisterNodesRequest;
@@ -265,27 +272,18 @@ public class OpcUaClient implements UaClient {
                                                                             boolean publishingEnabled,
                                                                             UByte priority) {
 
-        CompletableFuture<CreateSubscriptionResponse> future = new CompletableFuture<>();
+        return getSession().thenCompose(session -> {
+            CreateSubscriptionRequest request = new CreateSubscriptionRequest(
+                    newRequestHeader(session.getAuthToken()),
+                    requestedPublishingInterval,
+                    requestedLifetimeCount,
+                    requestedMaxKeepAliveCount,
+                    maxNotificationsPerPublish,
+                    publishingEnabled,
+                    priority);
 
-        stateContext.getSession().whenComplete((session, ex) -> {
-            if (session != null) {
-                CreateSubscriptionRequest request = new CreateSubscriptionRequest(
-                        newRequestHeader(session.getAuthToken()),
-                        requestedPublishingInterval,
-                        requestedLifetimeCount,
-                        requestedMaxKeepAliveCount,
-                        maxNotificationsPerPublish,
-                        publishingEnabled,
-                        priority
-                );
-
-                sendRequest(future, request, future::complete);
-            } else {
-                future.completeExceptionally(ex);
-            }
+            return sendRequest(request);
         });
-
-        return future;
     }
 
     @Override
@@ -296,70 +294,80 @@ public class OpcUaClient implements UaClient {
                                                                             UInteger maxNotificationsPerPublish,
                                                                             UByte priority) {
 
-        CompletableFuture<ModifySubscriptionResponse> future = new CompletableFuture<>();
+        return getSession().thenCompose(session -> {
+            ModifySubscriptionRequest request = new ModifySubscriptionRequest(
+                    newRequestHeader(session.getAuthToken()),
+                    subscriptionId,
+                    requestedPublishingInterval,
+                    requestedLifetimeCount,
+                    requestedMaxKeepAliveCount,
+                    maxNotificationsPerPublish,
+                    priority);
 
-        stateContext.getSession().whenComplete((session, ex) -> {
-            if (session != null) {
-                ModifySubscriptionRequest request = new ModifySubscriptionRequest(
-                        newRequestHeader(session.getAuthToken()),
-                        subscriptionId,
-                        requestedPublishingInterval,
-                        requestedLifetimeCount,
-                        requestedMaxKeepAliveCount,
-                        maxNotificationsPerPublish,
-                        priority
-                );
-
-                sendRequest(future, request, future::complete);
-            } else {
-                future.completeExceptionally(ex);
-            }
+            return sendRequest(request);
         });
-
-        return future;
     }
 
     @Override
     public CompletableFuture<DeleteSubscriptionsResponse> deleteSubscriptions(List<UInteger> subscriptionIds) {
-        CompletableFuture<DeleteSubscriptionsResponse> future = new CompletableFuture<>();
+        return getSession().thenCompose(session -> {
+            DeleteSubscriptionsRequest request = new DeleteSubscriptionsRequest(
+                    newRequestHeader(session.getAuthToken()),
+                    a(subscriptionIds, UInteger.class));
 
-        stateContext.getSession().whenComplete((session, ex) -> {
-            if (session != null) {
-                DeleteSubscriptionsRequest request = new DeleteSubscriptionsRequest(
-                        newRequestHeader(session.getAuthToken()),
-                        a(subscriptionIds, UInteger.class)
-                );
-
-                sendRequest(future, request, future::complete);
-            } else {
-                future.completeExceptionally(ex);
-            }
+            return sendRequest(request);
         });
+    }
 
-        return future;
+    @Override
+    public CompletableFuture<TransferSubscriptionsResponse> transferSubscriptions(List<UInteger> subscriptionIds,
+                                                                                  boolean sendInitialValues) {
+
+        return getSession().thenCompose(session -> {
+            TransferSubscriptionsRequest request = new TransferSubscriptionsRequest(
+                    newRequestHeader(session.getAuthToken()),
+                    a(subscriptionIds, UInteger.class),
+                    sendInitialValues);
+
+            return sendRequest(request);
+        });
     }
 
     @Override
     public CompletableFuture<SetPublishingModeResponse> setPublishingMode(boolean publishingEnabled,
                                                                           List<UInteger> subscriptionIds) {
 
-        CompletableFuture<SetPublishingModeResponse> future = new CompletableFuture<>();
+        return getSession().thenCompose(session -> {
+            SetPublishingModeRequest request = new SetPublishingModeRequest(
+                    newRequestHeader(session.getAuthToken()),
+                    publishingEnabled,
+                    a(subscriptionIds, UInteger.class));
 
-        stateContext.getSession().whenComplete((session, ex) -> {
-            if (session != null) {
-                SetPublishingModeRequest request = new SetPublishingModeRequest(
-                        newRequestHeader(session.getAuthToken()),
-                        publishingEnabled,
-                        a(subscriptionIds, UInteger.class)
-                );
-
-                sendRequest(future, request, future::complete);
-            } else {
-                future.completeExceptionally(ex);
-            }
+            return sendRequest(request);
         });
+    }
 
-        return future;
+    @Override
+    public CompletableFuture<PublishResponse> publish(List<SubscriptionAcknowledgement> subscriptionAcknowledgements) {
+        return getSession().thenCompose(session -> {
+            PublishRequest request = new PublishRequest(
+                    newRequestHeader(session.getAuthToken()),
+                    a(subscriptionAcknowledgements, SubscriptionAcknowledgement.class));
+
+            return sendRequest(request);
+        });
+    }
+
+    @Override
+    public CompletableFuture<RepublishResponse> republish(UInteger subscriptionId, UInteger retransmitSequenceNumber) {
+        return getSession().thenCompose(session -> {
+            RepublishRequest request = new RepublishRequest(
+                    newRequestHeader(session.getAuthToken()),
+                    subscriptionId,
+                    retransmitSequenceNumber);
+
+            return sendRequest(request);
+        });
     }
 
     @Override

@@ -21,6 +21,7 @@ import java.util.concurrent.CompletableFuture;
 
 import com.inductiveautomation.opcua.sdk.client.OpcUaClientConfig;
 import com.inductiveautomation.opcua.sdk.client.api.services.AttributeServices;
+import com.inductiveautomation.opcua.sdk.client.api.services.SubscriptionServices;
 import com.inductiveautomation.opcua.sdk.client.api.services.ViewServices;
 import com.inductiveautomation.opcua.stack.core.serialization.UaRequestMessage;
 import com.inductiveautomation.opcua.stack.core.serialization.UaResponseMessage;
@@ -41,9 +42,10 @@ import com.inductiveautomation.opcua.stack.core.types.structured.SetMonitoringMo
 import com.inductiveautomation.opcua.stack.core.types.structured.SetPublishingModeResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.SetTriggeringResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.SignatureData;
+import com.inductiveautomation.opcua.stack.core.types.structured.TransferSubscriptionsResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.UserIdentityToken;
 
-public interface UaClient extends AttributeServices, ViewServices {
+public interface UaClient extends AttributeServices, SubscriptionServices, ViewServices {
 
     OpcUaClientConfig getConfig();
 
@@ -54,26 +56,6 @@ public interface UaClient extends AttributeServices, ViewServices {
     CompletableFuture<UaSession> getSession();
 
     <T extends UaResponseMessage> CompletableFuture<T> sendRequest(UaRequestMessage request);
-
-    CompletableFuture<CreateSubscriptionResponse> createSubscription(double requestedPublishingInterval,
-                                                                     UInteger requestedLifetimeCount,
-                                                                     UInteger requestedMaxKeepAliveCount,
-                                                                     UInteger maxNotificationsPerPublish,
-                                                                     boolean publishingEnabled,
-                                                                     UByte priority);
-
-    CompletableFuture<ModifySubscriptionResponse> modifySubscription(UInteger subscriptionId,
-                                                                     double requestedPublishingInterval,
-                                                                     UInteger requestedLifetimeCount,
-                                                                     UInteger requestedMaxKeepAliveCount,
-                                                                     UInteger maxNotificationsPerPublish,
-                                                                     UByte priority);
-
-
-    CompletableFuture<DeleteSubscriptionsResponse> deleteSubscriptions(List<UInteger> subscriptionIds);
-
-    CompletableFuture<SetPublishingModeResponse> setPublishingMode(boolean publishingEnabled,
-                                                                   List<UInteger> subscriptionIds);
 
     CompletableFuture<CreateMonitoredItemsResponse> createMonitoredItems(UInteger subscriptionId,
                                                                          TimestampsToReturn timestampsToReturn,
