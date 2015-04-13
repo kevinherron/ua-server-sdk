@@ -20,8 +20,8 @@ import com.inductiveautomation.opcua.stack.core.serialization.UaRequestMessage;
 import com.inductiveautomation.opcua.stack.core.serialization.UaResponseMessage;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
+import com.inductiveautomation.opcua.stack.core.types.builtin.ExtensionObject;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
-import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.MonitoringMode;
@@ -39,6 +39,13 @@ import com.inductiveautomation.opcua.stack.core.types.structured.DeleteMonitored
 import com.inductiveautomation.opcua.stack.core.types.structured.DeleteMonitoredItemsResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.DeleteSubscriptionsRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.DeleteSubscriptionsResponse;
+import com.inductiveautomation.opcua.stack.core.types.structured.HistoryReadDetails;
+import com.inductiveautomation.opcua.stack.core.types.structured.HistoryReadRequest;
+import com.inductiveautomation.opcua.stack.core.types.structured.HistoryReadResponse;
+import com.inductiveautomation.opcua.stack.core.types.structured.HistoryReadValueId;
+import com.inductiveautomation.opcua.stack.core.types.structured.HistoryUpdateDetails;
+import com.inductiveautomation.opcua.stack.core.types.structured.HistoryUpdateRequest;
+import com.inductiveautomation.opcua.stack.core.types.structured.HistoryUpdateResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.ModifyMonitoredItemsRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.ModifyMonitoredItemsResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.ModifySubscriptionRequest;
@@ -137,53 +144,57 @@ public class OpcUaClient implements UaClient {
     }
 
     @Override
-    public CompletableFuture<ReadResponse> read(List<ReadValueId> readValueIds,
-                                                double maxAge, TimestampsToReturn timestampsToReturn) {
+    public CompletableFuture<ReadResponse> read(double maxAge, TimestampsToReturn timestampsToReturn, List<ReadValueId> readValueIds) {
 
-        CompletableFuture<ReadResponse> future = new CompletableFuture<>();
+        return getSession().thenCompose(session -> {
+            ReadRequest request = new ReadRequest(
+                    newRequestHeader(session.getAuthToken()),
+                    maxAge,
+                    timestampsToReturn,
+                    a(readValueIds, ReadValueId.class));
 
-        stateContext.getSession().whenComplete((session, ex) -> {
-            if (session != null) {
-                ReadRequest request = new ReadRequest(
-                        newRequestHeader(session.getAuthToken()),
-                        maxAge,
-                        timestampsToReturn,
-                        a(readValueIds, ReadValueId.class)
-                );
-
-                sendRequest(future, request, future::complete);
-            } else {
-                future.completeExceptionally(ex);
-            }
+            return sendRequest(request);
         });
-
-        return future;
     }
 
     @Override
-    public CompletableFuture<List<StatusCode>> write(List<WriteValue> writeValues) {
-        CompletableFuture<List<StatusCode>> future = new CompletableFuture<>();
+    public CompletableFuture<WriteResponse> write(List<WriteValue> writeValues) {
+        return getSession().thenCompose(session -> {
+            WriteRequest request = new WriteRequest(
+                    newRequestHeader(session.getAuthToken()),
+                    a(writeValues, WriteValue.class));
 
-        stateContext.getSession().whenComplete((session, ex) -> {
-            if (session != null) {
-                WriteRequest request = new WriteRequest(
-                        newRequestHeader(session.getAuthToken()),
-                        a(writeValues, WriteValue.class)
-                );
-
-                Consumer<WriteResponse> consumer = response -> {
-                    List<StatusCode> results = newArrayList(response.getResults());
-
-                    future.complete(results);
-                };
-
-                sendRequest(future, request, consumer);
-            } else {
-                future.completeExceptionally(ex);
-            }
+            return sendRequest(request);
         });
+    }
 
-        return future;
+    @Override
+    public CompletableFuture<HistoryReadResponse> historyRead(HistoryReadDetails historyReadDetails, TimestampsToReturn timestampsToReturn, boolean releaseContinuationPoints, List<HistoryReadValueId> nodesToRead) {
+        return getSession().thenCompose(session -> {
+            HistoryReadRequest request = new HistoryReadRequest(
+                    newRequestHeader(session.getAuthToken()),
+                    new ExtensionObject(historyReadDetails),
+                    timestampsToReturn,
+                    releaseContinuationPoints,
+                    a(nodesToRead, HistoryReadValueId.class));
+
+            return sendRequest(request);
+        });
+    }
+
+    @Override
+    public CompletableFuture<HistoryUpdateResponse> historyUpdate(List<HistoryUpdateDetails> historyUpdateDetails) {
+        return getSession().thenCompose(session -> {
+            ExtensionObject[] details = historyUpdateDetails.stream()
+                    .map(ExtensionObject::new)
+                    .toArray(ExtensionObject[]::new);
+
+            HistoryUpdateRequest request = new HistoryUpdateRequest(
+                    newRequestHeader(session.getAuthToken()),
+                    details);
+
+            return sendRequest(request);
+        });
     }
 
     @Override
@@ -191,30 +202,15 @@ public class OpcUaClient implements UaClient {
                                                         UInteger maxReferencesPerNode,
                                                         List<BrowseDescription> nodesToBrowse) {
 
-        CompletableFuture<List<BrowseResult>> future = new CompletableFuture<>();
+        return getSession().thenCompose(session -> {
+            BrowseRequest request = new BrowseRequest(
+                    newRequestHeader(session.getAuthToken()),
+                    view,
+                    maxReferencesPerNode,
+                    a(nodesToBrowse, BrowseDescription.class));
 
-        stateContext.getSession().whenComplete((session, ex) -> {
-            if (session != null) {
-                BrowseRequest request = new BrowseRequest(
-                        newRequestHeader(session.getAuthToken()),
-                        view,
-                        maxReferencesPerNode,
-                        a(nodesToBrowse, BrowseDescription.class)
-                );
-
-                Consumer<BrowseResponse> consumer = response -> {
-                    List<BrowseResult> results = newArrayList(response.getResults());
-
-                    future.complete(results);
-                };
-
-                sendRequest(future, request, consumer);
-            } else {
-                future.completeExceptionally(ex);
-            }
-        });
-
-        return future;
+            return this.<BrowseResponse>sendRequest(request);
+        }).thenApply(response -> newArrayList(response.getResults()));
     }
 
     @Override

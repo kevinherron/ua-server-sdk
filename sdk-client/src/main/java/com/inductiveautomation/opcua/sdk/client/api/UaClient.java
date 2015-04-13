@@ -22,15 +22,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.codepoetics.protonpack.StreamUtils;
-import com.google.common.collect.Lists;
 import com.inductiveautomation.opcua.sdk.client.OpcUaClientConfig;
+import com.inductiveautomation.opcua.sdk.client.api.services.AttributeServices;
 import com.inductiveautomation.opcua.stack.core.serialization.UaRequestMessage;
 import com.inductiveautomation.opcua.stack.core.serialization.UaResponseMessage;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
-import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
 import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
@@ -47,19 +46,19 @@ import com.inductiveautomation.opcua.stack.core.types.structured.ModifyMonitored
 import com.inductiveautomation.opcua.stack.core.types.structured.ModifySubscriptionResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.MonitoredItemCreateRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.MonitoredItemModifyRequest;
-import com.inductiveautomation.opcua.stack.core.types.structured.ReadResponse;
-import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
 import com.inductiveautomation.opcua.stack.core.types.structured.SetMonitoringModeResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.SetPublishingModeResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.SetTriggeringResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.SignatureData;
 import com.inductiveautomation.opcua.stack.core.types.structured.UserIdentityToken;
 import com.inductiveautomation.opcua.stack.core.types.structured.ViewDescription;
+import com.inductiveautomation.opcua.stack.core.types.structured.WriteResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.WriteValue;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
-public interface UaClient {
+public interface UaClient extends AttributeServices {
 
     OpcUaClientConfig getConfig();
 
@@ -70,95 +69,6 @@ public interface UaClient {
     CompletableFuture<UaSession> getSession();
 
     <T extends UaResponseMessage> CompletableFuture<T> sendRequest(UaRequestMessage request);
-
-    /**
-     * Read the nodes and attributes identified by the provided {@link ReadValueId}s.
-     *
-     * @param readValueIds       the {@link ReadValueId}s identifying the nodes and attributes to read.
-     * @param maxAge             the requested max age of the value, in milliseconds. If maxAge is set to 0, the Server
-     *                           shall attempt to read a new value from the data source. If maxAge is set to the max
-     *                           Int32 value or greater, the Server shall attempt to get a cached value. Negative values
-     *                           are invalid for maxAge.
-     * @param timestampsToReturn the requested {@link TimestampsToReturn}.
-     * @return {@link CompletableFuture} containing a list of {@link DataValue}s, the size and order matching the
-     * provided {@link ReadValueId}s.
-     */
-    CompletableFuture<ReadResponse> read(List<ReadValueId> readValueIds,
-                                         double maxAge,
-                                         TimestampsToReturn timestampsToReturn);
-
-    /**
-     * For each of the nodes identified by the provided {@link NodeId}s, read the attribute identified by the
-     * corresponding attribute id.
-     *
-     * @param nodeIds            the {@link NodeId}s identifying the nodes to read.
-     * @param attributeIds       the attribute ids to read, the size and order matching the provided {@link NodeId}s.
-     * @param maxAge             the requested max age of the value, in milliseconds. If maxAge is set to 0, the Server
-     *                           shall attempt to read a new value from the data source. If maxAge is set to the max
-     *                           Int32 value or greater, the Server shall attempt to get a cached value. Negative values
-     *                           are invalid for maxAge.
-     * @param timestampsToReturn the requested {@link TimestampsToReturn}.
-     * @return a {@link CompletableFuture} containing a list of {@link DataValue}s, the size and order matching the
-     * provided {@link NodeId}s.
-     */
-    default CompletableFuture<List<DataValue>> read(List<NodeId> nodeIds,
-                                                    List<UInteger> attributeIds,
-                                                    double maxAge,
-                                                    TimestampsToReturn timestampsToReturn) {
-
-        if (nodeIds.size() != attributeIds.size()) {
-            CompletableFuture<List<DataValue>> failed = new CompletableFuture<>();
-            failed.completeExceptionally(new IllegalArgumentException("nodeIds.size() != attributeIds.size()"));
-            return failed;
-        } else {
-            Stream<ReadValueId> stream = StreamUtils.zip(
-                    nodeIds.stream(), attributeIds.stream(),
-                    (nId, aId) -> new ReadValueId(nId, aId, null, QualifiedName.NULL_VALUE));
-
-            return read(stream.collect(Collectors.toList()), maxAge, timestampsToReturn)
-                    .thenApply(r -> Lists.newArrayList(r.getResults()));
-        }
-    }
-
-    /**
-     * Read the value attribute of the node identified by each of the provided {@link NodeId}s.
-     *
-     * @param nodeIds            the {@link NodeId}s identifying the nodes to read.
-     * @param maxAge             the requested max age of the value, in milliseconds. If maxAge is set to 0, the Server
-     *                           shall attempt to read a new value from the data source. If maxAge is set to the max
-     *                           Int32 value or greater, the Server shall attempt to get a cached value. Negative values
-     *                           are invalid for maxAge.
-     * @param timestampsToReturn the requested {@link TimestampsToReturn}.
-     * @return a {@link CompletableFuture} containing a list of {@link DataValue}s, the size and order matching the
-     * provided {@link NodeId}s.
-     */
-    default CompletableFuture<List<DataValue>> readValues(List<NodeId> nodeIds,
-                                                          double maxAge,
-                                                          TimestampsToReturn timestampsToReturn) {
-
-        List<ReadValueId> readValueIds = nodeIds.stream()
-                .map(nodeId -> new ReadValueId(nodeId, uint(13), null, QualifiedName.NULL_VALUE))
-                .collect(Collectors.toList());
-
-        return read(readValueIds, maxAge, timestampsToReturn)
-                .thenApply(r -> Lists.newArrayList(r.getResults()));
-    }
-
-    CompletableFuture<List<StatusCode>> write(List<WriteValue> writeValues);
-
-    default CompletableFuture<List<StatusCode>> writeValues(List<NodeId> nodeIds, List<DataValue> values) {
-        if (nodeIds.size() != values.size()) {
-            CompletableFuture<List<StatusCode>> failed = new CompletableFuture<>();
-            failed.completeExceptionally(new IllegalArgumentException("nodeIds.size() != values.size()"));
-            return failed;
-        } else {
-            Stream<WriteValue> stream = StreamUtils.zip(
-                    nodeIds.stream(), values.stream(),
-                    (nodeId, value) -> new WriteValue(nodeId, uint(13), null, value));
-
-            return write(stream.collect(Collectors.toList()));
-        }
-    }
 
     CompletableFuture<List<BrowseResult>> browse(ViewDescription view,
                                                  UInteger maxReferencesPerNode,
@@ -172,7 +82,7 @@ public interface UaClient {
                                                    UInteger maxReferencesPerNode,
                                                    BrowseDescription browseDescription) {
 
-        return browse(view, maxReferencesPerNode, Lists.newArrayList(browseDescription))
+        return browse(view, maxReferencesPerNode, newArrayList(browseDescription))
                 .thenApply(results -> results.get(0));
     }
 
@@ -183,7 +93,7 @@ public interface UaClient {
     default CompletableFuture<BrowseResult> browseNext(boolean releaseContinuationPoint,
                                                        ByteString continuationPoint) {
 
-        return browseNext(releaseContinuationPoint, Lists.newArrayList(continuationPoint))
+        return browseNext(releaseContinuationPoint, newArrayList(continuationPoint))
                 .thenApply(results -> results.get(0));
     }
 
@@ -228,6 +138,10 @@ public interface UaClient {
                                                            List<UInteger> linksToAdd,
                                                            List<UInteger> linksToRemove);
 
+
+    interface ClientCallback {
+        void onLateResponse(UaResponseMessage response);
+    }
 
     interface IdentityTokenProvider {
 
