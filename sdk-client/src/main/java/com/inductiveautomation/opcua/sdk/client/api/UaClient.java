@@ -18,25 +18,16 @@ package com.inductiveautomation.opcua.sdk.client.api;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import com.codepoetics.protonpack.StreamUtils;
 import com.inductiveautomation.opcua.sdk.client.OpcUaClientConfig;
 import com.inductiveautomation.opcua.sdk.client.api.services.AttributeServices;
+import com.inductiveautomation.opcua.sdk.client.api.services.ViewServices;
 import com.inductiveautomation.opcua.stack.core.serialization.UaRequestMessage;
 import com.inductiveautomation.opcua.stack.core.serialization.UaResponseMessage;
-import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
-import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
-import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
-import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
-import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.MonitoringMode;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.TimestampsToReturn;
-import com.inductiveautomation.opcua.stack.core.types.structured.BrowseDescription;
-import com.inductiveautomation.opcua.stack.core.types.structured.BrowseResult;
 import com.inductiveautomation.opcua.stack.core.types.structured.CreateMonitoredItemsResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.CreateSubscriptionResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.DeleteMonitoredItemsResponse;
@@ -51,14 +42,8 @@ import com.inductiveautomation.opcua.stack.core.types.structured.SetPublishingMo
 import com.inductiveautomation.opcua.stack.core.types.structured.SetTriggeringResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.SignatureData;
 import com.inductiveautomation.opcua.stack.core.types.structured.UserIdentityToken;
-import com.inductiveautomation.opcua.stack.core.types.structured.ViewDescription;
-import com.inductiveautomation.opcua.stack.core.types.structured.WriteResponse;
-import com.inductiveautomation.opcua.stack.core.types.structured.WriteValue;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
-
-public interface UaClient extends AttributeServices {
+public interface UaClient extends AttributeServices, ViewServices {
 
     OpcUaClientConfig getConfig();
 
@@ -69,34 +54,6 @@ public interface UaClient extends AttributeServices {
     CompletableFuture<UaSession> getSession();
 
     <T extends UaResponseMessage> CompletableFuture<T> sendRequest(UaRequestMessage request);
-
-    CompletableFuture<List<BrowseResult>> browse(ViewDescription view,
-                                                 UInteger maxReferencesPerNode,
-                                                 List<BrowseDescription> nodesToBrowse);
-
-    default CompletableFuture<List<BrowseResult>> browse(List<BrowseDescription> nodesToBrowse) {
-        return browse(new ViewDescription(NodeId.NULL_VALUE, DateTime.MIN_VALUE, uint(0)), uint(0), nodesToBrowse);
-    }
-
-    default CompletableFuture<BrowseResult> browse(ViewDescription view,
-                                                   UInteger maxReferencesPerNode,
-                                                   BrowseDescription browseDescription) {
-
-        return browse(view, maxReferencesPerNode, newArrayList(browseDescription))
-                .thenApply(results -> results.get(0));
-    }
-
-
-    CompletableFuture<List<BrowseResult>> browseNext(boolean releaseContinuationPoints,
-                                                     List<ByteString> continuationPoints);
-
-    default CompletableFuture<BrowseResult> browseNext(boolean releaseContinuationPoint,
-                                                       ByteString continuationPoint) {
-
-        return browseNext(releaseContinuationPoint, newArrayList(continuationPoint))
-                .thenApply(results -> results.get(0));
-    }
-
 
     CompletableFuture<CreateSubscriptionResponse> createSubscription(double requestedPublishingInterval,
                                                                      UInteger requestedLifetimeCount,

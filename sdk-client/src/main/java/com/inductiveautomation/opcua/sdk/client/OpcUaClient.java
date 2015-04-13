@@ -28,9 +28,10 @@ import com.inductiveautomation.opcua.stack.core.types.enumerated.MonitoringMode;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import com.inductiveautomation.opcua.stack.core.types.structured.BrowseDescription;
 import com.inductiveautomation.opcua.stack.core.types.structured.BrowseNextRequest;
+import com.inductiveautomation.opcua.stack.core.types.structured.BrowseNextResponse;
+import com.inductiveautomation.opcua.stack.core.types.structured.BrowsePath;
 import com.inductiveautomation.opcua.stack.core.types.structured.BrowseRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.BrowseResponse;
-import com.inductiveautomation.opcua.stack.core.types.structured.BrowseResult;
 import com.inductiveautomation.opcua.stack.core.types.structured.CreateMonitoredItemsRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.CreateMonitoredItemsResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.CreateSubscriptionRequest;
@@ -55,6 +56,8 @@ import com.inductiveautomation.opcua.stack.core.types.structured.MonitoredItemMo
 import com.inductiveautomation.opcua.stack.core.types.structured.ReadRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.ReadResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
+import com.inductiveautomation.opcua.stack.core.types.structured.RegisterNodesRequest;
+import com.inductiveautomation.opcua.stack.core.types.structured.RegisterNodesResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.RequestHeader;
 import com.inductiveautomation.opcua.stack.core.types.structured.SetMonitoringModeRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.SetMonitoringModeResponse;
@@ -62,6 +65,10 @@ import com.inductiveautomation.opcua.stack.core.types.structured.SetPublishingMo
 import com.inductiveautomation.opcua.stack.core.types.structured.SetPublishingModeResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.SetTriggeringRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.SetTriggeringResponse;
+import com.inductiveautomation.opcua.stack.core.types.structured.TranslateBrowsePathsToNodeIdsRequest;
+import com.inductiveautomation.opcua.stack.core.types.structured.TranslateBrowsePathsToNodeIdsResponse;
+import com.inductiveautomation.opcua.stack.core.types.structured.UnregisterNodesRequest;
+import com.inductiveautomation.opcua.stack.core.types.structured.UnregisterNodesResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.ViewDescription;
 import com.inductiveautomation.opcua.stack.core.types.structured.WriteRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.WriteResponse;
@@ -72,7 +79,6 @@ import io.netty.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static com.inductiveautomation.opcua.sdk.core.util.ConversionUtil.a;
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
@@ -124,16 +130,7 @@ public class OpcUaClient implements UaClient {
 
     @Override
     public CompletableFuture<UaClient> connect() {
-        CompletableFuture<UaClient> future = new CompletableFuture<>();
-
-        stateContext.handleEvent(SessionStateEvent.CREATE_SESSION_REQUESTED);
-
-        stateContext.getSession().whenComplete((session, ex) -> {
-            if (session != null) future.complete(OpcUaClient.this);
-            else future.completeExceptionally(ex);
-        });
-
-        return future;
+        return getSession().thenApply(s -> OpcUaClient.this);
     }
 
     @Override
@@ -198,48 +195,66 @@ public class OpcUaClient implements UaClient {
     }
 
     @Override
-    public CompletableFuture<List<BrowseResult>> browse(ViewDescription view,
-                                                        UInteger maxReferencesPerNode,
-                                                        List<BrowseDescription> nodesToBrowse) {
+    public CompletableFuture<BrowseResponse> browse(ViewDescription viewDescription,
+                                                    UInteger maxReferencesPerNode,
+                                                    List<BrowseDescription> nodesToBrowse) {
 
         return getSession().thenCompose(session -> {
             BrowseRequest request = new BrowseRequest(
                     newRequestHeader(session.getAuthToken()),
-                    view,
+                    viewDescription,
                     maxReferencesPerNode,
                     a(nodesToBrowse, BrowseDescription.class));
 
-            return this.<BrowseResponse>sendRequest(request);
-        }).thenApply(response -> newArrayList(response.getResults()));
+            return sendRequest(request);
+        });
     }
 
     @Override
-    public CompletableFuture<List<BrowseResult>> browseNext(boolean releaseContinuationPoints,
+    public CompletableFuture<BrowseNextResponse> browseNext(boolean releaseContinuationPoints,
                                                             List<ByteString> continuationPoints) {
 
-        CompletableFuture<List<BrowseResult>> future = new CompletableFuture<>();
+        return getSession().thenCompose(session -> {
+            BrowseNextRequest request = new BrowseNextRequest(
+                    newRequestHeader(session.getAuthToken()),
+                    releaseContinuationPoints,
+                    a(continuationPoints, ByteString.class));
 
-        stateContext.getSession().whenComplete((session, ex) -> {
-            if (session != null) {
-                BrowseNextRequest request = new BrowseNextRequest(
-                        newRequestHeader(session.getAuthToken()),
-                        releaseContinuationPoints,
-                        a(continuationPoints, ByteString.class)
-                );
-
-                Consumer<BrowseResponse> consumer = response -> {
-                    List<BrowseResult> results = newArrayList(response.getResults());
-
-                    future.complete(results);
-                };
-
-                sendRequest(future, request, consumer);
-            } else {
-                future.completeExceptionally(ex);
-            }
+            return sendRequest(request);
         });
+    }
 
-        return future;
+    @Override
+    public CompletableFuture<TranslateBrowsePathsToNodeIdsResponse> translateBrowsePaths(List<BrowsePath> browsePaths) {
+        return getSession().thenCompose(session -> {
+            TranslateBrowsePathsToNodeIdsRequest request = new TranslateBrowsePathsToNodeIdsRequest(
+                    newRequestHeader(session.getAuthToken()),
+                    a(browsePaths, BrowsePath.class));
+
+            return sendRequest(request);
+        });
+    }
+
+    @Override
+    public CompletableFuture<RegisterNodesResponse> registerNodes(List<NodeId> nodesToRegister) {
+        return getSession().thenCompose(session -> {
+            RegisterNodesRequest request = new RegisterNodesRequest(
+                    newRequestHeader(session.getAuthToken()),
+                    a(nodesToRegister, NodeId.class));
+
+            return sendRequest(request);
+        });
+    }
+
+    @Override
+    public CompletableFuture<UnregisterNodesResponse> unregisterNodes(List<NodeId> nodesToUnregister) {
+        return getSession().thenCompose(session -> {
+            UnregisterNodesRequest request = new UnregisterNodesRequest(
+                    newRequestHeader(session.getAuthToken()),
+                    a(nodesToUnregister, NodeId.class));
+
+            return sendRequest(request);
+        });
     }
 
     @Override
