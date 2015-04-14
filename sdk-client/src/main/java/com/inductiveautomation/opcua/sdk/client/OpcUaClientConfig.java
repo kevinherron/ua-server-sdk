@@ -17,11 +17,13 @@
 package com.inductiveautomation.opcua.sdk.client;
 
 import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 
 import com.inductiveautomation.opcua.sdk.client.api.UaClient;
 import com.inductiveautomation.opcua.sdk.client.api.UaClient.IdentityTokenProvider;
 import com.inductiveautomation.opcua.stack.client.UaTcpClient;
+import com.inductiveautomation.opcua.stack.core.Stack;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.UserTokenType;
 import com.inductiveautomation.opcua.stack.core.types.structured.AnonymousIdentityToken;
@@ -38,13 +40,15 @@ public class OpcUaClientConfig {
     private final UInteger maxResponseMessageSize;
     private final double requestTimeout;
     private final IdentityTokenProvider identityTokenProvider;
+    private final ExecutorService executorService;
 
     public OpcUaClientConfig(UaTcpClient stackClient,
                              Supplier<String> sessionName,
                              double sessionTimeout,
                              UInteger maxResponseMessageSize,
                              double requestTimeout,
-                             IdentityTokenProvider identityTokenProvider) {
+                             IdentityTokenProvider identityTokenProvider,
+                             ExecutorService executorService) {
 
         this.stackClient = stackClient;
         this.sessionName = sessionName;
@@ -52,6 +56,7 @@ public class OpcUaClientConfig {
         this.maxResponseMessageSize = maxResponseMessageSize;
         this.requestTimeout = requestTimeout;
         this.identityTokenProvider = identityTokenProvider;
+        this.executorService = executorService;
     }
 
     public UaTcpClient getStackClient() {
@@ -78,6 +83,10 @@ public class OpcUaClientConfig {
         return identityTokenProvider;
     }
 
+    public ExecutorService getExecutorService() {
+        return executorService;
+    }
+
     public static OpcUaClientConfigBuilder builder() {
         return new OpcUaClientConfigBuilder();
     }
@@ -90,6 +99,7 @@ public class OpcUaClientConfig {
         private double sessionTimeout = 60000;
         private UInteger maxResponseMessageSize = uint(0);
         private double requestTimeout = 60000;
+        private ExecutorService executorService = Stack.sharedExecutor();
 
         private UaClient.IdentityTokenProvider identityTokenProvider = e -> {
             String policyId = Arrays.stream(e.getUserIdentityTokens())
@@ -134,6 +144,11 @@ public class OpcUaClientConfig {
             return this;
         }
 
+        public OpcUaClientConfigBuilder setExecutorService(ExecutorService executorService) {
+            this.executorService = executorService;
+            return this;
+        }
+
         public OpcUaClientConfig build() {
             return new OpcUaClientConfig(
                     stackClient,
@@ -141,8 +156,8 @@ public class OpcUaClientConfig {
                     sessionTimeout,
                     maxResponseMessageSize,
                     requestTimeout,
-                    identityTokenProvider
-            );
+                    identityTokenProvider,
+                    executorService);
         }
 
     }
