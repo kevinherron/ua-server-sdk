@@ -200,7 +200,6 @@ public class SubscriptionManager {
 
         long sequenceNumber = notificationMessage.getSequenceNumber().longValue();
         long expectedSequenceNumber = lastSequenceNumber + 1;
-        lastSequenceNumber = sequenceNumber;
 
         if (sequenceNumber > expectedSequenceNumber) {
             logger.warn("Expected sequence={}, received sequence={}. Calling Republish service...",
@@ -218,11 +217,20 @@ public class SubscriptionManager {
                     // Use Server's time + publishTime in queued responses to figure out what can be ignored?
                 }
 
+                lastSequenceNumber = sequenceNumber - 1;
+
                 processingQueue.resume();
             });
 
             return;
+        } else if (sequenceNumber < expectedSequenceNumber) {
+            logger.warn("Expected sequence={}, received sequence={}. Ignoring...",
+                    expectedSequenceNumber, sequenceNumber);
+
+            return;
         }
+
+        lastSequenceNumber = sequenceNumber;
 
         response.getResults(); // TODO
 
