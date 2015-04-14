@@ -35,21 +35,7 @@ public interface UaSubscription {
     UByte getPriority();
 
     CompletableFuture<List<StatusCode>> createItems(List<UaMonitoredItem> items);
-    CompletableFuture<List<StatusCode>> createItems(Supplier<List<UaMonitoredItem>> items);
-
+    CompletableFuture<List<StatusCode>> modifyItems(List<UaMonitoredItem> items);
     CompletableFuture<List<StatusCode>> deleteItems(List<UaMonitoredItem> items);
-    CompletableFuture<List<StatusCode>> deleteItems(Supplier<List<UaMonitoredItem>> items);
-
-    interface CreateItemsContext {
-        void addItem(UaMonitoredItem item);
-    }
-
-    interface ModifyItemsContext {
-        void addItem(UaMonitoredItem item);
-    }
-
-    interface DeleteItemsContext {
-        void addItem(UaMonitoredItem item);
-    }
 
 }

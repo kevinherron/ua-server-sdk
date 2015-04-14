@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.inductiveautomation.opcua.sdk.client.api.UaClient;
 import com.inductiveautomation.opcua.sdk.client.api.UaSession;
@@ -96,7 +95,6 @@ public class OpcUaClient implements UaClient {
     private final HashedWheelTimer wheelTimer = Stack.sharedWheelTimer();
 
     private final LongSequence requestHandles = new LongSequence(0, UInteger.MAX_VALUE);
-    private final List<OpcUaSubscription> subscriptions = Lists.newCopyOnWriteArrayList();
 
     private final UaTcpClient stackClient;
     private final SessionStateContext stateContext;
@@ -485,6 +483,8 @@ public class OpcUaClient implements UaClient {
 
     private Timeout scheduleRequestTimeout(UaRequestMessage request, CompletableFuture<?> future) {
         UInteger requestHandle = request.getRequestHeader().getRequestHandle();
+        long timeoutHint = request.getRequestHeader().getTimeoutHint().longValue();
+        long requestTimeout = timeoutHint == 0L ? (long) config.getRequestTimeout() : timeoutHint;
 
         pending.put(requestHandle, future);
 
@@ -492,11 +492,11 @@ public class OpcUaClient implements UaClient {
             if (!t.isCancelled()) {
                 CompletableFuture<?> f = pending.remove(requestHandle);
                 if (f != null) {
-                    String message = "request timed out after " + config.getRequestTimeout() + "ms";
+                    String message = "request timed out after " + requestTimeout + "ms";
                     f.completeExceptionally(new UaException(StatusCodes.Bad_RequestTimeout, message));
                 }
             }
-        }, (long) config.getRequestTimeout(), TimeUnit.MILLISECONDS);
+        }, requestTimeout, TimeUnit.MILLISECONDS);
     }
 
     SessionStateContext getStateContext() {
