@@ -19,7 +19,7 @@ package com.inductiveautomation.opcua.sdk.core;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.UaException;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
@@ -45,7 +45,7 @@ public final class NumericRange {
 
     @Override
     public String toString() {
-        return Objects.toStringHelper(this)
+        return MoreObjects.toStringHelper(this)
                 .add("range", range)
                 .toString();
     }
