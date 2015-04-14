@@ -28,8 +28,8 @@ import com.inductiveautomation.opcua.stack.client.UaTcpClient;
 import com.inductiveautomation.opcua.stack.client.UaTcpClientBuilder;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
-import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
+import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.MessageSecurityMode;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.MonitoringMode;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.TimestampsToReturn;
@@ -37,7 +37,6 @@ import com.inductiveautomation.opcua.stack.core.types.structured.EndpointDescrip
 import com.inductiveautomation.opcua.stack.core.types.structured.MonitoringParameters;
 import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.ubyte;
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
@@ -70,6 +69,7 @@ public class OpcUaClientExample {
 
         SubscriptionManager subscriptionManager = new SubscriptionManager(client);
 
+
         OpcUaSubscription subscription = new OpcUaSubscription(
                 client,
                 1000.0,
@@ -79,9 +79,13 @@ public class OpcUaClientExample {
                 true,
                 ubyte(0));
 
-        OpcUaMonitoredItem item = new OpcUaMonitoredItem(new ReadValueId(
+        UInteger clientHandle = subscriptionManager.nextClientHandle();
+
+        ReadValueId readValueId = new ReadValueId(
                 Identifiers.Server_ServerStatus_StartTime,
-                uint(13), null, QualifiedName.NULL_VALUE));
+                uint(13), null, QualifiedName.NULL_VALUE);
+
+        OpcUaMonitoredItem item = new OpcUaMonitoredItem(clientHandle, readValueId);
 
         subscriptionManager.addSubscription(subscription).thenCompose(s -> {
             return subscription.createItems(TimestampsToReturn.Both, createItemsContext -> {

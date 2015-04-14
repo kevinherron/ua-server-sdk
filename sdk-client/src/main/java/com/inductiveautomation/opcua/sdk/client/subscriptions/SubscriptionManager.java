@@ -20,17 +20,24 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
+import com.google.common.collect.Maps;
 import com.inductiveautomation.opcua.sdk.client.OpcUaClient;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.UaException;
+import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.DateTime;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ExtensionObject;
+import com.inductiveautomation.opcua.stack.core.types.builtin.Variant;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
+import com.inductiveautomation.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import com.inductiveautomation.opcua.stack.core.types.structured.CreateSubscriptionResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.DataChangeNotification;
 import com.inductiveautomation.opcua.stack.core.types.structured.DeleteSubscriptionsResponse;
@@ -41,6 +48,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.MonitoredItemNo
 import com.inductiveautomation.opcua.stack.core.types.structured.NotificationMessage;
 import com.inductiveautomation.opcua.stack.core.types.structured.PublishRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.PublishResponse;
+import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
 import com.inductiveautomation.opcua.stack.core.types.structured.RepublishResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.RequestHeader;
 import com.inductiveautomation.opcua.stack.core.types.structured.StatusChangeNotification;
@@ -55,12 +63,12 @@ import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Un
 
 public class SubscriptionManager {
 
-    private static final int MAX_PENDING_PUBLISHES = 2;
-
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final ExecutionQueue deliveryQueue;
     private final ExecutionQueue processingQueue;
+
+    private final AtomicLong clientHandles = new AtomicLong(0L);
 
     private volatile long lastSequenceNumber = 0L;
     private final List<SubscriptionAcknowledgement> acknowledgements = newArrayList();
@@ -146,6 +154,10 @@ public class SubscriptionManager {
         return client.setPublishingMode(publishingEnabled, subscriptionIds).thenApply(r -> subscription);
     }
 
+    public UInteger nextClientHandle() {
+        return uint(clientHandles.getAndIncrement());
+    }
+
     private int getMaxPendingPublishes() {
         return subscriptions.size() * 2;
     }
@@ -225,13 +237,40 @@ public class SubscriptionManager {
                     logger.warn("Republish service failed; reading values for subscriptionId={}: {}",
                             subscriptionId, ex.getMessage(), ex);
 
-                    // TODO Re-read the value for all items belonging to subscriptionId.
-                    // Use Server's time + publishTime in queued responses to figure out what can be ignored?
+                    List<OpcUaMonitoredItem> items = subscriptions.stream()
+                            .filter(s -> subscriptionId.equals(s.getSubscriptionId()))
+                            .findFirst()
+                            .map(s -> newArrayList(s.getMonitoredItems().values()))
+                            .orElse(newArrayList());
+
+                    List<ReadValueId> values = items.stream()
+                            .map(OpcUaMonitoredItem::getReadValueId)
+                            .collect(Collectors.toList());
+
+                    // TODO Use Server's time + publishTime in queued responses to figure out what can be ignored?
+                    client.read(0.0d, TimestampsToReturn.Both, values).whenComplete((rr, rx) -> {
+                        if (rr != null) {
+                            DataValue[] results = rr.getResults();
+
+                            for (int i = 0; i < items.size(); i++) {
+                                OpcUaMonitoredItem item = items.get(i);
+                                DataValue value = results[i];
+
+                                item.onValueArrived(value);
+                            }
+                        } else {
+                            // TODO re-reading nodes failed, reconnect?
+                        }
+
+                        // We've read the latest values, resume processing.
+                        lastSequenceNumber = sequenceNumber - 1;
+                        processingQueue.resume();
+                    });
+                } else {
+                    // Republish succeeded, resume processing.
+                    lastSequenceNumber = sequenceNumber - 1;
+                    processingQueue.resume();
                 }
-
-                lastSequenceNumber = sequenceNumber - 1;
-
-                processingQueue.resume();
             });
 
             return;
@@ -292,6 +331,12 @@ public class SubscriptionManager {
         logger.info("onNotificationMessage(), sequenceNumber={}, subscriptionId={}, publishTime={}",
                 notificationMessage.getSequenceNumber(), subscriptionId, publishTime);
 
+        Map<UInteger, OpcUaMonitoredItem> items = subscriptions.stream()
+                .filter(s -> subscriptionId.equals(s.getSubscriptionId()))
+                .findFirst()
+                .map(OpcUaSubscription::getMonitoredItems)
+                .orElse(Maps.newHashMap());
+
         for (ExtensionObject xo : notificationMessage.getNotificationData()) {
             Object o = xo.getObject();
 
@@ -301,6 +346,9 @@ public class SubscriptionManager {
                 for (MonitoredItemNotification min : dcn.getMonitoredItems()) {
                     logger.info("MonitoredItemNotification: clientHandle={}, value={}",
                             min.getClientHandle(), min.getValue());
+
+                    OpcUaMonitoredItem item = items.get(min.getClientHandle());
+                    if (item != null) item.onValueArrived(min.getValue());
                 }
             } else if (o instanceof EventNotificationList) {
                 EventNotificationList enl = (EventNotificationList) o;
@@ -308,6 +356,9 @@ public class SubscriptionManager {
                 for (EventFieldList efl : enl.getEvents()) {
                     logger.info("EventFieldList: clientHandle={}, values={}",
                             efl.getClientHandle(), Arrays.toString(efl.getEventFields()));
+
+                    OpcUaMonitoredItem item = items.get(efl.getClientHandle());
+                    if (item != null) item.onEventArrived(efl.getEventFields());
                 }
             } else if (o instanceof StatusChangeNotification) {
                 StatusChangeNotification scn = (StatusChangeNotification) o;

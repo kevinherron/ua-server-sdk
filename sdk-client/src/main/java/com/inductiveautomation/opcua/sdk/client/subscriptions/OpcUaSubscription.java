@@ -2,6 +2,7 @@ package com.inductiveautomation.opcua.sdk.client.subscriptions;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -9,6 +10,7 @@ import java.util.stream.Stream;
 
 import com.codepoetics.protonpack.StreamUtils;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.inductiveautomation.opcua.sdk.client.OpcUaClient;
 import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UByte;
@@ -16,6 +18,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.MonitoringMode;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import com.inductiveautomation.opcua.stack.core.types.structured.CreateMonitoredItemsResponse;
+import com.inductiveautomation.opcua.stack.core.types.structured.DeleteMonitoredItemsResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.ModifyMonitoredItemsResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.MonitoredItemCreateRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.MonitoredItemCreateResult;
@@ -33,6 +36,8 @@ public class OpcUaSubscription {
     private volatile double revisedPublishingInterval = 0.0;
     private volatile UInteger revisedLifetimeCount = uint(0);
     private volatile UInteger revisedMaxKeepAliveCount = uint(0);
+
+    private final Map<UInteger, OpcUaMonitoredItem> monitoredItems = Maps.newConcurrentMap();
 
     private final OpcUaClient client;
 
@@ -100,6 +105,10 @@ public class OpcUaSubscription {
         return revisedMaxKeepAliveCount;
     }
 
+    Map<UInteger, OpcUaMonitoredItem> getMonitoredItems() {
+        return monitoredItems;
+    }
+
     public CompletableFuture<List<StatusCode>> createItems(TimestampsToReturn timestampsToReturn,
                                                            Consumer<CreateItemsContext> contextConsumer) {
 
@@ -131,6 +140,8 @@ public class OpcUaSubscription {
                     item.setFilterResult(result.getFilterResult());
                     item.setRevisedQueueSize(result.getRevisedQueueSize());
                     item.setRevisedSamplingInterval(result.getRevisedSamplingInterval());
+
+                    monitoredItems.put(item.getClientHandle(), item);
                 }
 
                 item.setStatusCode(statusCode);
@@ -182,8 +193,14 @@ public class OpcUaSubscription {
                 .map(OpcUaMonitoredItem::getMonitoredItemId)
                 .collect(Collectors.toList());
 
-        return client.deleteMonitoredItems(subscriptionId, itemsToDelete)
-                .thenApply(response -> newArrayList(response.getResults()));
+        CompletableFuture<DeleteMonitoredItemsResponse> future =
+                client.deleteMonitoredItems(subscriptionId, itemsToDelete);
+
+        return future.thenApply(response -> {
+            monitoredItems.values().removeAll(items);
+
+            return newArrayList(response.getResults());
+        });
     }
 
     void setSubscriptionId(UInteger subscriptionId) {

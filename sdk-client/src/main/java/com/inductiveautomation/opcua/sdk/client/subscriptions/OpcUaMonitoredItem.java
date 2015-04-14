@@ -16,12 +16,15 @@
 
 package com.inductiveautomation.opcua.sdk.client.subscriptions;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import com.inductiveautomation.opcua.sdk.client.subscriptions.OpcUaSubscription.ModifyItemsContext;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
+import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ExtensionObject;
 import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
+import com.inductiveautomation.opcua.stack.core.types.builtin.Variant;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.MonitoringMode;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.TimestampsToReturn;
@@ -33,6 +36,8 @@ import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Un
 
 public class OpcUaMonitoredItem {
 
+    private volatile Consumer<DataValue> valueConsumer;
+    private volatile Consumer<Variant[]> eventConsumer;
     private volatile UInteger revisedQueueSize = uint(0);
     private volatile double revisedSamplingInterval = 0.0;
     private volatile MonitoringFilterResult filterResult = null;
@@ -46,14 +51,20 @@ public class OpcUaMonitoredItem {
     private volatile UInteger subscriptionId = uint(0);
     private volatile UInteger monitoredItemId = uint(0);
 
+    private final UInteger clientHandle;
     private final ReadValueId readValueId;
 
-    public OpcUaMonitoredItem(ReadValueId readValueId) {
+    public OpcUaMonitoredItem(UInteger clientHandle, ReadValueId readValueId) {
+        this.clientHandle = clientHandle;
         this.readValueId = readValueId;
     }
 
     public UInteger getSubscriptionId() {
         return subscriptionId;
+    }
+
+    public UInteger getClientHandle() {
+        return clientHandle;
     }
 
     public UInteger getMonitoredItemId() {
@@ -76,6 +87,14 @@ public class OpcUaMonitoredItem {
         MonitoringParameters parameters = modifier.apply(this);
 
         context.addItem(this, parameters);
+    }
+
+    public void setValueConsumer(Consumer<DataValue> valueConsumer) {
+        this.valueConsumer = valueConsumer;
+    }
+
+    public void setEventConsumer(Consumer<Variant[]> eventConsumer) {
+        this.eventConsumer = eventConsumer;
     }
 
     void setStatusCode(StatusCode statusCode) {
@@ -110,6 +129,16 @@ public class OpcUaMonitoredItem {
 
     void setTimestampsToReturn(TimestampsToReturn timestampsToReturn) {
         this.timestampsToReturn = timestampsToReturn;
+    }
+
+    void onValueArrived(DataValue value) {
+        Consumer<DataValue> c = valueConsumer;
+        if (c != null) c.accept(value);
+    }
+
+    void onEventArrived(Variant[] values) {
+        Consumer<Variant[]> c = eventConsumer;
+        if (c != null) c.accept(values);
     }
 
 }
