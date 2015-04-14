@@ -10,18 +10,20 @@ import java.util.stream.Stream;
 import com.codepoetics.protonpack.StreamUtils;
 import com.google.common.collect.Lists;
 import com.inductiveautomation.opcua.sdk.client.OpcUaClient;
-import com.inductiveautomation.opcua.sdk.client.api.UaMonitoredItem;
 import com.inductiveautomation.opcua.stack.core.types.builtin.StatusCode;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.MonitoringMode;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.TimestampsToReturn;
+import com.inductiveautomation.opcua.stack.core.types.structured.CreateMonitoredItemsResponse;
+import com.inductiveautomation.opcua.stack.core.types.structured.ModifyMonitoredItemsResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.MonitoredItemCreateRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.MonitoredItemCreateResult;
 import com.inductiveautomation.opcua.stack.core.types.structured.MonitoredItemModifyRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.MonitoredItemModifyResult;
 import com.inductiveautomation.opcua.stack.core.types.structured.MonitoringParameters;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
 public class OpcUaSubscription {
@@ -103,21 +105,20 @@ public class OpcUaSubscription {
 
         CreateItemsContext context = new CreateItemsContext();
 
-        return client.getSession().thenCompose(session -> {
-            contextConsumer.accept(context);
+        contextConsumer.accept(context);
 
-            Stream<OpcUaMonitoredItem> itemStream = context.itemList.stream();
-            Stream<MonitoringParameters> parametersStream = context.parametersList.stream();
-            Stream<MonitoringMode> monitoringModeStream = context.monitoringModeList.stream();
+        List<MonitoredItemCreateRequest> itemsToCreate = StreamUtils.zip(
+                context.itemList.stream(),
+                context.parametersList.stream(),
+                context.monitoringModeList.stream(),
+                (item, parameters, mode) ->
+                        new MonitoredItemCreateRequest(item.getReadValueId(), mode, parameters))
+                .collect(Collectors.toList());
 
-            List<MonitoredItemCreateRequest> itemsToCreate = StreamUtils.zip(
-                    itemStream, parametersStream, monitoringModeStream,
-                    (item, parameters, mode) ->
-                            new MonitoredItemCreateRequest(item.getReadValueId(), mode, parameters))
-                    .collect(Collectors.toList());
+        CompletableFuture<CreateMonitoredItemsResponse> future =
+                client.createMonitoredItems(subscriptionId, timestampsToReturn, itemsToCreate);
 
-            return client.createMonitoredItems(subscriptionId, timestampsToReturn, itemsToCreate);
-        }).thenApply(response -> {
+        return future.thenApply(response -> {
             Stream<OpcUaMonitoredItem> itemStream = context.itemList.stream();
             Stream<MonitoredItemCreateResult> resultStream = Arrays.stream(response.getResults());
 
@@ -144,19 +145,19 @@ public class OpcUaSubscription {
 
         ModifyItemsContext context = new ModifyItemsContext();
 
-        return client.getSession().thenCompose(session -> {
-            contextConsumer.accept(context);
+        contextConsumer.accept(context);
 
-            Stream<OpcUaMonitoredItem> itemStream = context.itemList.stream();
-            Stream<MonitoringParameters> parametersStream = context.parametersList.stream();
+        List<MonitoredItemModifyRequest> itemsToModify = StreamUtils.zip(
+                context.itemList.stream(),
+                context.parametersList.stream(),
+                (item, parameters) ->
+                        new MonitoredItemModifyRequest(item.getMonitoredItemId(), parameters))
+                .collect(Collectors.toList());
 
-            List<MonitoredItemModifyRequest> itemsToModify = StreamUtils.zip(
-                    itemStream, parametersStream,
-                    (item, parameters) -> new MonitoredItemModifyRequest(item.getMonitoredItemId(), parameters))
-                    .collect(Collectors.toList());
+        CompletableFuture<ModifyMonitoredItemsResponse> future =
+                client.modifyMonitoredItems(subscriptionId, timestampsToReturn, itemsToModify);
 
-            return client.modifyMonitoredItems(subscriptionId, timestampsToReturn, itemsToModify);
-        }).thenApply(response -> {
+        return future.thenApply(response -> {
             Stream<OpcUaMonitoredItem> itemStream = context.itemList.stream();
             Stream<MonitoredItemModifyResult> resultStream = Arrays.stream(response.getResults());
 
@@ -176,8 +177,13 @@ public class OpcUaSubscription {
         });
     }
 
-    public CompletableFuture<List<StatusCode>> deleteItems(List<UaMonitoredItem> items) {
-        return null;
+    public CompletableFuture<List<StatusCode>> deleteItems(List<OpcUaMonitoredItem> items) {
+        List<UInteger> itemsToDelete = items.stream()
+                .map(OpcUaMonitoredItem::getMonitoredItemId)
+                .collect(Collectors.toList());
+
+        return client.deleteMonitoredItems(subscriptionId, itemsToDelete)
+                .thenApply(response -> newArrayList(response.getResults()));
     }
 
     void setSubscriptionId(UInteger subscriptionId) {
