@@ -85,9 +85,9 @@ public class OpcUaClientExample {
             return subscription.createItems(TimestampsToReturn.Both, createItemsContext -> {
                 MonitoringParameters parameters = new MonitoringParameters(
                         uint(1),
-                        500.0,
+                        250.0,
                         null,
-                        uint(1),
+                        uint(5),
                         true);
 
                 createItemsContext.addItem(item, parameters, MonitoringMode.Reporting);
