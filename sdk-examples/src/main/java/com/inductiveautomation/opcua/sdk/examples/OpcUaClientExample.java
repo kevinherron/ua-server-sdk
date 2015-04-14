@@ -28,6 +28,7 @@ import com.inductiveautomation.opcua.stack.client.UaTcpClient;
 import com.inductiveautomation.opcua.stack.client.UaTcpClientBuilder;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
+import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
 import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.MessageSecurityMode;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.MonitoringMode;
@@ -36,6 +37,7 @@ import com.inductiveautomation.opcua.stack.core.types.structured.EndpointDescrip
 import com.inductiveautomation.opcua.stack.core.types.structured.MonitoringParameters;
 import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.ubyte;
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
@@ -77,11 +79,11 @@ public class OpcUaClientExample {
                 true,
                 ubyte(0));
 
-        subscriptionManager.addSubscription(subscription).thenCompose(s -> {
-            OpcUaMonitoredItem item = new OpcUaMonitoredItem(new ReadValueId(
-                    Identifiers.Server_ServerStatus_CurrentTime,
-                    uint(13), null, QualifiedName.NULL_VALUE));
+        OpcUaMonitoredItem item = new OpcUaMonitoredItem(new ReadValueId(
+                Identifiers.Server_ServerStatus_StartTime,
+                uint(13), null, QualifiedName.NULL_VALUE));
 
+        subscriptionManager.addSubscription(subscription).thenCompose(s -> {
             return subscription.createItems(TimestampsToReturn.Both, createItemsContext -> {
                 MonitoringParameters parameters = new MonitoringParameters(
                         uint(1),
@@ -92,7 +94,7 @@ public class OpcUaClientExample {
 
                 createItemsContext.addItem(item, parameters, MonitoringMode.Reporting);
             });
-        });
+        }).thenAccept(results -> results.forEach(System.out::println));
 
         Thread.sleep(999999999);
     }

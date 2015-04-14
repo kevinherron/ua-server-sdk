@@ -132,6 +132,10 @@ public class OpcUaClient implements UaClient {
         );
     }
 
+    public UInteger nextRequestHandle() {
+        return uint(requestHandles.getAndIncrement());
+    }
+
     @Override
     public CompletableFuture<UaClient> connect() {
         return getSession().thenApply(s -> OpcUaClient.this);

@@ -18,12 +18,12 @@ package com.inductiveautomation.opcua.sdk.client.subscriptions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
-import com.google.common.collect.Lists;
 import com.inductiveautomation.opcua.sdk.client.OpcUaClient;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.UaException;
@@ -50,6 +50,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Lists.newCopyOnWriteArrayList;
 import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
 public class SubscriptionManager {
@@ -64,7 +65,7 @@ public class SubscriptionManager {
     private volatile long lastSequenceNumber = 0L;
     private final List<SubscriptionAcknowledgement> acknowledgements = newArrayList();
 
-    private final List<OpcUaSubscription> subscriptions = Lists.newCopyOnWriteArrayList();
+    private final List<OpcUaSubscription> subscriptions = newCopyOnWriteArrayList();
     private final AtomicInteger pendingPublishes = new AtomicInteger(0);
 
     private final OpcUaClient client;
@@ -146,7 +147,18 @@ public class SubscriptionManager {
     }
 
     private int getMaxPendingPublishes() {
-        return subscriptions.isEmpty() ? 0 : MAX_PENDING_PUBLISHES;
+        return subscriptions.size() * 2;
+    }
+
+    private UInteger getTimeoutHint() {
+        double minKeepAlive = subscriptions.stream()
+                .map(s -> s.getRevisedPublishingInterval() * s.getRequestedMaxKeepAliveCount().doubleValue())
+                .min(Comparator.<Double>naturalOrder())
+                .orElse(client.getConfig().getRequestTimeout());
+
+        long timeoutHint = (long) (getMaxPendingPublishes() * minKeepAlive * 1.25);
+
+        return uint(timeoutHint);
     }
 
     private void maybeSendPublishRequest() {
@@ -164,10 +176,10 @@ public class SubscriptionManager {
                 RequestHeader requestHeader = new RequestHeader(
                         session.getAuthToken(),
                         DateTime.now(),
-                        uint(0), // TODO requestHandle
+                        client.nextRequestHandle(),
                         uint(0),
                         null,
-                        uint((long) (MAX_PENDING_PUBLISHES * 5 * 1.25 * 60000)), // TODO timeoutHint
+                        getTimeoutHint(),
                         null);
 
                 PublishRequest request = new PublishRequest(
@@ -223,19 +235,16 @@ public class SubscriptionManager {
             });
 
             return;
-        } else if (sequenceNumber < expectedSequenceNumber) {
-            logger.warn("Expected sequence={}, received sequence={}. Ignoring...",
-                    expectedSequenceNumber, sequenceNumber);
-
-            return;
         }
 
         lastSequenceNumber = sequenceNumber;
 
         response.getResults(); // TODO
 
-        for (UInteger available : response.getAvailableSequenceNumbers()) {
-            acknowledgements.add(new SubscriptionAcknowledgement(subscriptionId, available));
+        synchronized (acknowledgements) {
+            for (UInteger available : response.getAvailableSequenceNumbers()) {
+                acknowledgements.add(new SubscriptionAcknowledgement(subscriptionId, available));
+            }
         }
 
         deliveryQueue.submit(() -> onNotificationMessage(subscriptionId, notificationMessage));
