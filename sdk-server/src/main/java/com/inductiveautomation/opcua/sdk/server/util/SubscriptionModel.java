@@ -46,7 +46,7 @@ public class SubscriptionModel {
 
     private final List<ScheduledUpdate> schedule = Lists.newCopyOnWriteArrayList();
 
-    private final ExecutionQueue<Runnable> executionQueue;
+    private final ExecutionQueue executionQueue;
 
     private final ReadWriteManager readWriteManager;
     private final ExecutorService executor;
@@ -60,7 +60,7 @@ public class SubscriptionModel {
         this.executor = executor;
         this.scheduler = scheduler;
 
-        executionQueue = new ExecutionQueue<>(ExecutionQueue.RUNNABLE_EXECUTOR, executor);
+        executionQueue = new ExecutionQueue(executor);
     }
 
     public void onDataItemsCreated(List<DataItem> items) {
