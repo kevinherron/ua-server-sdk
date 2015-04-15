@@ -29,6 +29,7 @@ import com.inductiveautomation.opcua.stack.core.util.NonceUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -49,10 +50,19 @@ public class CreatingSession implements SessionState {
         OpcUaClient client = context.getClient();
         UaTcpStackClient stackClient = client.getStackClient();
 
+        String serverUri = stackClient.getEndpoint().flatMap(e -> {
+            String gatewayServerUri = e.getServer().getGatewayServerUri();
+            if (gatewayServerUri != null && !gatewayServerUri.isEmpty()) {
+                return Optional.ofNullable(e.getServer().getApplicationUri());
+            } else {
+                return Optional.empty();
+            }
+        }).orElse(null);
+
         CreateSessionRequest request = new CreateSessionRequest(
                 client.newRequestHeader(),
                 stackClient.getApplication(),
-                "serverUri", // TODO
+                serverUri,
                 stackClient.getEndpointUrl(),
                 client.getConfig().getSessionName().get(),
                 NonceUtil.generateNonce(16),
