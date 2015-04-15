@@ -38,6 +38,7 @@ import com.inductiveautomation.opcua.stack.core.types.builtin.ExtensionObject;
 import com.inductiveautomation.opcua.stack.core.types.structured.ActivateSessionRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.ActivateSessionResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.CreateSessionResponse;
+import com.inductiveautomation.opcua.stack.core.types.structured.EndpointDescription;
 import com.inductiveautomation.opcua.stack.core.types.structured.SignatureData;
 import com.inductiveautomation.opcua.stack.core.types.structured.SignedSoftwareCertificate;
 import com.inductiveautomation.opcua.stack.core.types.structured.UserIdentityToken;
@@ -67,7 +68,10 @@ public class ActivatingSession implements SessionState {
             OpcUaClient client = context.getClient();
             UaTcpStackClient stackClient = client.getStackClient();
 
-            Object[] oa = client.getConfig().getIdentityTokenProvider().getIdentityToken(stackClient.getEndpoint());
+            EndpointDescription endpoint = stackClient.getEndpoint()
+                    .orElseThrow(() -> new Exception("cannot create session with no endpoint configured"));
+
+            Object[] oa = client.getConfig().getIdentityTokenProvider().getIdentityToken(endpoint);
             UserIdentityToken userIdentityToken = (UserIdentityToken) oa[0];
             SignatureData userTokenSignature = (SignatureData) oa[1];
 
