@@ -1,19 +1,13 @@
 package com.inductiveautomation.opcua.sdk.client;
 
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
-import com.google.common.collect.Maps;
 import com.inductiveautomation.opcua.sdk.client.api.UaClient;
 import com.inductiveautomation.opcua.sdk.client.api.UaSession;
 import com.inductiveautomation.opcua.sdk.client.fsm.SessionStateContext;
 import com.inductiveautomation.opcua.sdk.client.fsm.SessionStateEvent;
 import com.inductiveautomation.opcua.stack.client.UaTcpStackClient;
-import com.inductiveautomation.opcua.stack.core.Stack;
-import com.inductiveautomation.opcua.stack.core.StatusCodes;
-import com.inductiveautomation.opcua.stack.core.UaException;
 import com.inductiveautomation.opcua.stack.core.serialization.UaRequestMessage;
 import com.inductiveautomation.opcua.stack.core.serialization.UaResponseMessage;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
@@ -79,8 +73,6 @@ import com.inductiveautomation.opcua.stack.core.types.structured.WriteRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.WriteResponse;
 import com.inductiveautomation.opcua.stack.core.types.structured.WriteValue;
 import com.inductiveautomation.opcua.stack.core.util.LongSequence;
-import io.netty.util.HashedWheelTimer;
-import io.netty.util.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,9 +82,6 @@ import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Un
 public class OpcUaClient implements UaClient {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
-
-    private final Map<UInteger, CompletableFuture<?>> pending = Maps.newConcurrentMap();
-    private final HashedWheelTimer wheelTimer = Stack.sharedWheelTimer();
 
     private final LongSequence requestHandles = new LongSequence(0, UInteger.MAX_VALUE);
 
@@ -457,54 +446,15 @@ public class OpcUaClient implements UaClient {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T extends UaResponseMessage> CompletableFuture<T> sendRequest(UaRequestMessage request) {
-        CompletableFuture<T> future = new CompletableFuture<>();
-
-        Timeout timeout = scheduleRequestTimeout(request, future);
-
-        stackClient.sendRequest(request).whenComplete((response, ex) -> {
-            timeout.cancel();
-
-            if (response != null) {
-                if (pending.remove(response.getResponseHeader().getRequestHandle()) != null) {
-                    try {
-                        future.complete((T) response);
-                    } catch (Throwable t) {
-                        if (!future.isDone()) future.completeExceptionally(t);
-                    }
-                } else {
-                    logger.warn("Response arrived after timeout elapsed: {}", response);
-                    // TODO log this, increment a count, notify a listener?
-                }
-            } else {
-                future.completeExceptionally(ex);
-            }
-        });
-
-        return future;
+        return stackClient.sendRequest(request);
     }
 
-    private Timeout scheduleRequestTimeout(UaRequestMessage request, CompletableFuture<?> future) {
-        UInteger requestHandle = request.getRequestHeader().getRequestHandle();
-        long timeoutHint = request.getRequestHeader().getTimeoutHint().longValue();
-        long requestTimeout = timeoutHint == 0L ? (long) config.getRequestTimeout() : timeoutHint;
+    @Override
+    public void sendRequests(List<? extends UaRequestMessage> requests,
+                             List<CompletableFuture<? extends UaResponseMessage>> futures) {
 
-        pending.put(requestHandle, future);
-
-        return wheelTimer.newTimeout(t -> {
-            if (!t.isCancelled()) {
-                CompletableFuture<?> f = pending.remove(requestHandle);
-                if (f != null) {
-                    String message = "request timed out after " + requestTimeout + "ms";
-                    f.completeExceptionally(new UaException(StatusCodes.Bad_RequestTimeout, message));
-                }
-            }
-        }, requestTimeout, TimeUnit.MILLISECONDS);
-    }
-
-    SessionStateContext getStateContext() {
-        return stateContext;
+        stackClient.sendRequests(requests, futures);
     }
 
 }

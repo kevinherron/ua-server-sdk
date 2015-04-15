@@ -16,6 +16,7 @@
 
 package com.inductiveautomation.opcua.sdk.client.api;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import com.inductiveautomation.opcua.sdk.client.OpcUaClientConfig;
@@ -40,6 +41,9 @@ public interface UaClient extends AttributeServices, MonitoredItemServices, Subs
     CompletableFuture<UaSession> getSession();
 
     <T extends UaResponseMessage> CompletableFuture<T> sendRequest(UaRequestMessage request);
+
+    void sendRequests(List<? extends UaRequestMessage> requests,
+                      List<CompletableFuture<? extends UaResponseMessage>> futures);
 
     interface ClientCallback {
         void onLateResponse(UaResponseMessage response);
