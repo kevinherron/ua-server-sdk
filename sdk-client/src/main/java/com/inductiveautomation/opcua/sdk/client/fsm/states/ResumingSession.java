@@ -16,12 +16,12 @@
 
 package com.inductiveautomation.opcua.sdk.client.fsm.states;
 
+import java.util.concurrent.CompletableFuture;
+
 import com.inductiveautomation.opcua.sdk.client.api.UaSession;
 import com.inductiveautomation.opcua.sdk.client.fsm.SessionState;
 import com.inductiveautomation.opcua.sdk.client.fsm.SessionStateContext;
 import com.inductiveautomation.opcua.sdk.client.fsm.SessionStateEvent;
-
-import java.util.concurrent.CompletableFuture;
 
 public class ResumingSession implements SessionState {
 

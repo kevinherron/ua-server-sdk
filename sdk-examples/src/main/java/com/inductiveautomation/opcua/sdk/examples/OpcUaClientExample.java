@@ -23,34 +23,22 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
-import com.google.common.collect.Lists;
 import com.inductiveautomation.opcua.sdk.client.OpcUaClient;
 import com.inductiveautomation.opcua.sdk.client.OpcUaClientConfig;
-import com.inductiveautomation.opcua.sdk.client.subscriptions.OpcUaMonitoredItem;
-import com.inductiveautomation.opcua.sdk.client.subscriptions.OpcUaSubscription;
-import com.inductiveautomation.opcua.sdk.client.subscriptions.SubscriptionManager;
-import com.inductiveautomation.opcua.stack.client.UaTcpStackClientConfig;
 import com.inductiveautomation.opcua.stack.client.UaTcpStackClient;
+import com.inductiveautomation.opcua.stack.client.UaTcpStackClientConfig;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
-import com.inductiveautomation.opcua.stack.core.types.builtin.DataValue;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.NodeId;
-import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
-import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.MessageSecurityMode;
-import com.inductiveautomation.opcua.stack.core.types.enumerated.MonitoringMode;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import com.inductiveautomation.opcua.stack.core.types.structured.EndpointDescription;
-import com.inductiveautomation.opcua.stack.core.types.structured.MonitoringParameters;
-import com.inductiveautomation.opcua.stack.core.types.structured.ReadValueId;
-
-import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.ubyte;
-import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
 public class OpcUaClientExample {
 
     public static void main(String[] args) throws Exception {
-        EndpointDescription[] endpoints = UaTcpStackClient.getEndpoints("opc.tcp://localhost:4096").get();
+//        EndpointDescription[] endpoints = UaTcpStackClient.getEndpoints("opc.tcp://localhost:4096").get();
+        EndpointDescription[] endpoints = UaTcpStackClient.getEndpoints("opc.tcp://10.20.5.210:49320").get();
 
         EndpointDescription endpoint = Arrays.stream(endpoints)
                 .filter(e -> e.getSecurityMode() == MessageSecurityMode.None)
@@ -72,6 +60,7 @@ public class OpcUaClientExample {
 
         OpcUaClientConfig configConfig = OpcUaClientConfig.builder()
                 .setStackClient(stackClient)
+                .setRequestTimeout(120000)
                 .build();
 
         OpcUaClient client = new OpcUaClient(configConfig);
@@ -111,19 +100,23 @@ public class OpcUaClientExample {
 //            });
 //        }).thenAccept(results -> results.forEach(System.out::println));
 
-        List<NodeId> nodeIds = Collections.nCopies(1000, Identifiers.Server_ServerStatus_CurrentTime);
+        int N_CONCURRENT = 1000;
+        int N_NODES = 1000;
+
+        List<NodeId> nodeIds = Collections.nCopies(N_NODES, Identifiers.Server_ServerStatus_CurrentTime);
 
         long timeA = System.nanoTime();
-        CompletableFuture<?>[] futures = new CompletableFuture<?>[1000];
+        CompletableFuture<?>[] futures = new CompletableFuture<?>[N_CONCURRENT];
 
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < N_CONCURRENT; i++) {
             futures[i] = client.readValues(0.0d, TimestampsToReturn.Both, nodeIds);
         }
 
         CompletableFuture.allOf(futures).get();
         long timeB = System.nanoTime();
 
-        System.out.println(String.format("Took %sms", TimeUnit.MILLISECONDS.convert(timeB-timeA, TimeUnit.NANOSECONDS)));
+        System.out.println(String.format("%s requests took %sms",
+                N_CONCURRENT, TimeUnit.MILLISECONDS.convert(timeB - timeA, TimeUnit.NANOSECONDS)));
 
         Thread.sleep(999999999);
     }

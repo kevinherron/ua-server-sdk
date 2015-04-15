@@ -16,6 +16,10 @@
 
 package com.inductiveautomation.opcua.sdk.client.fsm.states;
 
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
+
 import com.inductiveautomation.opcua.sdk.client.OpcUaClient;
 import com.inductiveautomation.opcua.sdk.client.api.UaSession;
 import com.inductiveautomation.opcua.sdk.client.fsm.SessionState;
@@ -28,10 +32,6 @@ import com.inductiveautomation.opcua.stack.core.types.structured.CreateSessionRe
 import com.inductiveautomation.opcua.stack.core.util.NonceUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class CreatingSession implements SessionState {
 
