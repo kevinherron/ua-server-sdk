@@ -24,8 +24,8 @@ import com.inductiveautomation.opcua.sdk.client.OpcUaClientConfig;
 import com.inductiveautomation.opcua.sdk.client.subscriptions.OpcUaMonitoredItem;
 import com.inductiveautomation.opcua.sdk.client.subscriptions.OpcUaSubscription;
 import com.inductiveautomation.opcua.sdk.client.subscriptions.SubscriptionManager;
+import com.inductiveautomation.opcua.stack.client.UaTcpStackClientConfig;
 import com.inductiveautomation.opcua.stack.client.UaTcpStackClient;
-import com.inductiveautomation.opcua.stack.client.UaTcpClientBuilder;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
 import com.inductiveautomation.opcua.stack.core.types.builtin.QualifiedName;
@@ -52,18 +52,22 @@ public class OpcUaClientExample {
 
         System.out.println("Connecting to endpoint: " + endpoint.getEndpointUrl() + " [" + endpoint.getSecurityPolicyUri() + "]");
 
-        UaTcpStackClient stackClient = new UaTcpClientBuilder()
+        UaTcpStackClientConfig stackConfig = UaTcpStackClientConfig.builder()
                 .setApplicationName(LocalizedText.english("Stack Example Client"))
                 .setApplicationUri(String.format("urn:example-client:%s", UUID.randomUUID()))
 //                .setCertificate(certificate)
 //                .setKeyPair(keyPair)
-                .build(endpoint);
+                .setEndpoint(endpoint)
+                .build();
 
-        OpcUaClientConfig config = OpcUaClientConfig.builder()
+        UaTcpStackClient stackClient = new UaTcpStackClient(stackConfig);
+
+
+        OpcUaClientConfig configConfig = OpcUaClientConfig.builder()
                 .setStackClient(stackClient)
                 .build();
 
-        OpcUaClient client = new OpcUaClient(config);
+        OpcUaClient client = new OpcUaClient(configConfig);
 
         client.connect().get();
 
@@ -82,7 +86,7 @@ public class OpcUaClientExample {
         UInteger clientHandle = subscriptionManager.nextClientHandle();
 
         ReadValueId readValueId = new ReadValueId(
-                Identifiers.Server_ServerStatus_StartTime,
+                Identifiers.Server_ServerStatus_CurrentTime,
                 uint(13), null, QualifiedName.NULL_VALUE);
 
         OpcUaMonitoredItem item = new OpcUaMonitoredItem(clientHandle, readValueId);
