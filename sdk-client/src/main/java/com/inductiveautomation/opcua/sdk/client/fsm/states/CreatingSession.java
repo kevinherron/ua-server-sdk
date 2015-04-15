@@ -21,7 +21,7 @@ import com.inductiveautomation.opcua.sdk.client.api.UaSession;
 import com.inductiveautomation.opcua.sdk.client.fsm.SessionState;
 import com.inductiveautomation.opcua.sdk.client.fsm.SessionStateContext;
 import com.inductiveautomation.opcua.sdk.client.fsm.SessionStateEvent;
-import com.inductiveautomation.opcua.stack.client.UaTcpClient;
+import com.inductiveautomation.opcua.stack.client.UaTcpStackClient;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
 import com.inductiveautomation.opcua.stack.core.types.structured.CreateSessionRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.CreateSessionResponse;
@@ -47,7 +47,7 @@ public class CreatingSession implements SessionState {
     @Override
     public void activate(SessionStateEvent event, SessionStateContext context) {
         OpcUaClient client = context.getClient();
-        UaTcpClient stackClient = client.getStackClient();
+        UaTcpStackClient stackClient = client.getStackClient();
 
         CreateSessionRequest request = new CreateSessionRequest(
                 client.newRequestHeader(),

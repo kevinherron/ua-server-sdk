@@ -28,7 +28,7 @@ import com.inductiveautomation.opcua.sdk.client.api.UaSession;
 import com.inductiveautomation.opcua.sdk.client.fsm.SessionState;
 import com.inductiveautomation.opcua.sdk.client.fsm.SessionStateContext;
 import com.inductiveautomation.opcua.sdk.client.fsm.SessionStateEvent;
-import com.inductiveautomation.opcua.stack.client.UaTcpClient;
+import com.inductiveautomation.opcua.stack.client.UaTcpStackClient;
 import com.inductiveautomation.opcua.stack.core.UaException;
 import com.inductiveautomation.opcua.stack.core.channel.ClientSecureChannel;
 import com.inductiveautomation.opcua.stack.core.security.SecurityAlgorithm;
@@ -65,7 +65,7 @@ public class ActivatingSession implements SessionState {
 
         try {
             OpcUaClient client = context.getClient();
-            UaTcpClient stackClient = client.getStackClient();
+            UaTcpStackClient stackClient = client.getStackClient();
 
             Object[] oa = client.getConfig().getIdentityTokenProvider().getIdentityToken(stackClient.getEndpoint());
             UserIdentityToken userIdentityToken = (UserIdentityToken) oa[0];

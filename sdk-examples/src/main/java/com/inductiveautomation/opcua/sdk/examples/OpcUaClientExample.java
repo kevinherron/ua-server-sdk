@@ -24,7 +24,7 @@ import com.inductiveautomation.opcua.sdk.client.OpcUaClientConfig;
 import com.inductiveautomation.opcua.sdk.client.subscriptions.OpcUaMonitoredItem;
 import com.inductiveautomation.opcua.sdk.client.subscriptions.OpcUaSubscription;
 import com.inductiveautomation.opcua.sdk.client.subscriptions.SubscriptionManager;
-import com.inductiveautomation.opcua.stack.client.UaTcpClient;
+import com.inductiveautomation.opcua.stack.client.UaTcpStackClient;
 import com.inductiveautomation.opcua.stack.client.UaTcpClientBuilder;
 import com.inductiveautomation.opcua.stack.core.Identifiers;
 import com.inductiveautomation.opcua.stack.core.types.builtin.LocalizedText;
@@ -43,7 +43,7 @@ import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Un
 public class OpcUaClientExample {
 
     public static void main(String[] args) throws Exception {
-        EndpointDescription[] endpoints = UaTcpClient.getEndpoints("opc.tcp://localhost:4096").get();
+        EndpointDescription[] endpoints = UaTcpStackClient.getEndpoints("opc.tcp://localhost:4096").get();
 
         EndpointDescription endpoint = Arrays.stream(endpoints)
                 .filter(e -> e.getSecurityMode() == MessageSecurityMode.None)
@@ -52,7 +52,7 @@ public class OpcUaClientExample {
 
         System.out.println("Connecting to endpoint: " + endpoint.getEndpointUrl() + " [" + endpoint.getSecurityPolicyUri() + "]");
 
-        UaTcpClient stackClient = new UaTcpClientBuilder()
+        UaTcpStackClient stackClient = new UaTcpClientBuilder()
                 .setApplicationName(LocalizedText.english("Stack Example Client"))
                 .setApplicationUri(String.format("urn:example-client:%s", UUID.randomUUID()))
 //                .setCertificate(certificate)

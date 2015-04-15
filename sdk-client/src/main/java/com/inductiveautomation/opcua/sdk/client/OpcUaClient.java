@@ -10,7 +10,7 @@ import com.inductiveautomation.opcua.sdk.client.api.UaClient;
 import com.inductiveautomation.opcua.sdk.client.api.UaSession;
 import com.inductiveautomation.opcua.sdk.client.fsm.SessionStateContext;
 import com.inductiveautomation.opcua.sdk.client.fsm.SessionStateEvent;
-import com.inductiveautomation.opcua.stack.client.UaTcpClient;
+import com.inductiveautomation.opcua.stack.client.UaTcpStackClient;
 import com.inductiveautomation.opcua.stack.core.Stack;
 import com.inductiveautomation.opcua.stack.core.StatusCodes;
 import com.inductiveautomation.opcua.stack.core.UaException;
@@ -96,7 +96,7 @@ public class OpcUaClient implements UaClient {
 
     private final LongSequence requestHandles = new LongSequence(0, UInteger.MAX_VALUE);
 
-    private final UaTcpClient stackClient;
+    private final UaTcpStackClient stackClient;
     private final SessionStateContext stateContext;
 
     private final OpcUaClientConfig config;
@@ -112,7 +112,7 @@ public class OpcUaClient implements UaClient {
         return config;
     }
 
-    public UaTcpClient getStackClient() {
+    public UaTcpStackClient getStackClient() {
         return stackClient;
     }
 

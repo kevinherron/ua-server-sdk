@@ -36,7 +36,7 @@ import com.inductiveautomation.opcua.sdk.core.ServerTable;
 import com.inductiveautomation.opcua.sdk.server.api.OpcUaServerConfig;
 import com.inductiveautomation.opcua.sdk.server.namespaces.OpcUaNamespace;
 import com.inductiveautomation.opcua.sdk.server.subscriptions.Subscription;
-import com.inductiveautomation.opcua.stack.core.application.UaServer;
+import com.inductiveautomation.opcua.stack.core.application.UaStackServer;
 import com.inductiveautomation.opcua.stack.core.application.services.AttributeServiceSet;
 import com.inductiveautomation.opcua.stack.core.application.services.MethodServiceSet;
 import com.inductiveautomation.opcua.stack.core.application.services.MonitoredItemServiceSet;
@@ -75,7 +75,7 @@ public class OpcUaServer {
     private final SessionManager sessionManager = new SessionManager(this);
     private final ServerTable serverTable = new ServerTable();
 
-    private final UaServer server;
+    private final UaStackServer server;
     private final EventBus eventBus;
 
     private final OpcUaNamespace uaNamespace;
@@ -131,7 +131,7 @@ public class OpcUaServer {
         server.shutdown();
     }
 
-    private UaServer buildServer() {
+    private UaStackServer buildServer() {
         UaTcpServerBuilder bootstrap = new UaTcpServerBuilder();
 
         bootstrap.setServerName(config.getServerName());
@@ -237,7 +237,7 @@ public class OpcUaServer {
         server.closeSecureChannel(secureChannel);
     }
 
-    public UaServer getServer() {
+    public UaStackServer getServer() {
         return server;
     }
 

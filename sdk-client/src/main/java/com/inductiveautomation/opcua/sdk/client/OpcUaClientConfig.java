@@ -22,7 +22,7 @@ import java.util.function.Supplier;
 
 import com.inductiveautomation.opcua.sdk.client.api.UaClient;
 import com.inductiveautomation.opcua.sdk.client.api.UaClient.IdentityTokenProvider;
-import com.inductiveautomation.opcua.stack.client.UaTcpClient;
+import com.inductiveautomation.opcua.stack.client.UaTcpStackClient;
 import com.inductiveautomation.opcua.stack.core.Stack;
 import com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.inductiveautomation.opcua.stack.core.types.enumerated.UserTokenType;
@@ -34,7 +34,7 @@ import static com.inductiveautomation.opcua.stack.core.types.builtin.unsigned.Un
 
 public class OpcUaClientConfig {
 
-    private final UaTcpClient stackClient;
+    private final UaTcpStackClient stackClient;
     private final Supplier<String> sessionName;
     private final double sessionTimeout;
     private final UInteger maxResponseMessageSize;
@@ -42,7 +42,7 @@ public class OpcUaClientConfig {
     private final IdentityTokenProvider identityTokenProvider;
     private final ExecutorService executorService;
 
-    public OpcUaClientConfig(UaTcpClient stackClient,
+    public OpcUaClientConfig(UaTcpStackClient stackClient,
                              Supplier<String> sessionName,
                              double sessionTimeout,
                              UInteger maxResponseMessageSize,
@@ -59,7 +59,7 @@ public class OpcUaClientConfig {
         this.executorService = executorService;
     }
 
-    public UaTcpClient getStackClient() {
+    public UaTcpStackClient getStackClient() {
         return stackClient;
     }
 
@@ -93,7 +93,7 @@ public class OpcUaClientConfig {
 
     public static class OpcUaClientConfigBuilder {
 
-        private UaTcpClient stackClient;
+        private UaTcpStackClient stackClient;
         private Supplier<String> sessionName =
                 () -> "UaSession:" + System.currentTimeMillis();
         private double sessionTimeout = 60000;
@@ -114,7 +114,7 @@ public class OpcUaClientConfig {
             };
         };
 
-        public OpcUaClientConfigBuilder setStackClient(UaTcpClient stackClient) {
+        public OpcUaClientConfigBuilder setStackClient(UaTcpStackClient stackClient) {
             this.stackClient = stackClient;
             return this;
         }
