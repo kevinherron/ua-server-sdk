@@ -138,7 +138,9 @@ public class OpcUaClient implements UaClient {
     }
 
     @Override
-    public CompletableFuture<ReadResponse> read(double maxAge, TimestampsToReturn timestampsToReturn, List<ReadValueId> readValueIds) {
+    public CompletableFuture<ReadResponse> read(double maxAge,
+                                                TimestampsToReturn timestampsToReturn,
+                                                List<ReadValueId> readValueIds) {
 
         return getSession().thenCompose(session -> {
             ReadRequest request = new ReadRequest(
@@ -163,7 +165,11 @@ public class OpcUaClient implements UaClient {
     }
 
     @Override
-    public CompletableFuture<HistoryReadResponse> historyRead(HistoryReadDetails historyReadDetails, TimestampsToReturn timestampsToReturn, boolean releaseContinuationPoints, List<HistoryReadValueId> nodesToRead) {
+    public CompletableFuture<HistoryReadResponse> historyRead(HistoryReadDetails historyReadDetails,
+                                                              TimestampsToReturn timestampsToReturn,
+                                                              boolean releaseContinuationPoints,
+                                                              List<HistoryReadValueId> nodesToRead) {
+
         return getSession().thenCompose(session -> {
             HistoryReadRequest request = new HistoryReadRequest(
                     newRequestHeader(session.getAuthToken()),

@@ -63,7 +63,6 @@ public class ActivatingSession implements SessionState {
 
     @Override
     public void activate(SessionStateEvent event, SessionStateContext context) {
-
         try {
             OpcUaClient client = context.getClient();
             UaTcpStackClient stackClient = client.getStackClient();
