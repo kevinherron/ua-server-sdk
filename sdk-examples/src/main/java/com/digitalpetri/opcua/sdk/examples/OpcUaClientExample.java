@@ -102,17 +102,18 @@ public class OpcUaClientExample {
 //            });
 //        }).thenAccept(results -> results.forEach(System.out::println));
 
+        int N_TIMES = 25;
         int N_CONCURRENT = 10000;
         int N_NODES = 100;
 
         List<NodeId> nodeIds = Collections.nCopies(N_NODES, Identifiers.Server_ServerStatus_CurrentTime);
 
-        for (int j = 0; j < 10; j++) {
+        for (int nt = 0; nt < N_TIMES; nt++) {
             long timeA = System.nanoTime();
             CompletableFuture<?>[] futures = new CompletableFuture<?>[N_CONCURRENT];
 
-            for (int i = 0; i < N_CONCURRENT; i++) {
-                futures[i] = client.readValues(0.0d, TimestampsToReturn.Both, nodeIds);
+            for (int nc = 0; nc < N_CONCURRENT; nc++) {
+                futures[nc] = client.readValues(0.0d, TimestampsToReturn.Both, nodeIds);
             }
 
             CompletableFuture.allOf(futures).get();
