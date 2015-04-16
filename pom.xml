@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright 2014 Inductive Automation
+  ~ Copyright 2014 Kevin Herron
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -20,18 +20,18 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.inductiveautomation.opcua</groupId>
+    <groupId>com.digitalpetri.opcua</groupId>
     <artifactId>opc-ua-sdk</artifactId>
     <version>0.3.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>OPC-UA SDK</name>
     <description>High-performance OPC-UA SDK for Java.</description>
-    <url>https://github.com/inductiveautomation/opc-ua-sdk</url>
+    <url>https://github.com/digitalpetri/opc-ua-sdk</url>
 
     <scm>
-        <url>https://github.com/inductiveautomation/opc-ua-sdk</url>
-        <connection>scm:git:git@github.com/inductiveautomation/opc-ua-sdk.git</connection>
+        <url>https://github.com/digitalpetri/opc-ua-sdk</url>
+        <connection>scm:git:git@github.com/digitalpetri/opc-ua-sdk.git</connection>
         <tag>HEAD</tag>
     </scm>
 
