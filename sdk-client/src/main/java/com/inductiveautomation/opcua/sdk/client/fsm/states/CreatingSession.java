@@ -26,6 +26,10 @@ import com.inductiveautomation.opcua.sdk.client.fsm.SessionState;
 import com.inductiveautomation.opcua.sdk.client.fsm.SessionStateContext;
 import com.inductiveautomation.opcua.sdk.client.fsm.SessionStateEvent;
 import com.inductiveautomation.opcua.stack.client.UaTcpStackClient;
+import com.inductiveautomation.opcua.stack.core.UaException;
+import com.inductiveautomation.opcua.stack.core.channel.ClientSecureChannel;
+import com.inductiveautomation.opcua.stack.core.security.SecurityAlgorithm;
+import com.inductiveautomation.opcua.stack.core.security.SecurityPolicy;
 import com.inductiveautomation.opcua.stack.core.types.builtin.ByteString;
 import com.inductiveautomation.opcua.stack.core.types.structured.CreateSessionRequest;
 import com.inductiveautomation.opcua.stack.core.types.structured.CreateSessionResponse;
@@ -49,6 +53,7 @@ public class CreatingSession implements SessionState {
     public void activate(SessionStateEvent event, SessionStateContext context) {
         OpcUaClient client = context.getClient();
         UaTcpStackClient stackClient = client.getStackClient();
+        ClientSecureChannel secureChannel = stackClient.getSecureChannel();
 
         String serverUri = stackClient.getEndpoint().flatMap(e -> {
             String gatewayServerUri = e.getServer().getGatewayServerUri();
@@ -59,14 +64,26 @@ public class CreatingSession implements SessionState {
             }
         }).orElse(null);
 
+
+        SecurityAlgorithm algorithm = secureChannel.getSecurityPolicy()
+                .getAsymmetricEncryptionAlgorithm();
+        ByteString clientNonce = NonceUtil.generateNonce(algorithm);
+
+        ByteString clientCertificate;
+        try {
+            clientCertificate = secureChannel.getLocalCertificateBytes();
+        } catch (UaException e) {
+            clientCertificate = ByteString.NULL_VALUE;
+        }
+
         CreateSessionRequest request = new CreateSessionRequest(
                 client.newRequestHeader(),
                 stackClient.getApplication(),
                 serverUri,
                 stackClient.getEndpointUrl(),
                 client.getConfig().getSessionName().get(),
-                NonceUtil.generateNonce(16),
-                ByteString.NULL_VALUE,
+                clientNonce,
+                clientCertificate,
                 client.getConfig().getSessionTimeout(),
                 client.getConfig().getMaxResponseMessageSize());
 
