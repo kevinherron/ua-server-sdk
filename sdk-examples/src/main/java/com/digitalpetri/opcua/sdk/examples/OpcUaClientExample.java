@@ -29,7 +29,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import com.codahale.metrics.ConsoleReporter;
-import com.codahale.metrics.JmxReporter;
+import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.codahale.metrics.Timer.Context;
@@ -39,15 +39,22 @@ import com.digitalpetri.opcua.stack.client.UaTcpStackClient;
 import com.digitalpetri.opcua.stack.client.UaTcpStackClientConfig;
 import com.digitalpetri.opcua.stack.core.Identifiers;
 import com.digitalpetri.opcua.stack.core.security.SecurityPolicy;
+import com.digitalpetri.opcua.stack.core.serialization.UaResponseMessage;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 import com.digitalpetri.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import com.digitalpetri.opcua.stack.core.types.structured.EndpointDescription;
+import com.digitalpetri.opcua.stack.core.types.structured.ReadRequest;
+import com.digitalpetri.opcua.stack.core.types.structured.ReadValueId;
 import com.google.common.collect.Lists;
+
+import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
 public class OpcUaClientExample {
 
     private static final MetricRegistry METRIC_REGISTRY = new MetricRegistry();
+
     static {
         ConsoleReporter reporter = ConsoleReporter.forRegistry(METRIC_REGISTRY)
                 .convertRatesTo(TimeUnit.SECONDS)
@@ -58,10 +65,11 @@ public class OpcUaClientExample {
     }
 
     private static final int N_TIMES = 1000;
-    private static final int N_CONCURRENT = 1000;
+    private static final int N_REQUESTS = 1000;
     private static final int N_NODES = 100;
 
     private static final Timer REQUEST_TIMER = METRIC_REGISTRY.timer("request-throughput");
+    private static final Meter REQUEST_METER = METRIC_REGISTRY.meter("request-meter");
 
     public static void main(String[] args) throws Exception {
         if (args.length < 2) {
@@ -73,29 +81,45 @@ public class OpcUaClientExample {
         int clientCount = Integer.parseInt(args[1]);
 
         List<OpcUaClient> clients = Lists.newArrayList();
+        List<CompletableFuture<OpcUaClient>> futures = Lists.newArrayList();
 
         for (int i = 0; i < clientCount; i++) {
             clients.add(getOpcUaClient(endpointUrl));
+            futures.add(new CompletableFuture<>());
         }
 
         for (int i = 0; i < clients.size(); i++) {
-            read(clients.get(i), i, 0);
+            readMultiple(clients.get(i), i, 0, futures.get(i));
         }
+
+        CompletableFuture<Void> allFinished =
+                CompletableFuture.allOf(futures.toArray(new CompletableFuture<?>[futures.size()]));
+
+        allFinished.thenRun(() -> {
+            clients.forEach(OpcUaClient::disconnect);
+
+            long count = REQUEST_METER.getCount();
+            double meanRate = REQUEST_METER.getMeanRate();
+            System.out.println("count=" + count + " meanRate=" + meanRate);
+
+            System.exit(0);
+        });
 
         Thread.sleep(999999999);
     }
 
-    private static void read(OpcUaClient client, int clientNumber, int count) {
+    private static void read(OpcUaClient client, int clientNumber, int count, CompletableFuture<OpcUaClient> f) {
         if (count == N_TIMES) {
             System.out.println("Client #" + clientNumber + " finished.");
+            f.complete(client);
             return;
         }
 
         List<NodeId> nodeIds = Collections.nCopies(N_NODES, Identifiers.Server_ServerStatus_CurrentTime);
 
-        CompletableFuture<?>[] futures = new CompletableFuture<?>[N_CONCURRENT];
+        CompletableFuture<?>[] futures = new CompletableFuture<?>[N_REQUESTS];
 
-        for (int nc = 0; nc < N_CONCURRENT; nc++) {
+        for (int nc = 0; nc < N_REQUESTS; nc++) {
             Context context = REQUEST_TIMER.time();
             futures[nc] = client.readValues(0.0d, TimestampsToReturn.Both, nodeIds);
             futures[nc].thenRun(context::stop);
@@ -106,7 +130,57 @@ public class OpcUaClientExample {
                 ex.printStackTrace();
             }
 
-            read(client, clientNumber, count + 1);
+            read(client, clientNumber, count + 1, f);
+        });
+    }
+
+    private static void readMultiple(OpcUaClient client,
+                                     int clientNumber, int count,
+                                     CompletableFuture<OpcUaClient> f) {
+
+        if (count == N_TIMES) {
+            System.out.println("Client #" + clientNumber + " finished.");
+            f.complete(client);
+            return;
+        }
+
+        List<CompletableFuture<? extends UaResponseMessage>> futures =
+                Lists.newArrayListWithCapacity(N_REQUESTS);
+
+        for (int i = 0; i < N_REQUESTS; i++) {
+            futures.add(new CompletableFuture<>());
+        }
+
+        ReadValueId[] nodesToRead = new ReadValueId[N_NODES];
+
+        for (int i = 0; i < N_NODES; i++) {
+            nodesToRead[i] = new ReadValueId(
+                    Identifiers.Server_ServerStatus_CurrentTime,
+                    uint(13), null, QualifiedName.NULL_VALUE);
+        }
+
+        client.getSession().thenAccept(session -> {
+            List<ReadRequest> requests = Lists.newArrayListWithCapacity(N_REQUESTS);
+
+            for (int i = 0; i < N_REQUESTS; i++) {
+                ReadRequest readRequest = new ReadRequest(
+                        client.newRequestHeader(session.getAuthToken()),
+                        0.0, TimestampsToReturn.Both, nodesToRead);
+
+                requests.add(readRequest);
+            }
+
+            client.sendRequests(requests, futures);
+        });
+
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()])).whenCompleteAsync((v, ex) -> {
+            if (ex != null) {
+                ex.printStackTrace();
+            }
+
+            REQUEST_METER.mark(N_REQUESTS);
+
+            readMultiple(client, clientNumber, count + 1, f);
         });
     }
 
