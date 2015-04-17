@@ -16,24 +16,28 @@
 
 package com.digitalpetri.opcua.sdk.client.subscriptions;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import com.digitalpetri.opcua.sdk.client.OpcUaClient;
 import com.digitalpetri.opcua.stack.core.types.builtin.StatusCode;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
+import com.digitalpetri.opcua.stack.core.types.enumerated.MonitoringMode;
 import com.digitalpetri.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import com.digitalpetri.opcua.stack.core.types.structured.ModifyMonitoredItemsResponse;
 import com.digitalpetri.opcua.stack.core.types.structured.MonitoredItemCreateRequest;
 import com.digitalpetri.opcua.stack.core.types.structured.MonitoredItemCreateResult;
 import com.digitalpetri.opcua.stack.core.types.structured.MonitoredItemModifyRequest;
 import com.digitalpetri.opcua.stack.core.types.structured.MonitoredItemModifyResult;
-import com.google.common.collect.Lists;
+import com.digitalpetri.opcua.stack.core.types.structured.SetMonitoringModeResponse;
 import com.google.common.collect.Maps;
 
 import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
+import static com.google.common.collect.Lists.newArrayList;
 
 public class OpcUaSubscription {
 
@@ -75,7 +79,7 @@ public class OpcUaSubscription {
                 timestampsToReturn,
                 itemsToCreate).thenApply(response -> {
 
-            List<OpcUaMonitoredItem> createdItems = Lists.newArrayList();
+            List<OpcUaMonitoredItem> createdItems = newArrayList();
 
             MonitoredItemCreateResult[] results = response.getResults();
 
@@ -90,7 +94,8 @@ public class OpcUaSubscription {
                         result.getStatusCode(),
                         result.getRevisedSamplingInterval(),
                         result.getRevisedQueueSize(),
-                        result.getFilterResult());
+                        result.getFilterResult(),
+                        request.getMonitoringMode());
 
                 if (item.getStatusCode().isGood()) {
                     itemsByClientHandle.put(item.getClientHandle(), item);
@@ -112,7 +117,7 @@ public class OpcUaSubscription {
                 client.modifyMonitoredItems(subscriptionId, timestampsToReturn, itemsToModify);
 
         return future.thenApply(response -> {
-            List<StatusCode> statusCodes = Lists.newArrayList();
+            List<StatusCode> statusCodes = newArrayList();
 
             MonitoredItemModifyResult[] results = response.getResults();
 
@@ -135,6 +140,59 @@ public class OpcUaSubscription {
 
             return statusCodes;
         });
+    }
+
+    public CompletableFuture<List<StatusCode>> deleteMonitoredItems(OpcUaClient client,
+                                                                    List<OpcUaMonitoredItem> itemsToDelete) {
+
+        List<UInteger> monitoredItemIds = itemsToDelete.stream()
+                .map(OpcUaMonitoredItem::getMonitoredItemId)
+                .collect(Collectors.toList());
+
+        return client.deleteMonitoredItems(subscriptionId, monitoredItemIds).thenApply(response -> {
+            StatusCode[] results = response.getResults();
+
+            return Arrays.asList(results);
+        });
+    }
+
+    public CompletableFuture<List<StatusCode>> setMonitoringMode(OpcUaClient client,
+                                                                 MonitoringMode monitoringMode,
+                                                                 List<OpcUaMonitoredItem> items) {
+
+        List<UInteger> monitoredItemIds = items.stream()
+                .map(OpcUaMonitoredItem::getMonitoredItemId)
+                .collect(Collectors.toList());
+
+        CompletableFuture<SetMonitoringModeResponse> future =
+                client.setMonitoringMode(subscriptionId, monitoringMode, monitoredItemIds);
+
+        return future.thenApply(response -> {
+            StatusCode[] results = response.getResults();
+
+            for (int i = 0; i < items.size(); i++) {
+                OpcUaMonitoredItem item = items.get(i);
+                StatusCode result = results[i];
+                if (result.isGood()) {
+                    item.setMonitoringMode(monitoringMode);
+                }
+            }
+
+            return Arrays.asList(results);
+        });
+    }
+
+    public CompletableFuture<StatusCode> setPublishingMode(OpcUaClient client, boolean publishingEnabled) {
+        return client.setPublishingMode(publishingEnabled, newArrayList(subscriptionId))
+                .thenApply(response -> {
+                    StatusCode statusCode = response.getResults()[0];
+
+                    if (statusCode.isGood()) {
+                        this.publishingEnabled = publishingEnabled;
+                    }
+
+                    return statusCode;
+                });
     }
 
     public UInteger getSubscriptionId() {

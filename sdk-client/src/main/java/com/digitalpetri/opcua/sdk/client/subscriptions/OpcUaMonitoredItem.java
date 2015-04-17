@@ -23,6 +23,7 @@ import com.digitalpetri.opcua.stack.core.types.builtin.ExtensionObject;
 import com.digitalpetri.opcua.stack.core.types.builtin.StatusCode;
 import com.digitalpetri.opcua.stack.core.types.builtin.Variant;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
+import com.digitalpetri.opcua.stack.core.types.enumerated.MonitoringMode;
 import com.digitalpetri.opcua.stack.core.types.structured.ReadValueId;
 
 import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
@@ -36,6 +37,7 @@ public class OpcUaMonitoredItem {
     private volatile double revisedSamplingInterval = 0.0;
     private volatile UInteger revisedQueueSize = uint(0);
     private volatile ExtensionObject filterResult;
+    private volatile MonitoringMode monitoringMode = MonitoringMode.Disabled;
 
     private final UInteger clientHandle;
     private final ReadValueId readValueId;
@@ -47,7 +49,8 @@ public class OpcUaMonitoredItem {
                               StatusCode statusCode,
                               double revisedSamplingInterval,
                               UInteger revisedQueueSize,
-                              ExtensionObject filterResult) {
+                              ExtensionObject filterResult,
+                              MonitoringMode monitoringMode) {
 
         this.clientHandle = clientHandle;
         this.readValueId = readValueId;
@@ -56,6 +59,7 @@ public class OpcUaMonitoredItem {
         this.revisedSamplingInterval = revisedSamplingInterval;
         this.revisedQueueSize = revisedQueueSize;
         this.filterResult = filterResult;
+        this.monitoringMode = monitoringMode;
     }
 
     public UInteger getClientHandle() {
@@ -86,6 +90,10 @@ public class OpcUaMonitoredItem {
         return filterResult;
     }
 
+    public MonitoringMode getMonitoringMode() {
+        return monitoringMode;
+    }
+
     public void setValueConsumer(Consumer<DataValue> valueConsumer) {
         this.valueConsumer = valueConsumer;
     }
@@ -108,6 +116,10 @@ public class OpcUaMonitoredItem {
 
     void setRevisedQueueSize(UInteger revisedQueueSize) {
         this.revisedQueueSize = revisedQueueSize;
+    }
+
+    void setMonitoringMode(MonitoringMode monitoringMode) {
+        this.monitoringMode = monitoringMode;
     }
 
     void onValueArrived(DataValue value) {

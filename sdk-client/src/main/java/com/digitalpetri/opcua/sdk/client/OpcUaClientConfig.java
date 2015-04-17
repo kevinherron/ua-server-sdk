@@ -96,7 +96,7 @@ public class OpcUaClientConfig {
         private UaTcpStackClient stackClient;
         private Supplier<String> sessionName =
                 () -> "UaSession:" + System.currentTimeMillis();
-        private double sessionTimeout = 60000;
+        private double sessionTimeout = 120000;
         private UInteger maxResponseMessageSize = uint(0);
         private double requestTimeout = 60000;
         private ExecutorService executorService = Stack.sharedExecutor();
