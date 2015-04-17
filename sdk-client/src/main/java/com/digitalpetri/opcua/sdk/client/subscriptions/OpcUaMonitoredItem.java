@@ -17,19 +17,12 @@
 package com.digitalpetri.opcua.sdk.client.subscriptions;
 
 import java.util.function.Consumer;
-import java.util.function.Function;
 
-import com.digitalpetri.opcua.sdk.client.subscriptions.OpcUaSubscription.ModifyItemsContext;
-import com.digitalpetri.opcua.stack.core.StatusCodes;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.ExtensionObject;
 import com.digitalpetri.opcua.stack.core.types.builtin.StatusCode;
 import com.digitalpetri.opcua.stack.core.types.builtin.Variant;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
-import com.digitalpetri.opcua.stack.core.types.enumerated.MonitoringMode;
-import com.digitalpetri.opcua.stack.core.types.enumerated.TimestampsToReturn;
-import com.digitalpetri.opcua.stack.core.types.structured.MonitoringFilterResult;
-import com.digitalpetri.opcua.stack.core.types.structured.MonitoringParameters;
 import com.digitalpetri.opcua.stack.core.types.structured.ReadValueId;
 
 import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
@@ -38,55 +31,59 @@ public class OpcUaMonitoredItem {
 
     private volatile Consumer<DataValue> valueConsumer;
     private volatile Consumer<Variant[]> eventConsumer;
-    private volatile UInteger revisedQueueSize = uint(0);
+
+    private volatile StatusCode statusCode;
     private volatile double revisedSamplingInterval = 0.0;
-    private volatile MonitoringFilterResult filterResult = null;
-    private volatile TimestampsToReturn timestampsToReturn = TimestampsToReturn.Both;
-
-    private volatile StatusCode statusCode =
-            new StatusCode(StatusCodes.Bad_MonitoredItemIdInvalid);
-
-    private volatile MonitoringMode monitoringMode = MonitoringMode.Disabled;
-
-    private volatile UInteger subscriptionId = uint(0);
-    private volatile UInteger monitoredItemId = uint(0);
+    private volatile UInteger revisedQueueSize = uint(0);
+    private volatile ExtensionObject filterResult;
 
     private final UInteger clientHandle;
     private final ReadValueId readValueId;
+    private final UInteger monitoredItemId;
 
-    public OpcUaMonitoredItem(UInteger clientHandle, ReadValueId readValueId) {
+    public OpcUaMonitoredItem(UInteger clientHandle,
+                              ReadValueId readValueId,
+                              UInteger monitoredItemId,
+                              StatusCode statusCode,
+                              double revisedSamplingInterval,
+                              UInteger revisedQueueSize,
+                              ExtensionObject filterResult) {
+
         this.clientHandle = clientHandle;
         this.readValueId = readValueId;
-    }
-
-    public UInteger getSubscriptionId() {
-        return subscriptionId;
+        this.monitoredItemId = monitoredItemId;
+        this.statusCode = statusCode;
+        this.revisedSamplingInterval = revisedSamplingInterval;
+        this.revisedQueueSize = revisedQueueSize;
+        this.filterResult = filterResult;
     }
 
     public UInteger getClientHandle() {
         return clientHandle;
     }
 
-    public UInteger getMonitoredItemId() {
-        return monitoredItemId;
-    }
-
     public ReadValueId getReadValueId() {
         return readValueId;
     }
 
-    public MonitoringMode getMonitoringMode() {
-        return monitoringMode;
+    public UInteger getMonitoredItemId() {
+        return monitoredItemId;
     }
 
-    public TimestampsToReturn getTimestampsToReturn() {
-        return timestampsToReturn;
+    public StatusCode getStatusCode() {
+        return statusCode;
     }
 
-    public void modify(ModifyItemsContext context, Function<OpcUaMonitoredItem, MonitoringParameters> modifier) {
-        MonitoringParameters parameters = modifier.apply(this);
+    public double getRevisedSamplingInterval() {
+        return revisedSamplingInterval;
+    }
 
-        context.addItem(this, parameters);
+    public UInteger getRevisedQueueSize() {
+        return revisedQueueSize;
+    }
+
+    public ExtensionObject getFilterResult() {
+        return filterResult;
     }
 
     public void setValueConsumer(Consumer<DataValue> valueConsumer) {
@@ -101,22 +98,8 @@ public class OpcUaMonitoredItem {
         this.statusCode = statusCode;
     }
 
-    void setSubscriptionId(UInteger subscriptionId) {
-        this.subscriptionId = subscriptionId;
-    }
-
-    void setMonitoredItemId(UInteger monitoredItemId) {
-        this.monitoredItemId = monitoredItemId;
-    }
-
-    void setMonitoringMode(MonitoringMode monitoringMode) {
-        this.monitoringMode = monitoringMode;
-    }
-
     void setFilterResult(ExtensionObject filterResult) {
-        if (filterResult != null && filterResult.getObject() instanceof MonitoringFilterResult) {
-            this.filterResult = (MonitoringFilterResult) filterResult.getObject();
-        }
+        this.filterResult = filterResult;
     }
 
     void setRevisedSamplingInterval(double revisedSamplingInterval) {
@@ -125,10 +108,6 @@ public class OpcUaMonitoredItem {
 
     void setRevisedQueueSize(UInteger revisedQueueSize) {
         this.revisedQueueSize = revisedQueueSize;
-    }
-
-    void setTimestampsToReturn(TimestampsToReturn timestampsToReturn) {
-        this.timestampsToReturn = timestampsToReturn;
     }
 
     void onValueArrived(DataValue value) {
