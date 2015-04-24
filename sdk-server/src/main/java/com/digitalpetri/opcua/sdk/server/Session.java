@@ -79,15 +79,18 @@ public class Session implements SessionServiceSet {
 
     private final OpcUaServer server;
     private final NodeId sessionId;
+    private final String sessionName;
     private final Duration sessionTimeout;
 
     public Session(OpcUaServer server,
                    NodeId sessionId,
+                   String sessionName,
                    Duration sessionTimeout,
                    long secureChannelId) {
 
         this.server = server;
         this.sessionId = sessionId;
+        this.sessionName = sessionName;
         this.sessionTimeout = sessionTimeout;
         this.secureChannelId = secureChannelId;
 
@@ -151,7 +154,7 @@ public class Session implements SessionServiceSet {
         long elapsed = Math.abs(System.nanoTime() - lastActivity);
 
         if (elapsed > sessionTimeout.toNanos()) {
-            logger.debug("Session id={} timed out.", sessionId);
+            logger.debug("Session id={} lifetime expired ({}ms).", sessionId, sessionTimeout.toMillis());
 
             subscriptionManager.sessionClosed(true);
 
@@ -168,6 +171,10 @@ public class Session implements SessionServiceSet {
 
     public NodeId getSessionId() {
         return sessionId;
+    }
+
+    public String getSessionName() {
+        return sessionName;
     }
 
     public AttributeServices getAttributeServices() {

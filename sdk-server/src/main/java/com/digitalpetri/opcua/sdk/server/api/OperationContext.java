@@ -16,12 +16,46 @@
 
 package com.digitalpetri.opcua.sdk.server.api;
 
-import com.digitalpetri.opcua.sdk.server.Session;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import javax.annotation.Nullable;
+
+import com.digitalpetri.opcua.sdk.server.DiagnosticsContext;
 import com.digitalpetri.opcua.sdk.server.OpcUaServer;
+import com.digitalpetri.opcua.sdk.server.Session;
 
-public interface OperationContext {
+public class OperationContext<T, U> {
 
-    OpcUaServer getServer();
-    Session getSession();
+    private final CompletableFuture<List<U>> future = new CompletableFuture<>();
+
+    private final OpcUaServer server;
+    private final Session session;
+    private final DiagnosticsContext<T> diagnostics;
+
+    public OperationContext(OpcUaServer server,
+                            @Nullable Session session,
+                            DiagnosticsContext<T> diagnosticsContext) {
+
+        this.server = server;
+        this.session = session;
+        this.diagnostics = diagnosticsContext;
+    }
+
+    public CompletableFuture<List<U>> getFuture() {
+        return future;
+    }
+
+    public DiagnosticsContext<T> getDiagnostics() {
+        return diagnostics;
+    }
+
+    public OpcUaServer getServer() {
+        return server;
+    }
+
+    public Optional<Session> getSession() {
+        return Optional.ofNullable(session);
+    }
 
 }

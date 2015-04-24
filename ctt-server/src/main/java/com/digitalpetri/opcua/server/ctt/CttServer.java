@@ -52,8 +52,7 @@ public class CttServer {
 
         server.getNamespaceManager().registerAndAdd(
                 CttNamespace.NAMESPACE_URI,
-                namespaceIndex -> new CttNamespace(server, namespaceIndex)
-        );
+                namespaceIndex -> new CttNamespace(server, namespaceIndex));
     }
 
     public void startup() throws UaException {

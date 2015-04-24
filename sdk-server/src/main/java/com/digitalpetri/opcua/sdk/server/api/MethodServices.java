@@ -33,10 +33,10 @@ import org.slf4j.LoggerFactory;
 
 import static com.digitalpetri.opcua.sdk.server.util.FutureUtils.sequence;
 
-public interface MethodManager {
+public interface MethodServices {
 
     /**
-     * Invoke one or more methods belonging to this {@link MethodManager}.
+     * Invoke one or more methods belonging to this {@link MethodServices}.
      *
      * @param requests The {@link CallMethodRequest}s for the methods to invoke.
      * @param future   The future to complete with the {@link CallMethodResult}s.

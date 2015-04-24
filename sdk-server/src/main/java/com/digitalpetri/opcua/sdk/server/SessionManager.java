@@ -29,12 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import com.digitalpetri.opcua.sdk.server.services.ServiceAttributes;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.math.DoubleMath;
-import com.google.common.primitives.Bytes;
 import com.digitalpetri.opcua.sdk.server.identity.IdentityValidator;
+import com.digitalpetri.opcua.sdk.server.services.ServiceAttributes;
 import com.digitalpetri.opcua.stack.core.StatusCodes;
 import com.digitalpetri.opcua.stack.core.UaException;
 import com.digitalpetri.opcua.stack.core.UaRuntimeException;
@@ -130,6 +126,10 @@ import com.digitalpetri.opcua.stack.core.types.structured.X509IdentityToken;
 import com.digitalpetri.opcua.stack.core.util.CertificateUtil;
 import com.digitalpetri.opcua.stack.core.util.NonceUtil;
 import com.digitalpetri.opcua.stack.core.util.SignatureUtil;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.math.DoubleMath;
+import com.google.common.primitives.Bytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -144,6 +144,8 @@ public class SessionManager implements
         SessionServiceSet,
         SubscriptionServiceSet,
         ViewServiceSet {
+
+    private static final int MAX_SESSION_TIMEOUT_MS = 120000;
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -192,8 +194,8 @@ public class SessionManager implements
 
         session.updateLastActivity();
 
-        service.attr(ServiceAttributes.ServerKey).set(server);
-        service.attr(ServiceAttributes.SessionKey).set(session);
+        service.attr(ServiceAttributes.SERVER_KEY).set(server);
+        service.attr(ServiceAttributes.SESSION_KEY).set(session);
 
         return session;
     }
@@ -212,7 +214,7 @@ public class SessionManager implements
         ByteString serverNonce = NonceUtil.generateNonce(32);
         NodeId authenticationToken = new NodeId(0, NonceUtil.generateNonce(32));
         long maxRequestMessageSize = serviceRequest.getServer().getChannelConfig().getMaxMessageSize();
-        double revisedSessionTimeout = Math.max(5000, Math.min(30000, request.getRequestedSessionTimeout()));
+        double revisedSessionTimeout = Math.max(5000, Math.min(MAX_SESSION_TIMEOUT_MS, request.getRequestedSessionTimeout()));
 
         ServerSecureChannel secureChannel = serviceRequest.getSecureChannel();
 
@@ -227,10 +229,12 @@ public class SessionManager implements
 
         ByteString clientCertificate = request.getClientCertificate();
         if (clientCertificate.isNotNull()) {
-            String applicationUri = request.getClientDescription().getApplicationUri();
-            X509Certificate certificate = CertificateUtil.decodeCertificate(clientCertificate.bytes());
+            if (secureChannel.getSecurityPolicy() != SecurityPolicy.None) {
+                String applicationUri = request.getClientDescription().getApplicationUri();
+                X509Certificate certificate = CertificateUtil.decodeCertificate(clientCertificate.bytes());
 
-            validateApplicationUri(applicationUri, certificate);
+                validateApplicationUri(applicationUri, certificate);
+            }
         }
 
         SecurityPolicy securityPolicy = secureChannel.getSecurityPolicy();
@@ -242,8 +246,10 @@ public class SessionManager implements
         );
 
         NodeId sessionId = new NodeId(1, "Session:" + UUID.randomUUID());
+        String sessionName = request.getSessionName();
+        String endpointUrl = request.getEndpointUrl();
         Duration sessionTimeout = Duration.ofMillis(DoubleMath.roundToLong(revisedSessionTimeout, RoundingMode.UP));
-        Session session = new Session(server, sessionId, sessionTimeout, secureChannel.getChannelId());
+        Session session = new Session(server, sessionId, sessionName, sessionTimeout, secureChannel.getChannelId());
         createdSessions.put(authenticationToken, session);
 
         session.addLifecycleListener((s, remove) -> {
@@ -299,9 +305,7 @@ public class SessionManager implements
                 }
             }
 
-            String message = String.format("Certificate URI not found. applicationUri=%s", applicationUri);
-
-            logger.warn(message);
+            String message = "Certificate does not contain a SubjectAlternativeName URI entry.";
 
             throw new UaException(StatusCodes.Bad_CertificateUriInvalid, message);
         } catch (CertificateParsingException e) {

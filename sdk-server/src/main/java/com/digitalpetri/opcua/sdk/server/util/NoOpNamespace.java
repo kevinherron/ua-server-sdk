@@ -18,18 +18,19 @@ package com.digitalpetri.opcua.sdk.server.util;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import com.digitalpetri.opcua.sdk.core.Reference;
 import com.digitalpetri.opcua.sdk.server.api.DataItem;
-import com.digitalpetri.opcua.sdk.server.api.Namespace;
 import com.digitalpetri.opcua.sdk.server.api.EventItem;
 import com.digitalpetri.opcua.sdk.server.api.MonitoredItem;
+import com.digitalpetri.opcua.sdk.server.api.Namespace;
 import com.digitalpetri.opcua.stack.core.StatusCodes;
+import com.digitalpetri.opcua.stack.core.UaException;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.StatusCode;
+import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UShort;
 import com.digitalpetri.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import com.digitalpetri.opcua.stack.core.types.structured.ReadValueId;
@@ -50,43 +51,46 @@ public class NoOpNamespace implements Namespace {
     }
 
     @Override
-    public boolean containsNodeId(NodeId nodeId) {
-        return false;
+    public CompletableFuture<List<Reference>> getReferences(NodeId nodeId) {
+        CompletableFuture<List<Reference>> f = new CompletableFuture<>();
+        f.completeExceptionally(new UaException(StatusCodes.Bad_NodeIdUnknown));
+        return f;
     }
 
     @Override
-    public Optional<List<Reference>> getReferences(NodeId nodeId) {
-        return Optional.empty();
-    }
-
-    @Override
-    public <T> T getAttribute(NodeId nodeId, int attributeId) {
-        return null;
-    }
-
-    @Override
-    public boolean attributeExists(NodeId nodeId, int attributeId) {
-        return false;
-    }
-
-    @Override
-    public void read(List<ReadValueId> readValueIds,
-                     Double maxAge,
+    public void read(Double maxAge,
                      TimestampsToReturn timestamps,
-                     CompletableFuture<List<DataValue>> future) {
+                     List<ReadValueId> readValueIds,
+                     ReadContext context) {
 
         List<DataValue> values = Collections.nCopies(
                 readValueIds.size(), new DataValue(StatusCodes.Bad_NodeIdUnknown));
 
-        future.complete(values);
+        context.getFuture().complete(values);
     }
 
     @Override
-    public void write(List<WriteValue> writeValues, CompletableFuture<List<StatusCode>> future) {
+    public void write(List<WriteValue> writeValues, WriteContext context) {
         List<StatusCode> results = Collections.nCopies(
                 writeValues.size(), new StatusCode(StatusCodes.Bad_NodeIdUnknown));
 
-        future.complete(results);
+        context.getFuture().complete(results);
+    }
+
+    @Override
+    public void onCreateMonitoredItem(NodeId nodeId,
+                                      UInteger attributeId,
+                                      double requestedSamplingInterval,
+                                      CompletableFuture<Double> revisedSamplingInterval) {
+
+        revisedSamplingInterval.completeExceptionally(new UaException(StatusCodes.Bad_NodeIdUnknown));
+    }
+
+    @Override
+    public void onModifyMonitoredItem(double requestedSamplingInterval,
+                                      CompletableFuture<Double> revisedSamplingInterval) {
+        
+        revisedSamplingInterval.completeExceptionally(new UaException(StatusCodes.Bad_NodeIdUnknown));
     }
 
     @Override

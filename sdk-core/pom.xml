@@ -34,6 +34,11 @@
             <artifactId>stack-core</artifactId>
             <version>${opc-ua-stack.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.codepoetics</groupId>
+            <artifactId>protonpack</artifactId>
+            <version>1.4</version>
+        </dependency>
     </dependencies>
 
 </project>

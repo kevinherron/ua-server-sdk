@@ -16,17 +16,14 @@
 
 package com.digitalpetri.opcua.sdk.server;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
+import com.digitalpetri.opcua.sdk.core.NamespaceTable;
 import com.digitalpetri.opcua.sdk.server.api.Namespace;
 import com.digitalpetri.opcua.sdk.server.util.NoOpNamespace;
-import com.google.common.collect.Maps;
-import com.digitalpetri.opcua.sdk.core.NamespaceTable;
-import com.digitalpetri.opcua.sdk.core.Reference;
 import com.digitalpetri.opcua.stack.core.StatusCodes;
 import com.digitalpetri.opcua.stack.core.UaRuntimeException;
 import com.digitalpetri.opcua.stack.core.types.builtin.ByteString;
@@ -35,6 +32,7 @@ import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UShort;
 import com.digitalpetri.opcua.stack.core.types.enumerated.IdType;
+import com.google.common.collect.Maps;
 
 import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.ushort;
 
@@ -102,53 +100,53 @@ public class NamespaceManager {
         return namespace != null ? namespace : NO_OP_NAMESPACE;
     }
 
-    public boolean containsNodeId(NodeId nodeId) {
-        Namespace namespace = namespaces.get(nodeId.getNamespaceIndex());
-
-        return namespace != null && namespace.containsNodeId(nodeId);
-    }
-
-    public boolean containsNodeId(ExpandedNodeId expandedNodeId) {
-        return toNodeId(expandedNodeId).map(this::containsNodeId).orElse(false);
-    }
-
-    public <T> Optional<T> getAttribute(NodeId nodeId, int attributeId) {
-        Namespace namespace = namespaces.get(nodeId.getNamespaceIndex());
-
-        if (namespace == null) namespace = NO_OP_NAMESPACE;
-
-        return Optional.ofNullable(namespace.getAttribute(nodeId, attributeId));
-    }
-
-    public <T> Optional<T> getAttribute(ExpandedNodeId nodeId, int attributeId) {
-        return nodeId.local().flatMap(id -> getAttribute(id, attributeId));
-    }
-
-    public boolean attributeExists(NodeId nodeId, int attribute) {
-        Namespace namespace = namespaces.get(nodeId.getNamespaceIndex());
-
-        if (namespace == null) namespace = NO_OP_NAMESPACE;
-
-        return namespace.attributeExists(nodeId, attribute);
-    }
-
-    public boolean attributeExists(NodeId nodeId, UInteger attributeId) {
-        return attributeExists(nodeId, attributeId.intValue());
-    }
-
-    public Optional<List<Reference>> getReferences(NodeId nodeId) {
-        Namespace namespace = namespaces.get(nodeId.getNamespaceIndex());
-
-        if (namespace == null) {
-            return Optional.empty();
-        } else {
-            return namespace.getReferences(nodeId);
-        }
-    }
-
-    public Optional<List<Reference>> getReferences(ExpandedNodeId nodeId) {
-        return nodeId.local().flatMap(this::getReferences);
-    }
+//    public boolean containsNodeId(NodeId nodeId) {
+//        Namespace namespace = namespaces.get(nodeId.getNamespaceIndex());
+//
+//        return namespace != null && namespace.containsNodeId(nodeId);
+//    }
+//
+//    public boolean containsNodeId(ExpandedNodeId expandedNodeId) {
+//        return toNodeId(expandedNodeId).map(this::containsNodeId).orElse(false);
+//    }
+//
+//    public <T> Optional<T> getAttribute(NodeId nodeId, int attributeId) {
+//        Namespace namespace = namespaces.get(nodeId.getNamespaceIndex());
+//
+//        if (namespace == null) namespace = NO_OP_NAMESPACE;
+//
+//        return Optional.ofNullable(namespace.getAttribute(nodeId, attributeId));
+//    }
+//
+//    public <T> Optional<T> getAttribute(ExpandedNodeId nodeId, int attributeId) {
+//        return nodeId.local().flatMap(id -> getAttribute(id, attributeId));
+//    }
+//
+//    public boolean attributeExists(NodeId nodeId, int attribute) {
+//        Namespace namespace = namespaces.get(nodeId.getNamespaceIndex());
+//
+//        if (namespace == null) namespace = NO_OP_NAMESPACE;
+//
+//        return namespace.attributeExists(nodeId, attribute);
+//    }
+//
+//    public boolean attributeExists(NodeId nodeId, UInteger attributeId) {
+//        return attributeExists(nodeId, attributeId.intValue());
+//    }
+//
+//    public Optional<List<Reference>> getReferences(NodeId nodeId) {
+//        Namespace namespace = namespaces.get(nodeId.getNamespaceIndex());
+//
+//        if (namespace == null) {
+//            return Optional.empty();
+//        } else {
+//            return namespace.getReferences(nodeId);
+//        }
+//    }
+//
+//    public Optional<List<Reference>> getReferences(ExpandedNodeId nodeId) {
+//        return nodeId.local().flatMap(this::getReferences);
+//    }
 
     public NamespaceTable getNamespaceTable() {
         return namespaceTable;

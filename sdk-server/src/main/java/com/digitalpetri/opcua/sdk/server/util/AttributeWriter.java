@@ -16,17 +16,13 @@
 
 package com.digitalpetri.opcua.sdk.server.util;
 
-import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Optional;
+import javax.annotation.Nullable;
 
 import com.digitalpetri.opcua.sdk.core.AccessLevel;
 import com.digitalpetri.opcua.sdk.core.AttributeIds;
-import com.digitalpetri.opcua.sdk.core.DataType;
 import com.digitalpetri.opcua.sdk.core.NumericRange;
-import com.digitalpetri.opcua.sdk.core.Reference;
 import com.digitalpetri.opcua.sdk.core.ValueRank;
 import com.digitalpetri.opcua.sdk.core.WriteMask;
 import com.digitalpetri.opcua.sdk.core.nodes.DataTypeNode;
@@ -38,7 +34,6 @@ import com.digitalpetri.opcua.sdk.core.nodes.ReferenceTypeNode;
 import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
 import com.digitalpetri.opcua.sdk.core.nodes.VariableTypeNode;
 import com.digitalpetri.opcua.sdk.server.NamespaceManager;
-import com.digitalpetri.opcua.stack.core.Identifiers;
 import com.digitalpetri.opcua.stack.core.StatusCodes;
 import com.digitalpetri.opcua.stack.core.UaException;
 import com.digitalpetri.opcua.stack.core.types.builtin.ByteString;
@@ -49,6 +44,7 @@ import com.digitalpetri.opcua.stack.core.types.builtin.Variant;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.digitalpetri.opcua.stack.core.util.ArrayUtil;
+import com.digitalpetri.opcua.stack.core.util.TypeUtil;
 
 import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
@@ -69,8 +65,7 @@ public class AttributeWriter {
             Object valueAtRange = NumericRange.writeToValueAtRange(
                     currentVariant,
                     updateVariant,
-                    range
-            );
+                    range);
 
             updateVariant = new Variant(valueAtRange);
         }
@@ -82,8 +77,7 @@ public class AttributeWriter {
                 updateVariant,
                 value.getStatusCode(),
                 (sourceTime == null || sourceTime.isNull()) ? DateTime.now() : sourceTime,
-                (serverTime == null || serverTime.isNull()) ? DateTime.now() : serverTime
-        );
+                (serverTime == null || serverTime.isNull()) ? DateTime.now() : serverTime);
 
         writeNode(ns, node, attribute, value);
     }
@@ -213,7 +207,7 @@ public class AttributeWriter {
 
         switch (attribute) {
             case AttributeIds.Executable:
-                if (writeMasks.contains(WriteMask.Executable))  {
+                if (writeMasks.contains(WriteMask.Executable)) {
                     node.setExecutable(extract(value));
                 } else {
                     throw new UaException(StatusCodes.Bad_NotWritable);
@@ -221,7 +215,7 @@ public class AttributeWriter {
                 break;
 
             case AttributeIds.UserExecutable:
-                if (writeMasks.contains(WriteMask.UserExecutable))  {
+                if (writeMasks.contains(WriteMask.UserExecutable)) {
                     node.setUserExecutable(extract(value));
                 } else {
                     throw new UaException(StatusCodes.Bad_NotWritable);
@@ -447,32 +441,33 @@ public class AttributeWriter {
         if (variant == null) return value;
 
         Object o = variant.getValue();
-        if (o == null) return value;
+        if (o == null) throw new UaException(StatusCodes.Bad_TypeMismatch);
 
-        if (!DataType.isBuiltin(dataType)) {
-            dataType = findBuiltinSuperType(ns, dataType);
-        }
+        Class<?> expected = TypeUtil.getBackingClass(dataType);
 
-        Class<?> expected = DataType.getBackingClass(dataType);
-        Class<?> actual = o.getClass().isArray() ? o.getClass().getComponentType() : o.getClass();
+        Class<?> actual = o.getClass().isArray() ?
+                o.getClass().getComponentType() : o.getClass();
 
-        if (!expected.isAssignableFrom(actual)) {
-            /*
-             * Writing a ByteString to a Byte[] is explicitly allowed by the spec.
-             */
-            boolean byteStringToByteArray = (o instanceof ByteString && expected == UByte.class);
+        if (expected == null) {
+            throw new UaException(StatusCodes.Bad_TypeMismatch);
+        } else {
+            if (!expected.isAssignableFrom(actual)) {
+                /*
+                 * Writing a ByteString to a UByte[] is explicitly allowed by the spec.
+                 */
+                boolean byteStringToByteArray = (o instanceof ByteString && expected == UByte.class);
 
-            if (byteStringToByteArray) {
-                ByteString byteString = (ByteString) o;
+                if (byteStringToByteArray) {
+                    ByteString byteString = (ByteString) o;
 
-                return new DataValue(
-                        new Variant(byteString.uBytes()),
-                        value.getStatusCode(),
-                        value.getSourceTime(),
-                        value.getServerTime()
-                );
-            } else {
-                throw new UaException(StatusCodes.Bad_TypeMismatch);
+                    return new DataValue(
+                            new Variant(byteString.uBytes()),
+                            value.getStatusCode(),
+                            value.getSourceTime(),
+                            value.getServerTime());
+                } else {
+                    throw new UaException(StatusCodes.Bad_TypeMismatch);
+                }
             }
         }
 
@@ -547,30 +542,6 @@ public class AttributeWriter {
                 }
                 break;
         }
-    }
-
-    private static ExpandedNodeId findBuiltinSuperType(NamespaceManager ns, ExpandedNodeId dataType) throws UaException {
-        if (!ns.containsNodeId(dataType)) {
-            throw new UaException(StatusCodes.Bad_TypeMismatch);
-        }
-
-        List<Reference> references = ns
-                .getReferences(dataType)
-                .orElse(Collections.emptyList());
-
-        for (Reference reference : references) {
-            if (reference.isInverse() && reference.getReferenceTypeId().equals(Identifiers.HasSubtype)) {
-                ExpandedNodeId targetNodeId = reference.getTargetNodeId();
-
-                if (DataType.isBuiltin(targetNodeId)) {
-                    return targetNodeId;
-                } else {
-                    return findBuiltinSuperType(ns, targetNodeId);
-                }
-            }
-        }
-
-        throw new UaException(StatusCodes.Bad_TypeMismatch);
     }
 
 }

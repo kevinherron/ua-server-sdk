@@ -273,6 +273,8 @@ public abstract class UaNode implements Node {
 
     public <T> void setProperty(Property<T> property, T value) {
         VariableNode node = getPropertyNode(property.getBrowseName()).orElseGet(() -> {
+            QualifiedName browseName = property.getBrowseName();
+
             NodeId propertyNodeId = new NodeId(
                     getNodeId().getNamespaceIndex(),
                     String.format("%s.%s", getNodeId().getIdentifier().toString(), browseName.getName())

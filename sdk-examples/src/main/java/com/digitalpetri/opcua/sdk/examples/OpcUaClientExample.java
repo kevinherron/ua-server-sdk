@@ -23,30 +23,39 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
+import com.codahale.metrics.Clock;
 import com.codahale.metrics.ConsoleReporter;
-import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.SlidingWindowReservoir;
 import com.codahale.metrics.Timer;
 import com.codahale.metrics.Timer.Context;
 import com.digitalpetri.opcua.sdk.client.OpcUaClient;
 import com.digitalpetri.opcua.sdk.client.OpcUaClientConfig;
+import com.digitalpetri.opcua.sdk.core.ReferenceType;
 import com.digitalpetri.opcua.stack.client.UaTcpStackClient;
 import com.digitalpetri.opcua.stack.client.UaTcpStackClientConfig;
 import com.digitalpetri.opcua.stack.core.Identifiers;
 import com.digitalpetri.opcua.stack.core.security.SecurityPolicy;
-import com.digitalpetri.opcua.stack.core.serialization.UaResponseMessage;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
+import com.digitalpetri.opcua.stack.core.types.enumerated.BrowseDirection;
 import com.digitalpetri.opcua.stack.core.types.enumerated.TimestampsToReturn;
+import com.digitalpetri.opcua.stack.core.types.structured.BrowseDescription;
+import com.digitalpetri.opcua.stack.core.types.structured.BrowseResult;
 import com.digitalpetri.opcua.stack.core.types.structured.EndpointDescription;
 import com.digitalpetri.opcua.stack.core.types.structured.ReadRequest;
 import com.digitalpetri.opcua.stack.core.types.structured.ReadValueId;
+import com.digitalpetri.opcua.stack.core.types.structured.ReferenceDescription;
 import com.google.common.collect.Lists;
 
 import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
@@ -55,27 +64,31 @@ public class OpcUaClientExample {
 
     private static final MetricRegistry METRIC_REGISTRY = new MetricRegistry();
 
+    private static final ConsoleReporter REPORTER;
+
     static {
-        ConsoleReporter reporter = ConsoleReporter.forRegistry(METRIC_REGISTRY)
+        REPORTER = ConsoleReporter.forRegistry(METRIC_REGISTRY)
                 .convertRatesTo(TimeUnit.SECONDS)
                 .convertDurationsTo(TimeUnit.MILLISECONDS)
                 .build();
 
-        reporter.start(10, TimeUnit.SECONDS);
+        REPORTER.start(10, TimeUnit.SECONDS);
     }
 
-    private static final int N_TIMES = 1000;
-    private static final int N_REQUESTS = 1000;
-    private static final int N_NODES = 100;
+    private static final int N_CONCURRENT_REQUESTS = 16;
+    private static final int N_DESIRED_REQUEST_COUNT = 1000000;
+    private static final int N_NODES_PER_REQUEST = 100;
 
-    private static final Timer REQUEST_TIMER = METRIC_REGISTRY.timer("request-throughput");
-    private static final Meter REQUEST_METER = METRIC_REGISTRY.meter("request-meter");
+    private static Timer REQUEST_TIMER;
 
     public static void main(String[] args) throws Exception {
         if (args.length < 2) {
             System.out.println("usage: java -jar app.jar <endpoint url> <client count>");
             System.exit(-1);
         }
+
+        REQUEST_TIMER = new Timer(new SlidingWindowReservoir(N_DESIRED_REQUEST_COUNT), Clock.defaultClock());
+        METRIC_REGISTRY.register("request-timer", REQUEST_TIMER);
 
         String endpointUrl = args[0];
         int clientCount = Integer.parseInt(args[1]);
@@ -89,7 +102,7 @@ public class OpcUaClientExample {
         }
 
         for (int i = 0; i < clients.size(); i++) {
-            readMultiple(clients.get(i), i, 0, futures.get(i));
+            read(clients.get(i), new AtomicLong(0), futures.get(i));
         }
 
         CompletableFuture<Void> allFinished =
@@ -98,9 +111,7 @@ public class OpcUaClientExample {
         allFinished.thenRun(() -> {
             clients.forEach(OpcUaClient::disconnect);
 
-            long count = REQUEST_METER.getCount();
-            double meanRate = REQUEST_METER.getMeanRate();
-            System.out.println("count=" + count + " meanRate=" + meanRate);
+            REPORTER.report();
 
             System.exit(0);
         });
@@ -108,79 +119,39 @@ public class OpcUaClientExample {
         Thread.sleep(999999999);
     }
 
-    private static void read(OpcUaClient client, int clientNumber, int count, CompletableFuture<OpcUaClient> f) {
-        if (count == N_TIMES) {
-            System.out.println("Client #" + clientNumber + " finished.");
-            f.complete(client);
-            return;
+    private static void read(OpcUaClient client, AtomicLong count, CompletableFuture<OpcUaClient> future) {
+        for (int i = 0; i < N_CONCURRENT_REQUESTS; i++) {
+            sendReadRequest(client, count, future);
         }
-
-        List<NodeId> nodeIds = Collections.nCopies(N_NODES, Identifiers.Server_ServerStatus_CurrentTime);
-
-        CompletableFuture<?>[] futures = new CompletableFuture<?>[N_REQUESTS];
-
-        for (int nc = 0; nc < N_REQUESTS; nc++) {
-            Context context = REQUEST_TIMER.time();
-            futures[nc] = client.readValues(0.0d, TimestampsToReturn.Both, nodeIds);
-            futures[nc].thenRun(context::stop);
-        }
-
-        CompletableFuture.allOf(futures).whenCompleteAsync((v, ex) -> {
-            if (ex != null) {
-                ex.printStackTrace();
-            }
-
-            read(client, clientNumber, count + 1, f);
-        });
     }
 
-    private static void readMultiple(OpcUaClient client,
-                                     int clientNumber, int count,
-                                     CompletableFuture<OpcUaClient> f) {
+    private static void sendReadRequest(OpcUaClient client, AtomicLong count, CompletableFuture<OpcUaClient> future) {
+        ReadValueId[] nodesToRead = new ReadValueId[N_NODES_PER_REQUEST];
 
-        if (count == N_TIMES) {
-            System.out.println("Client #" + clientNumber + " finished.");
-            f.complete(client);
-            return;
-        }
-
-        List<CompletableFuture<? extends UaResponseMessage>> futures =
-                Lists.newArrayListWithCapacity(N_REQUESTS);
-
-        for (int i = 0; i < N_REQUESTS; i++) {
-            futures.add(new CompletableFuture<>());
-        }
-
-        ReadValueId[] nodesToRead = new ReadValueId[N_NODES];
-
-        for (int i = 0; i < N_NODES; i++) {
+        for (int i = 0; i < N_NODES_PER_REQUEST; i++) {
             nodesToRead[i] = new ReadValueId(
                     Identifiers.Server_ServerStatus_CurrentTime,
                     uint(13), null, QualifiedName.NULL_VALUE);
         }
 
         client.getSession().thenAccept(session -> {
-            List<ReadRequest> requests = Lists.newArrayListWithCapacity(N_REQUESTS);
+            ReadRequest request = new ReadRequest(
+                    client.newRequestHeader(session.getAuthToken()),
+                    0.0, TimestampsToReturn.Both, nodesToRead);
 
-            for (int i = 0; i < N_REQUESTS; i++) {
-                ReadRequest readRequest = new ReadRequest(
-                        client.newRequestHeader(session.getAuthToken()),
-                        0.0, TimestampsToReturn.Both, nodesToRead);
+            Context context = REQUEST_TIMER.time();
 
-                requests.add(readRequest);
-            }
+            client.sendRequest(request).whenComplete((r, ex) -> {
+                if (ex != null) ex.printStackTrace();
 
-            client.sendRequests(requests, futures);
-        });
+                context.stop();
 
-        CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()])).whenCompleteAsync((v, ex) -> {
-            if (ex != null) {
-                ex.printStackTrace();
-            }
-
-            REQUEST_METER.mark(N_REQUESTS);
-
-            readMultiple(client, clientNumber, count + 1, f);
+                if (count.incrementAndGet() < N_DESIRED_REQUEST_COUNT) {
+                    sendReadRequest(client, count, future);
+                } else {
+                    future.complete(client);
+                }
+            });
         });
     }
 
@@ -215,6 +186,53 @@ public class OpcUaClientExample {
         client.connect().get();
 
         return client;
+    }
+
+    private static class BrowseAction extends RecursiveAction {
+
+        private final OpcUaClient client;
+        private final Set<NodeId> browsedNodes;
+        private final NodeId nodeToBrowse;
+
+        public BrowseAction(OpcUaClient client, Set<NodeId> browsedNodes, NodeId nodeToBrowse) {
+            this.client = client;
+            this.browsedNodes = browsedNodes;
+            this.nodeToBrowse = nodeToBrowse;
+        }
+
+        @Override
+        protected void compute() {
+            if (browsedNodes.contains(nodeToBrowse)) return;
+
+            BrowseDescription browseDescription = new BrowseDescription(
+                    nodeToBrowse,
+                    BrowseDirection.Forward,
+                    ReferenceType.HIERARCHICAL_REFERENCES.getNodeId(),
+                    true, uint(0), uint(0));
+
+            try {
+                BrowseResult result = client.browse(browseDescription).get();
+
+                browsedNodes.add(nodeToBrowse);
+                System.out.println("browsedNodes.size()=" + browsedNodes.size());
+
+                ReferenceDescription[] references = result.getReferences();
+                List<BrowseAction> browseActions = Lists.newArrayListWithCapacity(references.length);
+
+                for (ReferenceDescription reference : references) {
+                    reference.getNodeId().local().ifPresent(nodeId -> {
+//                        if (nodeId.getNamespaceIndex().intValue() == 0) {
+                        browseActions.add(new BrowseAction(client, browsedNodes, nodeId));
+//                        }
+                    });
+                }
+
+                invokeAll(browseActions);
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 
     private static class KeyStoreLoader {

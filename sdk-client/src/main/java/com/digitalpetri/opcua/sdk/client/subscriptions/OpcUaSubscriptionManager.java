@@ -67,7 +67,6 @@ public class OpcUaSubscriptionManager {
 
     private final AtomicInteger pendingPublishes = new AtomicInteger(0);
 
-    private volatile long lastSequenceNumber = 0L;
     private final List<SubscriptionAcknowledgement> acknowledgements = newArrayList();
 
     private final ExecutionQueue deliveryQueue;
@@ -238,7 +237,7 @@ public class OpcUaSubscriptionManager {
                 .min(Comparator.<Double>naturalOrder())
                 .orElse(client.getConfig().getRequestTimeout());
 
-        long timeoutHint = (long) (getMaxPendingPublishes() * minKeepAlive * 1.25);
+        long timeoutHint = (long) (getMaxPendingPublishes() * minKeepAlive * 1.25) * 2;
 
         return uint(timeoutHint);
     }
@@ -269,7 +268,7 @@ public class OpcUaSubscriptionManager {
                         subscriptionAcknowledgements);
 
                 return client.<PublishResponse>sendRequest(request);
-            }).whenComplete((response, ex) -> {
+            }).whenCompleteAsync((response, ex) -> {
                 pendingPublishes.decrementAndGet();
 
                 if (ex != null) {
@@ -282,7 +281,7 @@ public class OpcUaSubscriptionManager {
                 }
 
                 maybeSendPublishRequest();
-            });
+            }, client.getConfig().getExecutorService());
         } else {
             pendingPublishes.decrementAndGet();
         }
@@ -290,15 +289,18 @@ public class OpcUaSubscriptionManager {
 
     private void onPublishComplete(PublishResponse response) {
         UInteger subscriptionId = response.getSubscriptionId();
+        OpcUaSubscription subscription = subscriptions.get(subscriptionId);
+
+        if (subscription == null) return;
 
         NotificationMessage notificationMessage = response.getNotificationMessage();
 
         long sequenceNumber = notificationMessage.getSequenceNumber().longValue();
-        long expectedSequenceNumber = lastSequenceNumber + 1;
+        long expectedSequenceNumber = subscription.getLastSequenceNumber() + 1;
 
         if (sequenceNumber > expectedSequenceNumber) {
-            logger.warn("Expected sequence={}, received sequence={}. Calling Republish service...",
-                    expectedSequenceNumber, sequenceNumber);
+            logger.warn("[id={}] expected sequence={}, received sequence={}. Calling Republish service...",
+                    subscriptionId, expectedSequenceNumber, sequenceNumber);
 
             processingQueue.pause();
             processingQueue.submitToHead(() -> onPublishComplete(response));
@@ -332,12 +334,12 @@ public class OpcUaSubscriptionManager {
                         }
 
                         // We've read the latest values, resume processing.
-                        lastSequenceNumber = sequenceNumber - 1;
+                        subscription.setLastSequenceNumber(sequenceNumber - 1);
                         processingQueue.resume();
                     });
                 } else {
                     // Republish succeeded, resume processing.
-                    lastSequenceNumber = sequenceNumber - 1;
+                    subscription.setLastSequenceNumber(sequenceNumber - 1);
                     processingQueue.resume();
                 }
             });
@@ -345,7 +347,7 @@ public class OpcUaSubscriptionManager {
             return;
         }
 
-        lastSequenceNumber = sequenceNumber;
+        subscription.setLastSequenceNumber(sequenceNumber);
 
         response.getResults(); // TODO
 
@@ -397,8 +399,8 @@ public class OpcUaSubscriptionManager {
     private void onNotificationMessage(UInteger subscriptionId, NotificationMessage notificationMessage) {
         DateTime publishTime = notificationMessage.getPublishTime();
 
-        logger.info("onNotificationMessage(), sequenceNumber={}, subscriptionId={}, publishTime={}",
-                notificationMessage.getSequenceNumber(), subscriptionId, publishTime);
+        logger.info("onNotificationMessage(), subscriptionId={}, sequenceNumber={}, publishTime={}",
+                subscriptionId, notificationMessage.getSequenceNumber(), publishTime);
 
         Map<UInteger, OpcUaMonitoredItem> items = Optional.ofNullable(subscriptions.get(subscriptionId))
                 .map(OpcUaSubscription::getItems)
@@ -410,18 +412,21 @@ public class OpcUaSubscriptionManager {
             if (o instanceof DataChangeNotification) {
                 DataChangeNotification dcn = (DataChangeNotification) o;
 
+                logger.info("Received {} MonitoredItemNotifications", dcn.getMonitoredItems().length);
+
                 for (MonitoredItemNotification min : dcn.getMonitoredItems()) {
-                    logger.info("MonitoredItemNotification: clientHandle={}, value={}",
+                    logger.trace("MonitoredItemNotification: clientHandle={}, value={}",
                             min.getClientHandle(), min.getValue());
 
                     OpcUaMonitoredItem item = items.get(min.getClientHandle());
                     if (item != null) item.onValueArrived(min.getValue());
+                    else logger.warn("no item for clientHandle=" + min.getClientHandle());
                 }
             } else if (o instanceof EventNotificationList) {
                 EventNotificationList enl = (EventNotificationList) o;
 
                 for (EventFieldList efl : enl.getEvents()) {
-                    logger.info("EventFieldList: clientHandle={}, values={}",
+                    logger.trace("EventFieldList: clientHandle={}, values={}",
                             efl.getClientHandle(), Arrays.toString(efl.getEventFields()));
 
                     OpcUaMonitoredItem item = items.get(efl.getClientHandle());

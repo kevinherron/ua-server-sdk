@@ -46,6 +46,8 @@ public class OpcUaSubscription {
 
     private final UInteger subscriptionId;
 
+    private volatile long lastSequenceNumber = 0L;
+
     private volatile double revisedPublishingInterval = 0.0;
     private volatile UInteger revisedLifetimeCount = uint(0);
     private volatile UInteger revisedMaxKeepAliveCount = uint(0);
@@ -227,6 +229,10 @@ public class OpcUaSubscription {
         return itemsByClientHandle;
     }
 
+    long getLastSequenceNumber() {
+        return lastSequenceNumber;
+    }
+
     void setRevisedPublishingInterval(double revisedPublishingInterval) {
         this.revisedPublishingInterval = revisedPublishingInterval;
     }
@@ -249,6 +255,10 @@ public class OpcUaSubscription {
 
     void setPriority(UByte priority) {
         this.priority = priority;
+    }
+
+    void setLastSequenceNumber(long lastSequenceNumber) {
+        this.lastSequenceNumber = lastSequenceNumber;
     }
 
 }

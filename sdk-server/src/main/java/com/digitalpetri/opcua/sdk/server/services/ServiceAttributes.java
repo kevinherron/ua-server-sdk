@@ -22,8 +22,8 @@ import io.netty.util.AttributeKey;
 
 public interface ServiceAttributes {
 
-    public static final AttributeKey<OpcUaServer> ServerKey = AttributeKey.valueOf("server");
+    AttributeKey<OpcUaServer> SERVER_KEY = AttributeKey.valueOf("server");
 
-    public static final AttributeKey<Session> SessionKey = AttributeKey.valueOf("session");
+    AttributeKey<Session> SESSION_KEY = AttributeKey.valueOf("session");
 
 }

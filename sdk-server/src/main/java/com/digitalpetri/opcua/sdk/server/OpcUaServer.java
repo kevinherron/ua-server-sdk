@@ -28,14 +28,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 
+import com.digitalpetri.opcua.sdk.core.ServerTable;
+import com.digitalpetri.opcua.sdk.core.api.ReferenceType;
 import com.digitalpetri.opcua.sdk.server.api.OpcUaServerConfig;
 import com.digitalpetri.opcua.sdk.server.namespaces.OpcUaNamespace;
+import com.digitalpetri.opcua.sdk.server.services.helpers.BrowseHelper.BrowseContinuationPoint;
 import com.digitalpetri.opcua.sdk.server.subscriptions.Subscription;
-import com.google.common.collect.Maps;
-import com.google.common.eventbus.AsyncEventBus;
-import com.google.common.eventbus.EventBus;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.digitalpetri.opcua.sdk.core.ServerTable;
+import com.digitalpetri.opcua.stack.core.Stack;
 import com.digitalpetri.opcua.stack.core.application.UaStackServer;
 import com.digitalpetri.opcua.stack.core.application.services.AttributeServiceSet;
 import com.digitalpetri.opcua.stack.core.application.services.MethodServiceSet;
@@ -48,17 +47,26 @@ import com.digitalpetri.opcua.stack.core.channel.ChannelConfig;
 import com.digitalpetri.opcua.stack.core.channel.ServerSecureChannel;
 import com.digitalpetri.opcua.stack.core.security.SecurityPolicy;
 import com.digitalpetri.opcua.stack.core.types.builtin.ByteString;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.digitalpetri.opcua.stack.core.types.enumerated.MessageSecurityMode;
 import com.digitalpetri.opcua.stack.core.types.structured.ApplicationDescription;
 import com.digitalpetri.opcua.stack.core.types.structured.EndpointDescription;
 import com.digitalpetri.opcua.stack.core.types.structured.SignedSoftwareCertificate;
 import com.digitalpetri.opcua.stack.core.types.structured.UserTokenPolicy;
+import com.digitalpetri.opcua.stack.core.util.ManifestUtil;
 import com.digitalpetri.opcua.stack.server.tcp.UaTcpServerBuilder;
+import com.google.common.collect.Maps;
+import com.google.common.eventbus.AsyncEventBus;
+import com.google.common.eventbus.EventBus;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class OpcUaServer {
+
+    public static final String SDK_VERSION =
+            ManifestUtil.read("X-SDK-Version").orElse("dev");
 
     private static final ThreadFactory THREAD_FACTORY = new ThreadFactoryBuilder()
             .setNameFormat("ua-shared-scheduler-%d")
@@ -68,6 +76,10 @@ public class OpcUaServer {
             Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors(), THREAD_FACTORY);
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
+
+    private final Map<ByteString, BrowseContinuationPoint> browseContinuationPoints = Maps.newConcurrentMap();
+
+    private final Map<NodeId, ReferenceType> referenceTypes = Maps.newConcurrentMap();
 
     private final Map<UInteger, Subscription> subscriptions = Maps.newConcurrentMap();
 
@@ -97,6 +109,12 @@ public class OpcUaServer {
         namespaceManager.addNamespace(uaNamespace = new OpcUaNamespace(this));
         serverTable.addUri(server.getApplicationDescription().getApplicationUri());
 
+        for (ReferenceType referenceType : com.digitalpetri.opcua.sdk.core.ReferenceType.values()) {
+            referenceTypes.put(referenceType.getNodeId(), referenceType);
+        }
+
+        String hostname = config.getHostname();
+
         for (String address : config.getBindAddresses()) {
             String bindUrl = String.format("opc.tcp://%s:%d/%s", address, config.getBindPort(), config.getServerName());
 
@@ -105,22 +123,30 @@ public class OpcUaServer {
                         MessageSecurityMode.None : MessageSecurityMode.SignAndEncrypt;
 
                 String endpointUrl = endpointUrl(
-                        config.getHostname(),
+                        hostname,
                         address,
-                        config.getBindPort()
-                );
+                        config.getBindPort());
 
-
-                for (X509Certificate certificate : config.getCertificateManager().getCertificates()) {
+                if (securityPolicy == SecurityPolicy.None) {
                     logger.info("Binding endpoint {} to {} [{}/{}]",
                             endpointUrl, bindUrl, securityPolicy, messageSecurity);
 
-                    server.addEndpoint(endpointUrl, address, certificate, securityPolicy, messageSecurity);
+                    server.addEndpoint(endpointUrl, address, null, securityPolicy, messageSecurity);
+                } else {
+                    for (X509Certificate certificate : config.getCertificateManager().getCertificates()) {
+                        logger.info("Binding endpoint {} to {} [{}/{}]",
+                                endpointUrl, bindUrl, securityPolicy, messageSecurity);
+
+                        server.addEndpoint(endpointUrl, address, certificate, securityPolicy, messageSecurity);
+                    }
                 }
             }
         }
 
         eventBus = new AsyncEventBus("server", server.getExecutorService());
+
+        logger.info("digitalpetri opc-ua stack version: {}", Stack.VERSION);
+        logger.info("digitalpetri opc-ua sdk version: {}", SDK_VERSION);
     }
 
     public void startup() {
@@ -241,5 +267,11 @@ public class OpcUaServer {
         return server;
     }
 
+    public Map<NodeId, ReferenceType> getReferenceTypes() {
+        return referenceTypes;
+    }
 
+    public Map<ByteString, BrowseContinuationPoint> getBrowseContinuationPoints() {
+        return browseContinuationPoints;
+    }
 }

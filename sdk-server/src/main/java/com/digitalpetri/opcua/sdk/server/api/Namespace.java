@@ -16,14 +16,9 @@
 
 package com.digitalpetri.opcua.sdk.server.api;
 
-import java.util.List;
-import java.util.Optional;
-
-import com.digitalpetri.opcua.sdk.core.Reference;
-import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UShort;
 
-public interface Namespace extends ReadWriteManager, MethodManager, MonitoredItemManager, NodeManager {
+public interface Namespace extends AttributeManager, MethodServices, MonitoredItemManager, NodeManager, ViewManager {
 
     /**
      * @return the index of this {@link Namespace} in the server's namespace array.
@@ -34,43 +29,5 @@ public interface Namespace extends ReadWriteManager, MethodManager, MonitoredIte
      * @return the URI identifying this {@link Namespace}.
      */
     String getNamespaceUri();
-
-    /**
-     * Return <code>true</code> if this {@link NodeManager} contains a node for the requested {@link NodeId}.
-     *
-     * @param nodeId The requested {@link NodeId}.
-     * @return <code>true</code> if this {@link NodeManager} contains a node for the requested {@link NodeId}.
-     */
-    boolean containsNodeId(NodeId nodeId);
-
-    /**
-     * Get all {@link Reference}s for the requested node, or {@link Optional#EMPTY} if the node does not exist.
-     * <p>
-     * If the node exists but does not have any references return an empty list.
-     *
-     * @param nodeId The {@link NodeId} of the node the {@link Reference}s belong to.
-     * @return All {@link Reference}s belonging to the requested node.
-     */
-    Optional<List<Reference>> getReferences(NodeId nodeId);
-
-    /**
-     * For the Node identified by {@code nodeId} get the value of the attribute identified by {@code attributeId}
-     * if it exists. Otherwise {@code null}.
-     *
-     * @param nodeId      the {@link NodeId} of the node.
-     * @param attributeId the attribute id.
-     * @return the value of the attribute, or {@code null} if that attribute does not exist.
-     */
-    <T> T getAttribute(NodeId nodeId, int attributeId);
-
-    /**
-     * For the Node identified by {@code nodeId} return whether or not the attribute identified by {@code attributeId}
-     * exists.
-     *
-     * @param nodeId      the {@link NodeId} of the node.
-     * @param attributeId the attribute id.
-     * @return {@code true} if the attribute exists.
-     */
-    boolean attributeExists(NodeId nodeId, int attributeId);
 
 }
