@@ -22,32 +22,29 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
-import com.digitalpetri.opcua.sdk.server.api.DataItem;
-import com.digitalpetri.opcua.sdk.server.api.MethodInvocationHandler;
-import com.digitalpetri.opcua.sdk.server.api.MonitoredItem;
-import com.digitalpetri.opcua.sdk.server.api.OpcUaServerConfigLimits;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.model.DerivedVariableNode;
-import com.digitalpetri.opcua.sdk.server.model.UaMethodNode;
-import com.digitalpetri.opcua.sdk.server.model.UaVariableNode;
-import com.digitalpetri.opcua.sdk.server.model.methods.GetMonitoredItems;
-import com.digitalpetri.opcua.sdk.server.namespaces.loader.UaNodeLoader;
-import com.digitalpetri.opcua.sdk.server.util.SubscriptionModel;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.digitalpetri.opcua.sdk.core.NamespaceTable;
 import com.digitalpetri.opcua.sdk.core.Reference;
 import com.digitalpetri.opcua.sdk.core.model.objects.OperationLimitsType;
 import com.digitalpetri.opcua.sdk.core.model.objects.ServerCapabilitiesType;
 import com.digitalpetri.opcua.sdk.core.model.variables.ServerStatusType;
 import com.digitalpetri.opcua.sdk.server.OpcUaServer;
+import com.digitalpetri.opcua.sdk.server.api.DataItem;
 import com.digitalpetri.opcua.sdk.server.api.EventItem;
+import com.digitalpetri.opcua.sdk.server.api.MethodInvocationHandler;
+import com.digitalpetri.opcua.sdk.server.api.MonitoredItem;
+import com.digitalpetri.opcua.sdk.server.api.OpcUaServerConfigLimits;
+import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
+import com.digitalpetri.opcua.sdk.server.model.DerivedVariableNode;
+import com.digitalpetri.opcua.sdk.server.model.UaMethodNode;
 import com.digitalpetri.opcua.sdk.server.model.UaNode;
 import com.digitalpetri.opcua.sdk.server.model.UaObjectNode;
+import com.digitalpetri.opcua.sdk.server.model.UaVariableNode;
+import com.digitalpetri.opcua.sdk.server.model.methods.GetMonitoredItems;
 import com.digitalpetri.opcua.sdk.server.model.objects.ServerNode;
+import com.digitalpetri.opcua.sdk.server.namespaces.loader.UaNodeLoader;
 import com.digitalpetri.opcua.sdk.server.util.AnnotationBasedInvocationHandler;
+import com.digitalpetri.opcua.sdk.server.util.SubscriptionModel;
 import com.digitalpetri.opcua.stack.core.Identifiers;
 import com.digitalpetri.opcua.stack.core.StatusCodes;
 import com.digitalpetri.opcua.stack.core.UaException;
@@ -58,6 +55,7 @@ import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.StatusCode;
 import com.digitalpetri.opcua.stack.core.types.builtin.Variant;
+import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UShort;
 import com.digitalpetri.opcua.stack.core.types.enumerated.NodeClass;
 import com.digitalpetri.opcua.stack.core.types.enumerated.RedundancySupport;
@@ -65,12 +63,15 @@ import com.digitalpetri.opcua.stack.core.types.enumerated.ServerState;
 import com.digitalpetri.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import com.digitalpetri.opcua.stack.core.types.structured.ReadValueId;
 import com.digitalpetri.opcua.stack.core.types.structured.WriteValue;
+import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.ubyte;
 import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.ushort;
+import static com.google.common.collect.Lists.newArrayListWithCapacity;
+import static java.util.stream.Collectors.toList;
 
 public class OpcUaNamespace implements UaNamespace {
 
@@ -87,7 +88,7 @@ public class OpcUaNamespace implements UaNamespace {
 
         loadNodes();
 
-        subscriptionModel = new SubscriptionModel(this, server.getExecutorService(), server.getScheduledExecutorService());
+        subscriptionModel = new SubscriptionModel(server, this);
 
         configureServerObject();
     }
@@ -100,30 +101,6 @@ public class OpcUaNamespace implements UaNamespace {
     @Override
     public String getNamespaceUri() {
         return NamespaceTable.OpcUaNamespace;
-    }
-
-    @Override
-    public boolean containsNodeId(NodeId nodeId) {
-        return nodes.containsKey(nodeId);
-    }
-
-    @Override
-    public <T> T getAttribute(NodeId nodeId, int attributeId) {
-        UaNode node = nodes.get(nodeId);
-        if (node != null) {
-            try {
-                return (T) node.readAttribute(attributeId).getValue().getValue();
-            } catch (Throwable t) {
-                return null;
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public boolean attributeExists(NodeId nodeId, int attributeId) {
-        UaNode node = nodes.get(nodeId);
-        return node != null && node.hasAttribute(attributeId);
     }
 
     @Override
@@ -147,23 +124,25 @@ public class OpcUaNamespace implements UaNamespace {
     }
 
     @Override
-    public Optional<List<Reference>> getReferences(NodeId nodeId) {
+    public CompletableFuture<List<Reference>> getReferences(NodeId nodeId) {
         UaNode node = nodes.get(nodeId);
 
         if (node != null) {
-            return Optional.of(node.getReferences());
+            return CompletableFuture.completedFuture(node.getReferences());
         } else {
-            return Optional.empty();
+            CompletableFuture<List<Reference>> f = new CompletableFuture<>();
+            f.completeExceptionally(new UaException(StatusCodes.Bad_NodeIdUnknown));
+            return f;
         }
     }
 
     @Override
-    public void read(List<ReadValueId> readValueIds,
-                     Double maxAge,
+    public void read(Double maxAge,
                      TimestampsToReturn timestamps,
-                     CompletableFuture<List<DataValue>> future) {
+                     List<ReadValueId> readValueIds,
+                     ReadContext context) {
 
-        List<DataValue> results = Lists.newArrayListWithCapacity(readValueIds.size());
+        List<DataValue> results = newArrayListWithCapacity(readValueIds.size());
 
         for (ReadValueId id : readValueIds) {
             DataValue value;
@@ -174,8 +153,7 @@ public class OpcUaNamespace implements UaNamespace {
                 value = node.readAttribute(
                         id.getAttributeId().intValue(),
                         timestamps,
-                        id.getIndexRange()
-                );
+                        id.getIndexRange());
             } else {
                 value = new DataValue(new StatusCode(StatusCodes.Bad_NodeIdUnknown));
             }
@@ -183,20 +161,48 @@ public class OpcUaNamespace implements UaNamespace {
             results.add(value);
         }
 
-        future.complete(results);
+        context.getFuture().complete(results);
     }
 
     @Override
-    public void write(List<WriteValue> writeValues, CompletableFuture<List<StatusCode>> future) {
-        List<StatusCode> results = writeValues.stream().map(wv -> {
-            if (nodes.containsKey(wv.getNodeId())) {
+    public void write(List<WriteValue> writeValues, WriteContext context) {
+        List<StatusCode> results = writeValues.stream().map(value -> {
+            if (nodes.containsKey(value.getNodeId())) {
                 return new StatusCode(StatusCodes.Bad_NotWritable);
             } else {
                 return new StatusCode(StatusCodes.Bad_NodeIdUnknown);
             }
-        }).collect(Collectors.toList());
+        }).collect(toList());
 
-        future.complete(results);
+        context.getFuture().complete(results);
+    }
+
+    @Override
+    public void onCreateMonitoredItem(NodeId nodeId,
+                                      UInteger attributeId,
+                                      double requestedSamplingInterval,
+                                      CompletableFuture<Double> revisedSamplingInterval) {
+
+        UaNode node = nodes.get(nodeId);
+
+        if (node != null) {
+            if (node.hasAttribute(attributeId)) {
+                revisedSamplingInterval.complete(requestedSamplingInterval);
+            } else {
+                revisedSamplingInterval.completeExceptionally(
+                        new UaException(StatusCodes.Bad_AttributeIdInvalid));
+            }
+        } else {
+            revisedSamplingInterval.completeExceptionally(
+                    new UaException(StatusCodes.Bad_NodeIdUnknown));
+        }
+    }
+
+    @Override
+    public void onModifyMonitoredItem(double requestedSamplingInterval,
+                                      CompletableFuture<Double> revisedSamplingInterval) {
+
+        revisedSamplingInterval.complete(requestedSamplingInterval);
     }
 
     @Override

@@ -28,17 +28,20 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import com.digitalpetri.opcua.sdk.server.api.DataItem;
-import com.digitalpetri.opcua.sdk.server.api.ReadWriteManager;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.math.DoubleMath;
 import com.digitalpetri.opcua.sdk.core.AttributeIds;
+import com.digitalpetri.opcua.sdk.server.DiagnosticsContext;
+import com.digitalpetri.opcua.sdk.server.OpcUaServer;
+import com.digitalpetri.opcua.sdk.server.api.AttributeManager;
+import com.digitalpetri.opcua.sdk.server.api.AttributeManager.ReadContext;
+import com.digitalpetri.opcua.sdk.server.api.DataItem;
 import com.digitalpetri.opcua.sdk.server.api.MonitoredItem;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import com.digitalpetri.opcua.stack.core.types.structured.ReadValueId;
 import com.digitalpetri.opcua.stack.core.util.ExecutionQueue;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.math.DoubleMath;
 
 public class SubscriptionModel {
 
@@ -46,19 +49,20 @@ public class SubscriptionModel {
 
     private final List<ScheduledUpdate> schedule = Lists.newCopyOnWriteArrayList();
 
-    private final ExecutionQueue executionQueue;
-
-    private final ReadWriteManager readWriteManager;
     private final ExecutorService executor;
     private final ScheduledExecutorService scheduler;
+    private final ExecutionQueue executionQueue;
 
-    public SubscriptionModel(ReadWriteManager readWriteManager,
-                             ExecutorService executor,
-                             ScheduledExecutorService scheduler) {
+    private final OpcUaServer server;
+    private final AttributeManager attributeServices;
 
-        this.readWriteManager = readWriteManager;
-        this.executor = executor;
-        this.scheduler = scheduler;
+    public SubscriptionModel(OpcUaServer server, AttributeManager attributeServices) {
+        this.server = server;
+
+        this.attributeServices = attributeServices;
+
+        executor = server.getExecutorService();
+        scheduler = server.getScheduledExecutorService();
 
         executionQueue = new ExecutionQueue(executor);
     }
@@ -128,9 +132,10 @@ public class SubscriptionModel {
                     .map(PendingRead::getInput)
                     .collect(Collectors.toList());
 
-            CompletableFuture<List<DataValue>> future = Pending.callback(pending);
+            ReadContext context = new ReadContext(
+                    server, null, new DiagnosticsContext<>());
 
-            future.thenAcceptAsync(values -> {
+            context.getFuture().thenAcceptAsync(values -> {
                 Iterator<DataItem> ii = items.iterator();
                 Iterator<DataValue> vi = values.iterator();
 
@@ -154,7 +159,7 @@ public class SubscriptionModel {
                 }
             }, executor);
 
-            executor.execute(() -> readWriteManager.read(ids, 0d, TimestampsToReturn.Both, future));
+            executor.execute(() -> attributeServices.read(0d, TimestampsToReturn.Both, ids, context));
         }
 
     }

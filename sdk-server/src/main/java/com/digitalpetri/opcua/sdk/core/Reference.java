@@ -16,16 +16,15 @@
 
 package com.digitalpetri.opcua.sdk.core;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.function.Predicate;
 
-import com.digitalpetri.opcua.sdk.server.NamespaceManager;
+import com.digitalpetri.opcua.sdk.core.api.ReferenceType;
 import com.digitalpetri.opcua.stack.core.Identifiers;
 import com.digitalpetri.opcua.stack.core.types.builtin.ExpandedNodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.enumerated.NodeClass;
+import org.slf4j.LoggerFactory;
 
 public class Reference {
 
@@ -72,19 +71,23 @@ public class Reference {
         return !isForward();
     }
 
-    public boolean subtypeOf(NodeId superTypeId, NamespaceManager namespaceManager) {
-        return checkType(superTypeId, new ExpandedNodeId(getReferenceTypeId()), namespaceManager);
+    public boolean subtypeOf(NodeId superTypeId, Map<NodeId, ReferenceType> referenceTypes) {
+        return subtypeOf(referenceTypeId, superTypeId, referenceTypes);
     }
 
-    private boolean checkType(NodeId superTypeId, ExpandedNodeId typeId, NamespaceManager ns) {
-        List<Reference> references = ns.getReferences(typeId).orElse(Collections.emptyList());
+    private boolean subtypeOf(NodeId typeId, NodeId superTypeId, Map<NodeId, ReferenceType> referenceTypes) {
+        ReferenceType referenceType = referenceTypes.get(typeId);
 
-        Optional<ExpandedNodeId> parentTypeId = references.stream()
-                .filter(r -> r.isInverse() && r.getReferenceTypeId().equals(Identifiers.HasSubtype))
-                .findFirst()
-                .map(r -> r.targetNodeId);
+        if (referenceType == null) {
+            LoggerFactory.getLogger(getClass()).warn("Unknown reference type: {}", typeId);
+            return false;
+        }
 
-        return parentTypeId.map(id -> superTypeId.expanded().equals(id) || checkType(superTypeId, id, ns)).orElse(false);
+        return referenceType.getSuperType().map(superType -> {
+            NodeId id = superType.getNodeId();
+
+            return id.equals(superTypeId) || subtypeOf(id, superTypeId, referenceTypes);
+        }).orElse(false);
     }
 
     @Override

@@ -48,8 +48,7 @@ public class ServiceMetric {
     public ServiceCounterDataType getServiceCounter() {
         return new ServiceCounterDataType(
                 uint(requestTimer.getCount()),
-                uint(errorCounter.getCount())
-        );
+                uint(errorCounter.getCount()));
     }
 
 }

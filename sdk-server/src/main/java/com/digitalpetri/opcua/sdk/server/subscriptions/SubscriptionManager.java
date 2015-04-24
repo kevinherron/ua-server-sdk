@@ -20,23 +20,22 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-import com.digitalpetri.opcua.sdk.server.api.DataItem;
-import com.digitalpetri.opcua.sdk.server.items.BaseMonitoredItem;
-import com.digitalpetri.opcua.sdk.server.items.MonitoredEventItem;
-import com.digitalpetri.opcua.sdk.server.subscriptions.Subscription.State;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.digitalpetri.opcua.sdk.core.AttributeIds;
 import com.digitalpetri.opcua.sdk.core.NumericRange;
-import com.digitalpetri.opcua.sdk.server.NamespaceManager;
 import com.digitalpetri.opcua.sdk.server.OpcUaServer;
 import com.digitalpetri.opcua.sdk.server.Session;
+import com.digitalpetri.opcua.sdk.server.api.DataItem;
 import com.digitalpetri.opcua.sdk.server.api.EventItem;
 import com.digitalpetri.opcua.sdk.server.api.MonitoredItem;
+import com.digitalpetri.opcua.sdk.server.api.Namespace;
+import com.digitalpetri.opcua.sdk.server.items.BaseMonitoredItem;
 import com.digitalpetri.opcua.sdk.server.items.MonitoredDataItem;
+import com.digitalpetri.opcua.sdk.server.items.MonitoredEventItem;
+import com.digitalpetri.opcua.sdk.server.subscriptions.Subscription.State;
 import com.digitalpetri.opcua.stack.core.StatusCodes;
 import com.digitalpetri.opcua.stack.core.UaException;
 import com.digitalpetri.opcua.stack.core.application.services.ServiceRequest;
@@ -44,7 +43,6 @@ import com.digitalpetri.opcua.stack.core.types.builtin.DiagnosticInfo;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 import com.digitalpetri.opcua.stack.core.types.builtin.StatusCode;
-import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UShort;
 import com.digitalpetri.opcua.stack.core.types.enumerated.MonitoringMode;
@@ -79,11 +77,16 @@ import com.digitalpetri.opcua.stack.core.types.structured.SetPublishingModeRespo
 import com.digitalpetri.opcua.stack.core.types.structured.SetTriggeringRequest;
 import com.digitalpetri.opcua.stack.core.types.structured.SetTriggeringResponse;
 import com.digitalpetri.opcua.stack.core.types.structured.SubscriptionAcknowledgement;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.ubyte;
+import static com.digitalpetri.opcua.sdk.core.util.ConversionUtil.a;
+import static com.digitalpetri.opcua.sdk.server.util.FutureUtils.sequence;
 import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
+import static com.google.common.collect.Lists.newArrayListWithCapacity;
+import static java.util.stream.Collectors.toList;
 
 public class SubscriptionManager {
 
@@ -302,147 +305,139 @@ public class SubscriptionManager {
                 throw new UaException(StatusCodes.Bad_NothingToDo);
             }
 
-            MonitoredItemCreateResult[] createResults = new MonitoredItemCreateResult[itemsToCreate.length];
-            List<BaseMonitoredItem<?>> createdItems = Lists.newArrayListWithCapacity(itemsToCreate.length);
+            List<BaseMonitoredItem<?>> createdItems = newArrayListWithCapacity(itemsToCreate.length);
 
-            synchronized (subscription) {
-                for (int i = 0; i < itemsToCreate.length; i++) {
-                    MonitoredItemCreateRequest createRequest = itemsToCreate[i];
-                    NodeId nodeId = createRequest.getItemToMonitor().getNodeId();
-                    UInteger attributeId = createRequest.getItemToMonitor().getAttributeId();
-                    QualifiedName dataEncoding = createRequest.getItemToMonitor().getDataEncoding();
+            List<PendingItemCreation> pending = Arrays.stream(itemsToCreate)
+                    .map(PendingItemCreation::new)
+                    .collect(toList());
 
-                    try {
-                        NamespaceManager namespaceManager = server.getNamespaceManager();
+            for (PendingItemCreation p : pending) {
+                MonitoredItemCreateRequest r = p.getRequest();
+                NodeId nodeId = r.getItemToMonitor().getNodeId();
+                UInteger attributeId = r.getItemToMonitor().getAttributeId();
+                QualifiedName dataEncoding = r.getItemToMonitor().getDataEncoding();
 
-                        if (!namespaceManager.containsNodeId(nodeId)) {
-                            throw new UaException(StatusCodes.Bad_NodeIdUnknown);
-                        }
+                if (dataEncoding.isNotNull()) {
+                    if (attributeId.intValue() != AttributeIds.Value) {
+                        MonitoredItemCreateResult result = new MonitoredItemCreateResult(
+                                new StatusCode(StatusCodes.Bad_DataEncodingInvalid),
+                                uint(0), 0d, uint(0), null);
 
-                        if (!namespaceManager.attributeExists(nodeId, attributeId)) {
-                            throw new UaException(StatusCodes.Bad_AttributeIdInvalid);
-                        }
+                        p.getResultFuture().complete(result);
+                        continue;
+                    }
+                    if (!dataEncoding.equals(DEFAULT_BINARY_ENCODING) &&
+                            !dataEncoding.equals(DEFAULT_XML_ENCODING)) {
+                        MonitoredItemCreateResult result = new MonitoredItemCreateResult(
+                                new StatusCode(StatusCodes.Bad_DataEncodingUnsupported),
+                                uint(0), 0d, uint(0), null);
 
-                        if (dataEncoding.isNotNull()) {
-                            if (attributeId.intValue() != AttributeIds.Value) {
-                                throw new UaException(StatusCodes.Bad_DataEncodingInvalid,
-                                        "data encoding invalid for non-value attribute");
-                            }
-                            if (!dataEncoding.equals(DEFAULT_BINARY_ENCODING) &&
-                                    !dataEncoding.equals(DEFAULT_XML_ENCODING)) {
-                                throw new UaException(StatusCodes.Bad_DataEncodingUnsupported,
-                                        "data encoding not supported: " + dataEncoding.getName());
-                            }
-                        }
-
-                        MonitoringParameters parameters = createRequest.getRequestedParameters();
-
-                        BaseMonitoredItem<?> item;
-
-                        if (attributeId.intValue() == AttributeIds.EventNotifier) {
-                            // TODO Why would this be not present?
-                            UByte eventNotifier = namespaceManager
-                                    .<UByte>getAttribute(nodeId, AttributeIds.EventNotifier).orElse(ubyte(0));
-
-                            if ((eventNotifier.intValue() & 1) == 1) {
-                                item = new MonitoredEventItem(
-                                        uint(subscription.nextItemId()),
-                                        createRequest.getItemToMonitor(),
-                                        createRequest.getMonitoringMode(),
-                                        timestamps,
-                                        parameters.getClientHandle(),
-                                        0.0,
-                                        parameters.getQueueSize(),
-                                        parameters.getDiscardOldest(),
-                                        parameters.getFilter()
-                                );
-                            } else {
-                                throw new UaException(StatusCodes.Bad_AttributeIdInvalid);
-                            }
-                        } else {
-                            double samplingInterval = parameters.getSamplingInterval();
-                            double minSupportedSampleRate = server.getConfig().getLimits().getMinSupportedSampleRate();
-                            double maxSupportedSampleRate = server.getConfig().getLimits().getMaxSupportedSampleRate();
-
-                            if (samplingInterval < 0) samplingInterval = subscription.getPublishingInterval();
-                            if (samplingInterval < minSupportedSampleRate) samplingInterval = minSupportedSampleRate;
-                            if (samplingInterval > maxSupportedSampleRate) samplingInterval = maxSupportedSampleRate;
-
-                            String indexRange = createRequest.getItemToMonitor().getIndexRange();
-                            if (indexRange != null) {
-                                NumericRange.parse(indexRange);
-                            }
-
-                            item = new MonitoredDataItem(
-                                    uint(subscription.nextItemId()),
-                                    createRequest.getItemToMonitor(),
-                                    createRequest.getMonitoringMode(),
-                                    timestamps,
-                                    parameters.getClientHandle(),
-                                    samplingInterval,
-                                    parameters.getFilter(),
-                                    parameters.getQueueSize(),
-                                    parameters.getDiscardOldest()
-                            );
-                        }
-
-                        createdItems.add(item);
-
-                        createResults[i] = new MonitoredItemCreateResult(
-                                StatusCode.GOOD,
-                                item.getId(),
-                                item.getSamplingInterval(),
-                                uint(item.getQueueSize()),
-                                item.getFilterResult()
-                        );
-                    } catch (UaException e) {
-                        createResults[i] = new MonitoredItemCreateResult(e.getStatusCode(), uint(0), 0d, uint(0), null);
+                        p.getResultFuture().complete(result);
+                        continue;
                     }
                 }
 
-                subscription.addMonitoredItems(createdItems);
+                Namespace namespace = server.getNamespaceManager().getNamespace(nodeId.getNamespaceIndex());
+
+                double samplingInterval = r.getRequestedParameters().getSamplingInterval();
+                double minSupportedSampleRate = server.getConfig().getLimits().getMinSupportedSampleRate();
+                double maxSupportedSampleRate = server.getConfig().getLimits().getMaxSupportedSampleRate();
+
+                if (samplingInterval < 0) samplingInterval = subscription.getPublishingInterval();
+                if (samplingInterval < minSupportedSampleRate) samplingInterval = minSupportedSampleRate;
+                if (samplingInterval > maxSupportedSampleRate) samplingInterval = maxSupportedSampleRate;
+
+                namespace.onCreateMonitoredItem(nodeId, attributeId, samplingInterval, p.getCreateFuture());
+
+                p.getCreateFuture().whenComplete((revisedSamplingInterval, ex) -> {
+                    if (revisedSamplingInterval != null) {
+                        try {
+                            String indexRange = r.getItemToMonitor().getIndexRange();
+                            if (indexRange != null) NumericRange.parse(indexRange);
+
+                            MonitoredDataItem item = new MonitoredDataItem(
+                                    uint(subscription.nextItemId()),
+                                    r.getItemToMonitor(),
+                                    r.getMonitoringMode(),
+                                    timestamps,
+                                    r.getRequestedParameters().getClientHandle(),
+                                    revisedSamplingInterval,
+                                    r.getRequestedParameters().getFilter(),
+                                    r.getRequestedParameters().getQueueSize(),
+                                    r.getRequestedParameters().getDiscardOldest());
+
+                            createdItems.add(item);
+
+                            MonitoredItemCreateResult result = new MonitoredItemCreateResult(
+                                    StatusCode.GOOD,
+                                    item.getId(),
+                                    item.getSamplingInterval(),
+                                    uint(item.getQueueSize()),
+                                    item.getFilterResult());
+
+                            p.getResultFuture().complete(result);
+                        } catch (UaException e) {
+                            MonitoredItemCreateResult result =
+                                    new MonitoredItemCreateResult(e.getStatusCode(), uint(0), 0d, uint(0), null);
+
+                            p.getResultFuture().complete(result);
+                        }
+                    } else {
+                        StatusCode statusCode = StatusCode.BAD;
+
+                        if (ex instanceof UaException) {
+                            statusCode = ((UaException) ex).getStatusCode();
+                        }
+
+                        MonitoredItemCreateResult result =
+                                new MonitoredItemCreateResult(statusCode, uint(0), 0d, uint(0), null);
+
+                        p.getResultFuture().complete(result);
+                    }
+                });
             }
 
-            /*
-             * Notify namespaces of the items we just created.
-             */
+            List<CompletableFuture<MonitoredItemCreateResult>> futures = pending.stream()
+                    .map(PendingItemCreation::getResultFuture)
+                    .collect(toList());
 
-            Map<UShort, List<BaseMonitoredItem<?>>> byNamespace = createdItems.stream()
-                    .collect(Collectors.groupingBy(item -> item.getReadValueId().getNodeId().getNamespaceIndex()));
+            sequence(futures).thenAccept(results -> {
+                subscription.addMonitoredItems(createdItems);
 
-            byNamespace.entrySet().forEach(entry -> {
-                UShort namespaceIndex = entry.getKey();
+                // Notify namespaces of the items we just created.
+                Map<UShort, List<BaseMonitoredItem<?>>> byNamespace = createdItems.stream()
+                        .collect(Collectors.groupingBy(item -> item.getReadValueId().getNodeId().getNamespaceIndex()));
 
-                List<BaseMonitoredItem<?>> items = entry.getValue();
-                List<DataItem> dataItems = Lists.newArrayList();
-                List<EventItem> eventItems = Lists.newArrayList();
+                byNamespace.entrySet().forEach(entry -> {
+                    UShort namespaceIndex = entry.getKey();
 
+                    List<BaseMonitoredItem<?>> items = entry.getValue();
+                    List<DataItem> dataItems = Lists.newArrayList();
+                    List<EventItem> eventItems = Lists.newArrayList();
 
-                for (BaseMonitoredItem<?> item : items) {
-                    if (item instanceof MonitoredDataItem) {
-                        dataItems.add((DataItem) item);
-                    } else if (item instanceof MonitoredEventItem) {
-                        eventItems.add((EventItem) item);
+                    for (BaseMonitoredItem<?> item : items) {
+                        if (item instanceof MonitoredDataItem) {
+                            dataItems.add((DataItem) item);
+                        } else if (item instanceof MonitoredEventItem) {
+                            eventItems.add((EventItem) item);
+                        }
                     }
-                }
 
-                if (!dataItems.isEmpty()) {
-                    server.getNamespaceManager().getNamespace(namespaceIndex).onDataItemsCreated(dataItems);
-                }
-                if (!eventItems.isEmpty()) {
-                    server.getNamespaceManager().getNamespace(namespaceIndex).onEventItemsCreated(eventItems);
-                }
+                    if (!dataItems.isEmpty()) {
+                        server.getNamespaceManager().getNamespace(namespaceIndex).onDataItemsCreated(dataItems);
+                    }
+                    if (!eventItems.isEmpty()) {
+                        server.getNamespaceManager().getNamespace(namespaceIndex).onEventItemsCreated(eventItems);
+                    }
+                });
+
+                ResponseHeader header = service.createResponseHeader();
+
+                CreateMonitoredItemsResponse response = new CreateMonitoredItemsResponse(
+                        header, a(results, MonitoredItemCreateResult.class), new DiagnosticInfo[0]);
+
+                service.setResponse(response);
             });
-
-            /*
-             * Build and return the final results now that namespaces have had a chance to revise items.
-             */
-
-            ResponseHeader header = service.createResponseHeader();
-            CreateMonitoredItemsResponse response = new CreateMonitoredItemsResponse(
-                    header, createResults, new DiagnosticInfo[0]);
-
-            service.setResponse(response);
         } catch (UaException e) {
             service.setServiceFault(e);
         }
@@ -467,98 +462,139 @@ public class SubscriptionManager {
                 throw new UaException(StatusCodes.Bad_NothingToDo);
             }
 
+            List<PendingItemModification> pending = Arrays.stream(itemsToModify)
+                    .map(PendingItemModification::new)
+                    .collect(toList());
+
+            List<BaseMonitoredItem<?>> modifiedItems = newArrayListWithCapacity(itemsToModify.length);
+
             /*
              * Modify requested items and prepare results.
              */
 
-            MonitoredItemModifyResult[] modifyResults = new MonitoredItemModifyResult[itemsToModify.length];
-            List<BaseMonitoredItem<?>> modifiedItems = Lists.newArrayListWithCapacity(itemsToModify.length);
+            for (PendingItemModification p : pending) {
+                MonitoredItemModifyRequest r = p.getRequest();
+                UInteger itemId = r.getMonitoredItemId();
+                MonitoringParameters parameters = r.getRequestedParameters();
 
-            synchronized (subscription) {
-                for (int i = 0; i < itemsToModify.length; i++) {
-                    MonitoredItemModifyRequest modifyRequest = itemsToModify[i];
-                    UInteger itemId = modifyRequest.getMonitoredItemId();
-                    MonitoringParameters parameters = modifyRequest.getRequestedParameters();
+                BaseMonitoredItem<?> item = subscription.getMonitoredItems().get(itemId);
 
-                    BaseMonitoredItem<?> item = subscription.getMonitoredItems().get(itemId);
+                if (item == null) {
+                    MonitoredItemModifyResult result = new MonitoredItemModifyResult(
+                            new StatusCode(StatusCodes.Bad_MonitoredItemIdInvalid),
+                            0d, uint(0), null);
 
-                    if (item == null) {
-                        modifyResults[i] = new MonitoredItemModifyResult(
-                                new StatusCode(StatusCodes.Bad_MonitoredItemIdInvalid),
-                                0d, uint(0), null
-                        );
-                    } else {
-                        double samplingInterval = parameters.getSamplingInterval();
-                        double minSupportedSampleRate = server.getConfig().getLimits().getMinSupportedSampleRate();
-                        double maxSupportedSampleRate = server.getConfig().getLimits().getMaxSupportedSampleRate();
+                    p.getResultFuture().complete(result);
+                } else {
+                    double samplingInterval = parameters.getSamplingInterval();
+                    double minSupportedSampleRate = server.getConfig().getLimits().getMinSupportedSampleRate();
+                    double maxSupportedSampleRate = server.getConfig().getLimits().getMaxSupportedSampleRate();
 
-                        if (samplingInterval < 0) samplingInterval = subscription.getPublishingInterval();
-                        if (samplingInterval < minSupportedSampleRate) samplingInterval = minSupportedSampleRate;
-                        if (samplingInterval > maxSupportedSampleRate) samplingInterval = maxSupportedSampleRate;
+                    if (samplingInterval < 0) samplingInterval = subscription.getPublishingInterval();
+                    if (samplingInterval < minSupportedSampleRate) samplingInterval = minSupportedSampleRate;
+                    if (samplingInterval > maxSupportedSampleRate) samplingInterval = maxSupportedSampleRate;
 
-                        item.modify(
-                                timestamps,
-                                parameters.getClientHandle(),
-                                samplingInterval,
-                                parameters.getFilter(),
-                                parameters.getQueueSize(),
-                                parameters.getDiscardOldest()
-                        );
+                    NodeId nodeId = item.getReadValueId().getNodeId();
+                    Namespace namespace = server.getNamespaceManager().getNamespace(nodeId.getNamespaceIndex());
 
-                        modifiedItems.add(item);
+                    namespace.onModifyMonitoredItem(samplingInterval, p.getCreateFuture());
 
-                        modifyResults[i] = new MonitoredItemModifyResult(
-                                StatusCode.GOOD,
-                                item.getSamplingInterval(),
-                                uint(item.getQueueSize()),
-                                item.getFilterResult()
-                        );
-                    }
+                    p.getCreateFuture().whenComplete((revisedSamplingInterval, ex) -> {
+                        if (revisedSamplingInterval != null) {
+                            try {
+                                item.modify(
+                                        timestamps,
+                                        parameters.getClientHandle(),
+                                        revisedSamplingInterval,
+                                        parameters.getFilter(),
+                                        parameters.getQueueSize(),
+                                        parameters.getDiscardOldest());
+
+                                modifiedItems.add(item);
+
+                                MonitoredItemModifyResult result = new MonitoredItemModifyResult(
+                                        StatusCode.GOOD,
+                                        item.getSamplingInterval(),
+                                        uint(item.getQueueSize()),
+                                        item.getFilterResult());
+
+                                p.getResultFuture().complete(result);
+                            } catch (UaException e) {
+                                MonitoredItemModifyResult result = new MonitoredItemModifyResult(
+                                        e.getStatusCode(),
+                                        item.getSamplingInterval(),
+                                        uint(item.getQueueSize()),
+                                        item.getFilterResult());
+
+                                p.getResultFuture().complete(result);
+                            }
+                        } else {
+                            StatusCode statusCode = StatusCode.BAD;
+
+                            if (ex instanceof UaException) {
+                                statusCode = ((UaException) ex).getStatusCode();
+                            }
+
+                            MonitoredItemModifyResult result = new MonitoredItemModifyResult(
+                                    statusCode,
+                                    item.getSamplingInterval(),
+                                    uint(item.getQueueSize()),
+                                    item.getFilterResult());
+
+                            p.getResultFuture().complete(result);
+                        }
+                    });
                 }
-
-                subscription.resetLifetimeCounter();
             }
+
+            subscription.resetLifetimeCounter();
 
             /*
              * Notify namespaces of the items we just modified.
              */
 
-            Map<UShort, List<BaseMonitoredItem<?>>> byNamespace = modifiedItems.stream()
-                    .collect(Collectors.groupingBy(item -> item.getReadValueId().getNodeId().getNamespaceIndex()));
+            List<CompletableFuture<MonitoredItemModifyResult>> futures = pending.stream()
+                    .map(PendingItemModification::getResultFuture)
+                    .collect(toList());
 
-            byNamespace.entrySet().forEach(entry -> {
-                UShort namespaceIndex = entry.getKey();
+            sequence(futures).thenAccept(results -> {
+                Map<UShort, List<BaseMonitoredItem<?>>> byNamespace = modifiedItems.stream()
+                        .collect(Collectors.groupingBy(item -> item.getReadValueId().getNodeId().getNamespaceIndex()));
 
-                List<BaseMonitoredItem<?>> items = entry.getValue();
-                List<DataItem> dataItems = Lists.newArrayList();
-                List<EventItem> eventItems = Lists.newArrayList();
+                byNamespace.entrySet().forEach(entry -> {
+                    UShort namespaceIndex = entry.getKey();
+
+                    List<BaseMonitoredItem<?>> items = entry.getValue();
+                    List<DataItem> dataItems = Lists.newArrayList();
+                    List<EventItem> eventItems = Lists.newArrayList();
 
 
-                for (BaseMonitoredItem<?> item : items) {
-                    if (item instanceof MonitoredDataItem) {
-                        dataItems.add((DataItem) item);
-                    } else if (item instanceof MonitoredEventItem) {
-                        eventItems.add((EventItem) item);
+                    for (BaseMonitoredItem<?> item : items) {
+                        if (item instanceof MonitoredDataItem) {
+                            dataItems.add((DataItem) item);
+                        } else if (item instanceof MonitoredEventItem) {
+                            eventItems.add((EventItem) item);
+                        }
                     }
-                }
 
-                if (!dataItems.isEmpty()) {
-                    server.getNamespaceManager().getNamespace(namespaceIndex).onDataItemsModified(dataItems);
-                }
-                if (!eventItems.isEmpty()) {
-                    server.getNamespaceManager().getNamespace(namespaceIndex).onEventItemsModified(eventItems);
-                }
+                    if (!dataItems.isEmpty()) {
+                        server.getNamespaceManager().getNamespace(namespaceIndex).onDataItemsModified(dataItems);
+                    }
+                    if (!eventItems.isEmpty()) {
+                        server.getNamespaceManager().getNamespace(namespaceIndex).onEventItemsModified(eventItems);
+                    }
+                });
+
+                /*
+                 * Namespaces have been notified; send response.
+                 */
+
+                ResponseHeader header = service.createResponseHeader();
+                ModifyMonitoredItemsResponse response = new ModifyMonitoredItemsResponse(
+                        header, a(results, MonitoredItemModifyResult.class), new DiagnosticInfo[0]);
+
+                service.setResponse(response);
             });
-
-            /*
-             * Namespaces have been notified; send response.
-             */
-
-            ResponseHeader header = service.createResponseHeader();
-            ModifyMonitoredItemsResponse response = new ModifyMonitoredItemsResponse(
-                    header, modifyResults, new DiagnosticInfo[0]);
-
-            service.setResponse(response);
         } catch (UaException e) {
             service.setServiceFault(e);
         }
@@ -580,7 +616,7 @@ public class SubscriptionManager {
             }
 
             StatusCode[] deleteResults = new StatusCode[itemsToDelete.length];
-            List<BaseMonitoredItem<?>> deletedItems = Lists.newArrayListWithCapacity(itemsToDelete.length);
+            List<BaseMonitoredItem<?>> deletedItems = newArrayListWithCapacity(itemsToDelete.length);
 
             synchronized (subscription) {
                 for (int i = 0; i < itemsToDelete.length; i++) {
@@ -663,7 +699,7 @@ public class SubscriptionManager {
 
             MonitoringMode monitoringMode = request.getMonitoringMode();
             StatusCode[] results = new StatusCode[itemsToModify.length];
-            List<BaseMonitoredItem<?>> modified = Lists.newArrayListWithCapacity(itemsToModify.length);
+            List<BaseMonitoredItem<?>> modified = newArrayListWithCapacity(itemsToModify.length);
 
             for (int i = 0; i < itemsToModify.length; i++) {
                 UInteger itemId = itemsToModify[i];
@@ -819,7 +855,7 @@ public class SubscriptionManager {
                             return new StatusCode(StatusCodes.Bad_MonitoredItemIdInvalid);
                         }
                     })
-                    .collect(Collectors.toList());
+                    .collect(toList());
 
             List<StatusCode> addResults = Arrays.stream(linksToAdd)
                     .map(linkedItemId -> {
@@ -831,7 +867,7 @@ public class SubscriptionManager {
                             return new StatusCode(StatusCodes.Bad_MonitoredItemIdInvalid);
                         }
                     })
-                    .collect(Collectors.toList());
+                    .collect(toList());
 
             SetTriggeringResponse response = new SetTriggeringResponse(
                     service.createResponseHeader(),

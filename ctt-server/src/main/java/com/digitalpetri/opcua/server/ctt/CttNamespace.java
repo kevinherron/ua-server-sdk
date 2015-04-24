@@ -24,11 +24,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-import com.digitalpetri.opcua.server.ctt.methods.SqrtMethod;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.PeekingIterator;
 import com.digitalpetri.opcua.sdk.core.AccessLevel;
 import com.digitalpetri.opcua.sdk.core.Reference;
 import com.digitalpetri.opcua.sdk.core.ValueRank;
@@ -45,6 +40,7 @@ import com.digitalpetri.opcua.sdk.server.model.UaVariableNode;
 import com.digitalpetri.opcua.sdk.server.model.UaVariableNode.UaVariableNodeBuilder;
 import com.digitalpetri.opcua.sdk.server.util.AnnotationBasedInvocationHandler;
 import com.digitalpetri.opcua.sdk.server.util.SubscriptionModel;
+import com.digitalpetri.opcua.server.ctt.methods.SqrtMethod;
 import com.digitalpetri.opcua.stack.core.Identifiers;
 import com.digitalpetri.opcua.stack.core.StatusCodes;
 import com.digitalpetri.opcua.stack.core.UaException;
@@ -64,6 +60,10 @@ import com.digitalpetri.opcua.stack.core.types.enumerated.NodeClass;
 import com.digitalpetri.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import com.digitalpetri.opcua.stack.core.types.structured.ReadValueId;
 import com.digitalpetri.opcua.stack.core.types.structured.WriteValue;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.common.collect.PeekingIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,7 +74,7 @@ import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.
 
 public class CttNamespace implements UaNamespace {
 
-    public static final String NAMESPACE_URI = "urn:digitalpetri:ctt-namespace";
+    public static final String NAMESPACE_URI = "urn:digitalpetri:opcua:ctt-namespace";
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -96,8 +96,7 @@ public class CttNamespace implements UaNamespace {
                 this,
                 cttNodeId,
                 new QualifiedName(namespaceIndex, "CTT"),
-                LocalizedText.english("CTT")
-        );
+                LocalizedText.english("CTT"));
 
         nodes.put(cttNodeId, cttFolder);
 
@@ -111,7 +110,7 @@ public class CttNamespace implements UaNamespace {
             logger.error("Error adding reference to Connections folder.", e);
         }
 
-        subscriptionModel = new SubscriptionModel(this, server.getExecutorService(), server.getScheduledExecutorService());
+        subscriptionModel = new SubscriptionModel(server, this);
 
         addStaticScalarNodes();
         addStaticArrayNodes();
@@ -119,7 +118,7 @@ public class CttNamespace implements UaNamespace {
     }
 
 
-    private static final Object[][] StaticScalarNodes = new Object[][]{
+    private static final Object[][] STATIC_SCALAR_NODES = new Object[][]{
             {"Bool", Identifiers.Boolean, new Variant(false)},
             {"Byte", Identifiers.Byte, new Variant(ubyte(0x00))},
             {"ByteString", Identifiers.ByteString, new Variant(new ByteString(new byte[]{0x01, 0x02, 0x03, 0x04}))},
@@ -145,7 +144,7 @@ public class CttNamespace implements UaNamespace {
     private void addStaticScalarNodes() {
         UaObjectNode folder = addFoldersToRoot(cttFolder, "/Static/AllProfiles/Scalar");
 
-        for (Object[] os : StaticScalarNodes) {
+        for (Object[] os : STATIC_SCALAR_NODES) {
             String name = (String) os[0];
             NodeId typeId = (NodeId) os[1];
             Variant variant = (Variant) os[2];
@@ -175,7 +174,7 @@ public class CttNamespace implements UaNamespace {
         }
     }
 
-    private static final Object[][] StaticArrayNodes = new Object[][]{
+    private static final Object[][] STATIC_ARRAY_NODES = new Object[][]{
             {"Bool", Identifiers.Boolean, false},
             {"Byte", Identifiers.Byte, ubyte(0)},
             {"ByteString", Identifiers.ByteString, new ByteString(new byte[]{0x01, 0x02, 0x03, 0x04})},
@@ -201,7 +200,7 @@ public class CttNamespace implements UaNamespace {
     private void addStaticArrayNodes() {
         UaObjectNode folder = addFoldersToRoot(cttFolder, "/Static/AllProfiles/Array");
 
-        for (Object[] os : StaticArrayNodes) {
+        for (Object[] os : STATIC_ARRAY_NODES) {
             String name = (String) os[0];
             NodeId typeId = (NodeId) os[1];
             Object value = os[2];
@@ -371,41 +370,6 @@ public class CttNamespace implements UaNamespace {
     }
 
     @Override
-    public boolean containsNodeId(NodeId nodeId) {
-        return nodes.containsKey(nodeId);
-    }
-
-    @Override
-    public <T> T getAttribute(NodeId nodeId, int attributeId) {
-        UaNode node = nodes.get(nodeId);
-        if (node != null) {
-            try {
-                return (T) node.readAttribute(attributeId).getValue().getValue();
-            } catch (Throwable t) {
-                return null;
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public boolean attributeExists(NodeId nodeId, int attributeId) {
-        UaNode node = nodes.get(nodeId);
-        return node != null && node.hasAttribute(attributeId);
-    }
-
-    @Override
-    public Optional<List<Reference>> getReferences(NodeId nodeId) {
-        UaNode node = nodes.get(nodeId);
-
-        if (node != null) {
-            return Optional.of(node.getReferences());
-        } else {
-            return Optional.empty();
-        }
-    }
-
-    @Override
     public void addNode(UaNode node) {
         nodes.put(node.getNodeId(), node);
     }
@@ -426,11 +390,20 @@ public class CttNamespace implements UaNamespace {
     }
 
     @Override
-    public void read(List<ReadValueId> readValueIds,
-                     Double maxAge,
-                     TimestampsToReturn timestamps,
-                     CompletableFuture<List<DataValue>> future) {
+    public CompletableFuture<List<Reference>> getReferences(NodeId nodeId) {
+        UaNode node = nodes.get(nodeId);
 
+        if (node != null) {
+            return CompletableFuture.completedFuture(node.getReferences());
+        } else {
+            CompletableFuture<List<Reference>> f = new CompletableFuture<>();
+            f.completeExceptionally(new UaException(StatusCodes.Bad_NodeIdUnknown));
+            return f;
+        }
+    }
+
+    @Override
+    public void read(Double maxAge, TimestampsToReturn timestamps, List<ReadValueId> readValueIds, ReadContext context) {
         List<DataValue> results = Lists.newArrayListWithCapacity(readValueIds.size());
 
         for (ReadValueId id : readValueIds) {
@@ -440,8 +413,7 @@ public class CttNamespace implements UaNamespace {
                 DataValue value = node.readAttribute(
                         id.getAttributeId().intValue(),
                         timestamps,
-                        id.getIndexRange()
-                );
+                        id.getIndexRange());
 
                 if (logger.isTraceEnabled()) {
                     Variant variant = value.getValue();
@@ -456,11 +428,11 @@ public class CttNamespace implements UaNamespace {
             }
         }
 
-        future.complete(results);
+        context.getFuture().complete(results);
     }
 
     @Override
-    public void write(List<WriteValue> writeValues, CompletableFuture<List<StatusCode>> future) {
+    public void write(List<WriteValue> writeValues, WriteContext context) {
         List<StatusCode> results = Lists.newArrayListWithCapacity(writeValues.size());
 
         for (WriteValue writeValue : writeValues) {
@@ -472,8 +444,7 @@ public class CttNamespace implements UaNamespace {
                         server.getNamespaceManager(),
                         writeValue.getAttributeId().intValue(),
                         writeValue.getValue(),
-                        writeValue.getIndexRange()
-                );
+                        writeValue.getIndexRange());
 
                 if (logger.isTraceEnabled()) {
                     Variant variant = writeValue.getValue().getValue();
@@ -488,7 +459,35 @@ public class CttNamespace implements UaNamespace {
             }
         }
 
-        future.complete(results);
+        context.getFuture().complete(results);
+    }
+
+    @Override
+    public void onCreateMonitoredItem(NodeId nodeId,
+                                      UInteger attributeId,
+                                      double requestedSamplingInterval,
+                                      CompletableFuture<Double> revisedSamplingInterval) {
+
+        UaNode node = nodes.get(nodeId);
+
+        if (node != null) {
+            if (node.hasAttribute(attributeId)) {
+                revisedSamplingInterval.complete(requestedSamplingInterval);
+            } else {
+                revisedSamplingInterval.completeExceptionally(
+                        new UaException(StatusCodes.Bad_AttributeIdInvalid));
+            }
+        } else {
+            revisedSamplingInterval.completeExceptionally(
+                    new UaException(StatusCodes.Bad_NodeIdUnknown));
+        }
+    }
+
+    @Override
+    public void onModifyMonitoredItem(double requestedSamplingInterval,
+                                      CompletableFuture<Double> revisedSamplingInterval) {
+
+        revisedSamplingInterval.complete(requestedSamplingInterval);
     }
 
     @Override

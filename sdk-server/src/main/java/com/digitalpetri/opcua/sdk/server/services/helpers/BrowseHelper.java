@@ -16,30 +16,24 @@
 
 package com.digitalpetri.opcua.sdk.server.services.helpers;
 
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.primitives.Ints;
 import com.digitalpetri.opcua.sdk.core.AttributeIds;
 import com.digitalpetri.opcua.sdk.core.Reference;
+import com.digitalpetri.opcua.sdk.server.DiagnosticsContext;
 import com.digitalpetri.opcua.sdk.server.NamespaceManager;
 import com.digitalpetri.opcua.sdk.server.OpcUaServer;
+import com.digitalpetri.opcua.sdk.server.api.AttributeManager.ReadContext;
+import com.digitalpetri.opcua.sdk.server.api.Namespace;
 import com.digitalpetri.opcua.sdk.server.services.ServiceAttributes;
-import com.digitalpetri.opcua.sdk.server.util.PendingBrowse;
 import com.digitalpetri.opcua.stack.core.Identifiers;
 import com.digitalpetri.opcua.stack.core.StatusCodes;
 import com.digitalpetri.opcua.stack.core.application.services.ServiceRequest;
 import com.digitalpetri.opcua.stack.core.types.builtin.ByteString;
+import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.DiagnosticInfo;
 import com.digitalpetri.opcua.stack.core.types.builtin.ExpandedNodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
@@ -49,68 +43,40 @@ import com.digitalpetri.opcua.stack.core.types.builtin.StatusCode;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.digitalpetri.opcua.stack.core.types.enumerated.BrowseResultMask;
 import com.digitalpetri.opcua.stack.core.types.enumerated.NodeClass;
+import com.digitalpetri.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import com.digitalpetri.opcua.stack.core.types.structured.BrowseDescription;
 import com.digitalpetri.opcua.stack.core.types.structured.BrowseNextRequest;
 import com.digitalpetri.opcua.stack.core.types.structured.BrowseNextResponse;
-import com.digitalpetri.opcua.stack.core.types.structured.BrowseRequest;
-import com.digitalpetri.opcua.stack.core.types.structured.BrowseResponse;
 import com.digitalpetri.opcua.stack.core.types.structured.BrowseResult;
+import com.digitalpetri.opcua.stack.core.types.structured.ReadValueId;
 import com.digitalpetri.opcua.stack.core.types.structured.ReferenceDescription;
 import com.digitalpetri.opcua.stack.core.types.structured.ResponseHeader;
+import com.digitalpetri.opcua.stack.core.types.structured.ViewDescription;
 import com.digitalpetri.opcua.stack.core.util.NonceUtil;
+import com.google.common.collect.Lists;
+import com.google.common.primitives.Ints;
+import org.jooq.lambda.tuple.Tuple3;
 
 import static com.digitalpetri.opcua.sdk.server.util.FutureUtils.sequence;
 import static com.digitalpetri.opcua.sdk.server.util.UaEnumUtil.browseResultMasks;
 import static com.digitalpetri.opcua.sdk.server.util.UaEnumUtil.nodeClasses;
+import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
+import static java.util.stream.Collectors.toList;
 
 public class BrowseHelper {
 
-    private static final StatusCode Bad_ContinuationPointInvalid = new StatusCode(StatusCodes.Bad_ContinuationPointInvalid);
-    private static final StatusCode Bad_NoContinuationPoints = new StatusCode(StatusCodes.Bad_NoContinuationPoints);
+    private static final StatusCode BAD_CONTINUATION_POINT_INVALID =
+            new StatusCode(StatusCodes.Bad_ContinuationPointInvalid);
 
-    private static final BrowseResult NodeIdUnknownResult =
-            new BrowseResult(new StatusCode(StatusCodes.Bad_NodeIdUnknown), ByteString.NULL_VALUE, new ReferenceDescription[0]);
+    private static final StatusCode BAD_NO_CONTINUATION_POINTS =
+            new StatusCode(StatusCodes.Bad_NoContinuationPoints);
 
-    private final Map<ByteString, BrowseContinuationPoint> continuations = Maps.newConcurrentMap();
-
-    public void browse(ServiceRequest<BrowseRequest, BrowseResponse> service) {
-        OpcUaServer server = service.attr(ServiceAttributes.ServerKey).get();
-
-        BrowseRequest request = service.getRequest();
-
-        if (request.getNodesToBrowse().length > server.getConfig().getLimits().getMaxNodesPerBrowse().intValue()) {
-            service.setServiceFault(StatusCodes.Bad_TooManyOperations);
-            return;
-        }
-
-        List<PendingBrowse> pendingBrowses = Arrays.stream(request.getNodesToBrowse())
-                .map(PendingBrowse::new).collect(Collectors.toList());
-
-        pendingBrowses.stream().forEach(pending -> {
-            Browse browse = new Browse(
-                    pending.getInput(),
-                    request.getRequestedMaxReferencesPerNode(),
-                    server,
-                    pending.getFuture());
-
-            server.getExecutorService().execute(browse);
-        });
-
-        List<CompletableFuture<BrowseResult>> futures =
-                pendingBrowses.stream().map(PendingBrowse::getFuture).collect(Collectors.toList());
-
-        sequence(futures).thenAccept(resultList -> {
-            ResponseHeader header = service.createResponseHeader();
-            BrowseResult[] results = resultList.toArray(new BrowseResult[resultList.size()]);
-
-            BrowseResponse response = new BrowseResponse(header, results, new DiagnosticInfo[0]);
-
-            service.setResponse(response);
-        });
-    }
+    private static final BrowseResult NODE_ID_UNKNOWN_RESULT = new BrowseResult(
+            new StatusCode(StatusCodes.Bad_NodeIdUnknown),
+            ByteString.NULL_VALUE, new ReferenceDescription[0]);
 
     public void browseNext(ServiceRequest<BrowseNextRequest, BrowseNextResponse> service) {
-        OpcUaServer server = service.attr(ServiceAttributes.ServerKey).get();
+        OpcUaServer server = service.attr(ServiceAttributes.SERVER_KEY).get();
 
         BrowseNextRequest request = service.getRequest();
 
@@ -119,70 +85,94 @@ public class BrowseHelper {
 
             service.setServiceFault(StatusCodes.Bad_TooManyOperations);
         } else {
-            server.getExecutorService().execute(new BrowseNext(service));
+            server.getExecutorService().execute(new BrowseNext(server, service));
         }
     }
 
-    private class Browse implements Runnable {
+    public static CompletableFuture<BrowseResult> browse(OpcUaServer server,
+                                                         ViewDescription view,
+                                                         UInteger maxReferencesPerNode,
+                                                         BrowseDescription browseDescription) {
 
-        private final BrowseDescription description;
-        private final UInteger maxReferences;
+        Browse browse = new Browse(
+                server,
+                maxReferencesPerNode,
+                browseDescription);
+
+        server.getExecutorService().execute(browse);
+
+        return browse.getFuture();
+    }
+
+    private static class Browse implements Runnable {
+
+        private final CompletableFuture<BrowseResult> future = new CompletableFuture<>();
+
         private final OpcUaServer server;
-        private final CompletableFuture<BrowseResult> future;
+        private final UInteger maxReferencesPerNode;
+        private final BrowseDescription browseDescription;
 
-        private Browse(BrowseDescription description,
-                       UInteger maxReferences,
-                       OpcUaServer server,
-                       CompletableFuture<BrowseResult> future) {
+        private Browse(OpcUaServer server,
+                       UInteger maxReferencesPerNode,
+                       BrowseDescription browseDescription) {
 
-            this.description = description;
-            this.maxReferences = maxReferences;
+            this.browseDescription = browseDescription;
+            this.maxReferencesPerNode = maxReferencesPerNode;
             this.server = server;
-            this.future = future;
+        }
+
+        public CompletableFuture<BrowseResult> getFuture() {
+            return future;
         }
 
         @Override
         public void run() {
             NamespaceManager namespaceManager = server.getNamespaceManager();
+            Namespace namespace = namespaceManager.getNamespace(browseDescription.getNodeId().getNamespaceIndex());
 
-            Optional<List<Reference>> references = namespaceManager.getReferences(description.getNodeId());
+            CompletableFuture<List<Reference>> referencesFuture =
+                    namespace.getReferences(browseDescription.getNodeId());
 
-            BrowseResult result = references.map(this::browse).orElse(NodeIdUnknownResult);
-
-            future.complete(result);
+            referencesFuture.whenComplete((references, ex) -> {
+                if (references != null) {
+                    browse(references).thenAccept(future::complete);
+                } else {
+                    future.complete(NODE_ID_UNKNOWN_RESULT);
+                }
+            });
         }
 
-        private BrowseResult browse(List<Reference> references) {
-            Stream<Reference> filtered = references.stream()
+        private CompletableFuture<BrowseResult> browse(List<Reference> references) {
+            List<CompletableFuture<ReferenceDescription>> fs = references.stream()
                     .filter(this::directionFilter)
                     .filter(this::referenceTypeFilter)
                     .filter(this::nodeClassFilter)
-                    .distinct();
+                    .distinct()
+                    .map(this::referenceDescription)
+                    .collect(toList());
 
-            List<ReferenceDescription> descriptions =
-                    filtered.map(this::referenceDescription).collect(Collectors.toList());
+            return sequence(fs).thenApply(referenceDescriptions -> {
+                int max = maxReferencesPerNode.longValue() == 0 ?
+                        Integer.MAX_VALUE :
+                        Ints.saturatedCast(maxReferencesPerNode.longValue());
 
-
-            int max = maxReferences.longValue() == 0 ?
-                    Integer.MAX_VALUE :
-                    Ints.saturatedCast(maxReferences.longValue());
-
-            return browseResult(descriptions, max);
+                return browseResult(referenceDescriptions, max);
+            });
         }
 
         private BrowseResult browseResult(List<ReferenceDescription> references, int max) {
             if (references.size() > max) {
-                if (continuations.size() >
+                if (server.getBrowseContinuationPoints().size() >
                         server.getConfig().getLimits().getMaxBrowseContinuationPoints().intValue()) {
 
-                    return new BrowseResult(Bad_NoContinuationPoints, null, new ReferenceDescription[0]);
+                    return new BrowseResult(BAD_NO_CONTINUATION_POINTS, null, new ReferenceDescription[0]);
                 } else {
                     List<ReferenceDescription> subList = references.subList(0, max);
                     List<ReferenceDescription> current = Lists.newArrayList(subList);
                     subList.clear();
 
                     BrowseContinuationPoint c = new BrowseContinuationPoint(references, max);
-                    continuations.put(c.identifier, c);
+                    server.getBrowseContinuationPoints().put(c.identifier, c);
 
                     return new BrowseResult(StatusCode.GOOD, c.identifier, current.toArray(new ReferenceDescription[current.size()]));
                 }
@@ -192,7 +182,7 @@ public class BrowseHelper {
         }
 
         private boolean directionFilter(Reference reference) {
-            switch (description.getBrowseDirection()) {
+            switch (browseDescription.getBrowseDirection()) {
                 case Forward:
                     return reference.isForward();
                 case Inverse:
@@ -204,17 +194,17 @@ public class BrowseHelper {
         }
 
         private boolean referenceTypeFilter(Reference reference) {
-            NodeId referenceTypeId = description.getReferenceTypeId();
+            NodeId referenceTypeId = browseDescription.getReferenceTypeId();
 
             boolean includeAny = referenceTypeId == null || referenceTypeId.isNull();
-            boolean includeSubtypes = description.getIncludeSubtypes();
+            boolean includeSubtypes = browseDescription.getIncludeSubtypes();
 
             return includeAny || reference.getReferenceTypeId().equals(referenceTypeId) ||
-                    (includeSubtypes && reference.subtypeOf(referenceTypeId, server.getNamespaceManager()));
+                    (includeSubtypes && reference.subtypeOf(referenceTypeId, server.getReferenceTypes()));
         }
 
         private boolean nodeClassFilter(Reference reference) {
-            long mask = description.getNodeClassMask().longValue();
+            long mask = browseDescription.getNodeClassMask().longValue();
 
             EnumSet<NodeClass> nodeClasses = (mask == 0L) ?
                     EnumSet.allOf(NodeClass.class) : nodeClasses(mask);
@@ -222,56 +212,98 @@ public class BrowseHelper {
             return nodeClasses.contains(reference.getTargetNodeClass());
         }
 
-        private ReferenceDescription referenceDescription(Reference reference) {
-            NamespaceManager namespaceManager = server.getNamespaceManager();
-
-            EnumSet<BrowseResultMask> resultMaskSet = browseResultMasks(description.getResultMask().longValue());
+        private CompletableFuture<ReferenceDescription> referenceDescription(Reference reference) {
+            EnumSet<BrowseResultMask> masks = browseResultMasks(browseDescription.getResultMask().longValue());
 
             ExpandedNodeId targetNodeId = reference.getTargetNodeId();
 
-            Optional<NodeId> referenceTypeId = resultMaskSet.contains(BrowseResultMask.ReferenceTypeId) ?
-                    Optional.of(reference.getReferenceTypeId()) : Optional.empty();
+            NodeId referenceTypeId = masks.contains(BrowseResultMask.ReferenceTypeId) ?
+                    reference.getReferenceTypeId() : NodeId.NULL_VALUE;
 
-            Optional<QualifiedName> browseName = resultMaskSet.contains(BrowseResultMask.BrowseName) ?
-                    namespaceManager.getAttribute(targetNodeId, AttributeIds.BrowseName) : Optional.empty();
+            return targetNodeId.local().map(nodeId -> {
+                CompletableFuture<BrowseAttributes> af = browseAttributes(nodeId, masks);
 
-            Optional<LocalizedText> displayName = resultMaskSet.contains(BrowseResultMask.DisplayName) ?
-                    namespaceManager.getAttribute(targetNodeId, AttributeIds.DisplayName) : Optional.empty();
+                return af.thenCombine(getTypeDefinition(nodeId), (as, typeDefinition) ->
+                        new ReferenceDescription(
+                                referenceTypeId,
+                                reference.isForward(),
+                                targetNodeId,
+                                as.getBrowseName(),
+                                as.getDisplayName(),
+                                as.getNodeClass(),
+                                typeDefinition));
+            }).orElse(
+                    CompletableFuture.completedFuture(new ReferenceDescription(
+                            referenceTypeId, reference.isForward(), targetNodeId,
+                            QualifiedName.NULL_VALUE, LocalizedText.NULL_VALUE,
+                            NodeClass.Unspecified, ExpandedNodeId.NULL_VALUE))
+            );
+        }
 
-            NodeClass nodeClass = resultMaskSet.contains(BrowseResultMask.NodeClass) ?
-                    namespaceManager.<NodeClass>getAttribute(targetNodeId, AttributeIds.NodeClass)
-                            .orElse(reference.getTargetNodeClass()) : NodeClass.Unspecified;
+        private CompletableFuture<BrowseAttributes> browseAttributes(NodeId nodeId, EnumSet<BrowseResultMask> masks) {
+            List<ReadValueId> readValueIds = Lists.newArrayList();
 
-            Optional<ExpandedNodeId> typeDefinition = Optional.empty();
+            readValueIds.add(new ReadValueId(nodeId, uint(AttributeIds.BrowseName), null, QualifiedName.NULL_VALUE));
+            readValueIds.add(new ReadValueId(nodeId, uint(AttributeIds.DisplayName), null, QualifiedName.NULL_VALUE));
+            readValueIds.add(new ReadValueId(nodeId, uint(AttributeIds.NodeClass), null, QualifiedName.NULL_VALUE));
 
-            if (resultMaskSet.contains(BrowseResultMask.TypeDefinition)) {
-                Optional<List<Reference>> references = namespaceManager.getReferences(targetNodeId);
+            ReadContext context = new ReadContext(server, null, new DiagnosticsContext<>());
 
-                Optional<Reference> typeReference = references.map(Collection::stream)
-                        .orElse(Stream.empty())
-                        .filter(r -> r.getReferenceTypeId().equals(Identifiers.HasTypeDefinition))
-                        .findFirst();
+            server.getNamespaceManager().getNamespace(nodeId.getNamespaceIndex()).read(
+                    0.0, TimestampsToReturn.Neither, readValueIds, context);
 
-                typeDefinition = typeReference.map(Reference::getTargetNodeId);
-            }
+            return context.getFuture().thenApply(values -> {
+                QualifiedName browseName = QualifiedName.NULL_VALUE;
+                LocalizedText displayName = LocalizedText.NULL_VALUE;
+                NodeClass nodeClass = NodeClass.Unspecified;
 
-            return new ReferenceDescription(
-                    referenceTypeId.orElse(NodeId.NULL_VALUE),
-                    reference.isForward(),
-                    targetNodeId,
-                    browseName.orElse(QualifiedName.NULL_VALUE),
-                    displayName.orElse(LocalizedText.NULL_VALUE),
-                    nodeClass,
-                    typeDefinition.orElse(ExpandedNodeId.NULL_VALUE));
+                if (masks.contains(BrowseResultMask.BrowseName)) {
+                    DataValue value0 = values.get(0);
+                    if (value0.getStatusCode().isGood()) {
+                        browseName = (QualifiedName) value0.getValue().getValue();
+                    }
+                }
+
+                if (masks.contains(BrowseResultMask.DisplayName)) {
+                    DataValue value1 = values.get(1);
+                    if (value1.getStatusCode().isGood()) {
+                        displayName = (LocalizedText) value1.getValue().getValue();
+                    }
+                }
+
+                if (masks.contains(BrowseResultMask.NodeClass)) {
+                    DataValue value2 = values.get(2);
+                    if (value2.getStatusCode().isGood()) {
+                        nodeClass = (NodeClass) value2.getValue().getValue();
+                    }
+                }
+
+                return new BrowseAttributes(browseName, displayName, nodeClass);
+            });
+        }
+
+        private CompletableFuture<ExpandedNodeId> getTypeDefinition(NodeId nodeId) {
+            Namespace namespace = server.getNamespaceManager().getNamespace(nodeId.getNamespaceIndex());
+
+            return namespace.getReferences(nodeId).thenApply(references ->
+                    references.stream()
+                            .filter(r -> Identifiers.HasTypeDefinition.equals(r.getReferenceTypeId()))
+                            .findFirst()
+                            .map(Reference::getTargetNodeId)
+                            .orElse(ExpandedNodeId.NULL_VALUE));
         }
 
     }
 
     private class BrowseNext implements Runnable {
 
+        private final OpcUaServer server;
         private final ServiceRequest<BrowseNextRequest, BrowseNextResponse> service;
 
-        private BrowseNext(ServiceRequest<BrowseNextRequest, BrowseNextResponse> service) {
+        private BrowseNext(OpcUaServer server,
+                           ServiceRequest<BrowseNextRequest, BrowseNextResponse> service) {
+
+            this.server = server;
             this.service = service;
         }
 
@@ -300,15 +332,15 @@ public class BrowseHelper {
         }
 
         private BrowseResult release(ByteString bs) {
-            BrowseContinuationPoint c = continuations.remove(bs);
+            BrowseContinuationPoint c = server.getBrowseContinuationPoints().remove(bs);
 
             return c != null ?
                     new BrowseResult(StatusCode.GOOD, null, null) :
-                    new BrowseResult(Bad_ContinuationPointInvalid, null, null);
+                    new BrowseResult(BAD_CONTINUATION_POINT_INVALID, null, null);
         }
 
         private BrowseResult references(ByteString bs) {
-            BrowseContinuationPoint c = continuations.remove(bs);
+            BrowseContinuationPoint c = server.getBrowseContinuationPoints().remove(bs);
 
             if (c != null) {
                 int max = c.max;
@@ -319,28 +351,27 @@ public class BrowseHelper {
                     List<ReferenceDescription> current = Lists.newArrayList(subList);
                     subList.clear();
 
-                    continuations.put(c.identifier, c);
+                    server.getBrowseContinuationPoints().put(c.identifier, c);
 
                     return new BrowseResult(
                             StatusCode.GOOD,
                             c.identifier,
-                            current.toArray(new ReferenceDescription[current.size()])
-                    );
+                            current.toArray(new ReferenceDescription[current.size()]));
                 } else {
                     return new BrowseResult(
                             StatusCode.GOOD,
                             null,
-                            references.toArray(new ReferenceDescription[references.size()])
-                    );
+                            references.toArray(new ReferenceDescription[references.size()]));
                 }
             } else {
-                return new BrowseResult(Bad_ContinuationPointInvalid, null, null);
+                return new BrowseResult(BAD_CONTINUATION_POINT_INVALID, null, null);
             }
         }
 
     }
 
     public static class BrowseContinuationPoint {
+
         private final List<ReferenceDescription> references;
         private final int max;
         private final ByteString identifier;
@@ -355,8 +386,41 @@ public class BrowseHelper {
             this.identifier = identifier;
         }
 
-        private static ByteString generateId() {
+        public List<ReferenceDescription> getReferences() {
+            return references;
+        }
+
+        public int getMax() {
+            return max;
+        }
+
+        public ByteString getIdentifier() {
+            return identifier;
+        }
+
+        public static ByteString generateId() {
             return NonceUtil.generateNonce(16);
         }
+
+    }
+
+    private static class BrowseAttributes extends Tuple3<QualifiedName, LocalizedText, NodeClass> {
+
+        private BrowseAttributes(QualifiedName browseName, LocalizedText displayName, NodeClass nodeClass) {
+            super(browseName, displayName, nodeClass);
+        }
+
+        private QualifiedName getBrowseName() {
+            return v1();
+        }
+
+        private LocalizedText getDisplayName() {
+            return v2();
+        }
+
+        private NodeClass getNodeClass() {
+            return v3();
+        }
+
     }
 }

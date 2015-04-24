@@ -89,8 +89,8 @@ public class SubscriptionServices implements SubscriptionServiceSet {
 
     @Override
     public void onTransferSubscriptions(ServiceRequest<TransferSubscriptionsRequest, TransferSubscriptionsResponse> service) {
-        OpcUaServer server = service.attr(ServiceAttributes.ServerKey).get();
-        Session session = service.attr(ServiceAttributes.SessionKey).get();
+        OpcUaServer server = service.attr(ServiceAttributes.SERVER_KEY).get();
+        Session session = service.attr(ServiceAttributes.SESSION_KEY).get();
 
         TransferSubscriptionsRequest request = service.getRequest();
         UInteger[] subscriptionIds = request.getSubscriptionIds();

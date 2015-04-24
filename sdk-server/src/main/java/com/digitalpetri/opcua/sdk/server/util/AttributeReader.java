@@ -57,8 +57,7 @@ public class AttributeReader {
                         new Variant(valueAtRange),
                         value.getStatusCode(),
                         value.getSourceTime(),
-                        value.getServerTime()
-                );
+                        value.getServerTime());
             }
 
             if (timestamps != null) {

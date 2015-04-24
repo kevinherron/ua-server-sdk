@@ -47,7 +47,7 @@ public class MethodServices implements MethodServiceSet {
     public void onCall(ServiceRequest<CallRequest, CallResponse> service) {
         callCounter.record(service);
 
-        OpcUaServer server = service.attr(ServiceAttributes.ServerKey).get();
+        OpcUaServer server = service.attr(ServiceAttributes.SERVER_KEY).get();
 
         CallRequest request = service.getRequest();
 

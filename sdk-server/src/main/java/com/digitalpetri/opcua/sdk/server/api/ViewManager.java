@@ -19,20 +19,52 @@ package com.digitalpetri.opcua.sdk.server.api;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import com.digitalpetri.opcua.stack.core.types.builtin.ByteString;
+import com.digitalpetri.opcua.sdk.core.Reference;
+import com.digitalpetri.opcua.sdk.server.DiagnosticsContext;
+import com.digitalpetri.opcua.sdk.server.OpcUaServer;
+import com.digitalpetri.opcua.sdk.server.Session;
+import com.digitalpetri.opcua.sdk.server.services.helpers.BrowseHelper;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.digitalpetri.opcua.stack.core.types.structured.BrowseDescription;
 import com.digitalpetri.opcua.stack.core.types.structured.BrowseResult;
 import com.digitalpetri.opcua.stack.core.types.structured.ViewDescription;
 
+import static com.digitalpetri.opcua.sdk.server.util.FutureUtils.sequence;
+import static java.util.stream.Collectors.toList;
+
 public interface ViewManager {
 
-    void browse(ViewDescription view,
-                UInteger maxReferencesPerNode,
-                List<BrowseDescription> browseDescription,
-                CompletableFuture<List<BrowseResult>> future);
+    default void browse(ViewDescription view,
+                        UInteger maxReferencesPerNode,
+                        List<BrowseDescription> nodesToBrowse,
+                        BrowseContext context) {
 
-    void browseNext(List<ByteString> continuationPoints,
-                    CompletableFuture<List<BrowseResult>> future);
+        OpcUaServer server = context.getServer();
+
+        List<CompletableFuture<BrowseResult>> futures = nodesToBrowse.stream()
+                .map(browseDescription -> BrowseHelper.browse(server, view, maxReferencesPerNode, browseDescription))
+                .collect(toList());
+
+        sequence(futures).thenApply(results -> context.getFuture().complete(results));
+    }
+
+    /**
+     * If the node identified by {@code nodeId} exists return all {@link Reference}s.
+     *
+     * @param nodeId the {@link NodeId} identifying the node.
+     * @return a {@link CompletableFuture} containing the {@link Reference}s. If the node is unknown, complete the
+     * future exceptionally.
+     */
+    CompletableFuture<List<Reference>> getReferences(NodeId nodeId);
+
+
+    final class BrowseContext extends OperationContext<BrowseDescription, BrowseResult> {
+        public BrowseContext(OpcUaServer server, Session session,
+                             DiagnosticsContext<BrowseDescription> diagnosticsContext) {
+
+            super(server, session, diagnosticsContext);
+        }
+    }
 
 }

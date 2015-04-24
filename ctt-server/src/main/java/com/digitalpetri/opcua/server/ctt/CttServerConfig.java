@@ -47,7 +47,7 @@ public class CttServerConfig implements OpcUaServerConfig {
             "dev", "dev", DateTime.now()
     );
 
-    private static final String SERVER_ALIAS = "ctt-server";
+    private static final String SERVER_ALIAS = "ctt-server3";
     private static final char[] PASSWORD = "test".toCharArray();
 
     private volatile CertificateManager certificateManager;
@@ -90,6 +90,11 @@ public class CttServerConfig implements OpcUaServerConfig {
     @Override
     public String getProductUri() {
         return "http://www.digitalpetri.com/opc-ua";
+    }
+
+    @Override
+    public List<String> getBindAddresses() {
+        return Lists.newArrayList("0.0.0.0");
     }
 
     @Override

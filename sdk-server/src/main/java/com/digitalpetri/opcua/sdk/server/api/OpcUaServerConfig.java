@@ -23,7 +23,6 @@ import java.util.List;
 
 import com.digitalpetri.opcua.sdk.server.identity.AnonymousIdentityValidator;
 import com.digitalpetri.opcua.sdk.server.identity.IdentityValidator;
-import com.google.common.collect.Lists;
 import com.digitalpetri.opcua.stack.core.Stack;
 import com.digitalpetri.opcua.stack.core.application.CertificateManager;
 import com.digitalpetri.opcua.stack.core.security.SecurityPolicy;
@@ -32,6 +31,7 @@ import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.enumerated.UserTokenType;
 import com.digitalpetri.opcua.stack.core.types.structured.BuildInfo;
 import com.digitalpetri.opcua.stack.core.types.structured.UserTokenPolicy;
+import com.google.common.collect.Lists;
 
 public interface OpcUaServerConfig {
 
@@ -53,8 +53,7 @@ public interface OpcUaServerConfig {
 
     default String getHostname() {
         try {
-            String hostname = System.getProperty("hostname");
-            return (hostname != null) ? hostname : InetAddress.getLocalHost().getCanonicalHostName();
+            return System.getProperty("hostname", InetAddress.getLocalHost().getCanonicalHostName());
         } catch (UnknownHostException e) {
             return "localhost";
         }
@@ -104,7 +103,8 @@ public interface OpcUaServerConfig {
     }
 
     default OpcUaServerConfigLimits getLimits() {
-        return new OpcUaServerConfigLimits() {};
+        return new OpcUaServerConfigLimits() {
+        };
     }
 
 }

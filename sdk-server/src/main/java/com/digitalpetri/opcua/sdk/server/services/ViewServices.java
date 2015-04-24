@@ -16,26 +16,46 @@
 
 package com.digitalpetri.opcua.sdk.server.services;
 
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+
+import com.digitalpetri.opcua.sdk.server.DiagnosticsContext;
 import com.digitalpetri.opcua.sdk.server.NamespaceManager;
 import com.digitalpetri.opcua.sdk.server.OpcUaServer;
+import com.digitalpetri.opcua.sdk.server.Session;
+import com.digitalpetri.opcua.sdk.server.api.Namespace;
+import com.digitalpetri.opcua.sdk.server.api.ViewManager.BrowseContext;
 import com.digitalpetri.opcua.sdk.server.services.helpers.BrowseHelper;
-import com.digitalpetri.opcua.sdk.server.services.helpers.TranslateBrowsePathsHelper;
+import com.digitalpetri.opcua.sdk.server.services.helpers.BrowsePathsHelper;
+import com.digitalpetri.opcua.sdk.server.util.PendingBrowse;
 import com.digitalpetri.opcua.stack.core.StatusCodes;
 import com.digitalpetri.opcua.stack.core.UaException;
 import com.digitalpetri.opcua.stack.core.application.services.ServiceRequest;
 import com.digitalpetri.opcua.stack.core.application.services.ViewServiceSet;
+import com.digitalpetri.opcua.stack.core.types.builtin.DiagnosticInfo;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.StatusCode;
+import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UShort;
+import com.digitalpetri.opcua.stack.core.types.structured.BrowseDescription;
 import com.digitalpetri.opcua.stack.core.types.structured.BrowseNextRequest;
 import com.digitalpetri.opcua.stack.core.types.structured.BrowseNextResponse;
 import com.digitalpetri.opcua.stack.core.types.structured.BrowseRequest;
 import com.digitalpetri.opcua.stack.core.types.structured.BrowseResponse;
+import com.digitalpetri.opcua.stack.core.types.structured.BrowseResult;
 import com.digitalpetri.opcua.stack.core.types.structured.RegisterNodesRequest;
 import com.digitalpetri.opcua.stack.core.types.structured.RegisterNodesResponse;
+import com.digitalpetri.opcua.stack.core.types.structured.ResponseHeader;
 import com.digitalpetri.opcua.stack.core.types.structured.TranslateBrowsePathsToNodeIdsRequest;
 import com.digitalpetri.opcua.stack.core.types.structured.TranslateBrowsePathsToNodeIdsResponse;
 import com.digitalpetri.opcua.stack.core.types.structured.UnregisterNodesRequest;
 import com.digitalpetri.opcua.stack.core.types.structured.UnregisterNodesResponse;
+
+import static com.digitalpetri.opcua.sdk.core.util.ConversionUtil.a;
+import static com.digitalpetri.opcua.sdk.server.util.FutureUtils.sequence;
+import static com.google.common.collect.Lists.newArrayListWithCapacity;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
 
 public class ViewServices implements ViewServiceSet {
 
@@ -49,7 +69,69 @@ public class ViewServices implements ViewServiceSet {
     public void onBrowse(ServiceRequest<BrowseRequest, BrowseResponse> service) {
         browseCounter.record(service);
 
-        browseHelper.browse(service);
+        BrowseRequest request = service.getRequest();
+
+        DiagnosticsContext<BrowseDescription> diagnosticsContext = new DiagnosticsContext<>();
+
+        OpcUaServer server = service.attr(ServiceAttributes.SERVER_KEY).get();
+        Session session = service.attr(ServiceAttributes.SESSION_KEY).get();
+
+        if (request.getNodesToBrowse().length > server.getConfig().getLimits().getMaxNodesPerBrowse().intValue()) {
+            service.setServiceFault(StatusCodes.Bad_TooManyOperations);
+            return;
+        }
+
+        BrowseDescription[] nodesToBrowse = request.getNodesToBrowse();
+        List<PendingBrowse> pendingBrowses = newArrayListWithCapacity(nodesToBrowse.length);
+        List<CompletableFuture<BrowseResult>> futures = newArrayListWithCapacity(nodesToBrowse.length);
+
+        for (BrowseDescription browseDescription : nodesToBrowse) {
+            PendingBrowse pending = new PendingBrowse(browseDescription);
+
+            pendingBrowses.add(pending);
+            futures.add(pending.getFuture());
+        }
+
+        Map<UShort, List<PendingBrowse>> byNamespace = pendingBrowses.stream()
+                .collect(groupingBy(pending -> pending.getInput().getNodeId().getNamespaceIndex()));
+
+        byNamespace.keySet().forEach(index -> {
+            List<PendingBrowse> pending = byNamespace.get(index);
+
+            BrowseContext context = new BrowseContext(server, session, diagnosticsContext);
+
+            server.getExecutorService().execute(() -> {
+                Namespace namespace = server.getNamespaceManager().getNamespace(index);
+
+                List<BrowseDescription> browseDescriptions = pending.stream()
+                        .map(PendingBrowse::getInput)
+                        .collect(toList());
+
+                namespace.browse(
+                        request.getView(),
+                        request.getRequestedMaxReferencesPerNode(),
+                        browseDescriptions,
+                        context);
+            });
+
+            context.getFuture().thenAccept(results -> {
+                for (int i = 0; i < results.size(); i++) {
+                    pending.get(i).getFuture().complete(results.get(i));
+                }
+            });
+        });
+
+        sequence(futures).thenAcceptAsync(results -> {
+            ResponseHeader header = service.createResponseHeader();
+
+            DiagnosticInfo[] diagnosticInfos =
+                    diagnosticsContext.getDiagnosticInfos(nodesToBrowse);
+
+            BrowseResponse response = new BrowseResponse(
+                    header, a(results, BrowseResult.class), diagnosticInfos);
+
+            service.setResponse(response);
+        }, server.getExecutorService());
     }
 
     @Override
@@ -60,17 +142,20 @@ public class ViewServices implements ViewServiceSet {
     }
 
     @Override
-    public void onTranslateBrowsePaths(ServiceRequest<TranslateBrowsePathsToNodeIdsRequest, TranslateBrowsePathsToNodeIdsResponse> service) {
+    public void onTranslateBrowsePaths(
+            ServiceRequest<TranslateBrowsePathsToNodeIdsRequest, TranslateBrowsePathsToNodeIdsResponse> service) {
+
         translateBrowsePathsCounter.record(service);
 
-        NamespaceManager namespaceManager = service.attr(ServiceAttributes.ServerKey).get().getNamespaceManager();
+        OpcUaServer server = service.attr(ServiceAttributes.SERVER_KEY).get();
+        NamespaceManager namespaceManager = server.getNamespaceManager();
 
-        new TranslateBrowsePathsHelper(namespaceManager).onTranslateBrowsePaths(service);
+        new BrowsePathsHelper(server, namespaceManager).onTranslateBrowsePaths(service);
     }
 
     @Override
     public void onRegisterNodes(ServiceRequest<RegisterNodesRequest, RegisterNodesResponse> service) throws UaException {
-        OpcUaServer server = service.attr(ServiceAttributes.ServerKey).get();
+        OpcUaServer server = service.attr(ServiceAttributes.SERVER_KEY).get();
 
         RegisterNodesRequest request = service.getRequest();
 
@@ -92,7 +177,7 @@ public class ViewServices implements ViewServiceSet {
 
     @Override
     public void onUnregisterNodes(ServiceRequest<UnregisterNodesRequest, UnregisterNodesResponse> service) throws UaException {
-        OpcUaServer server = service.attr(ServiceAttributes.ServerKey).get();
+        OpcUaServer server = service.attr(ServiceAttributes.SERVER_KEY).get();
 
         UnregisterNodesRequest request = service.getRequest();
 
