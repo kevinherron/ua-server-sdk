@@ -52,7 +52,7 @@
     </licenses>
 
     <modules>
-        <module>ctt-server</module>
+        <module>ctt-namespace</module>
         <module>sdk-client</module>
         <module>sdk-core</module>
         <module>sdk-server</module>
