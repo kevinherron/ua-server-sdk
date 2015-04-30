@@ -9,10 +9,12 @@ This is currently under development.
 
 * State machine for re-establishing connections described in Part 4, section 6.5
 * API review, freeze, and documentation
+* Licensing
 
 ### Server SDK
 
 * Event support
 * Diagnostics? (ServerDiagnosticsSummary, SubscriptionDiagnosticsArray, SessionDiagnosticsSummary, etc...)
 * API review, freeze, and documentation
+* Licensing
 
