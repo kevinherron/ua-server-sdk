@@ -167,6 +167,12 @@ public class SessionManager implements
         return Lists.newArrayList(inactiveSessions.values());
     }
 
+    public void killSession(NodeId nodeId) {
+        activeSessions.values().stream()
+                .filter(s -> s.getSessionId().equals(nodeId))
+                .findFirst().ifPresent(s -> s.close(true));
+    }
+
     private Session session(ServiceRequest<?, ?> service) throws UaException {
         long secureChannelId = service.getSecureChannel().getChannelId();
         NodeId authToken = service.getRequest().getRequestHeader().getAuthenticationToken();

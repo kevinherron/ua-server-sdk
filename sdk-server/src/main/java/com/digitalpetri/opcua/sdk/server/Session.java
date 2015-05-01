@@ -222,17 +222,19 @@ public class Session implements SessionServiceSet {
 
     @Override
     public void onCloseSession(ServiceRequest<CloseSessionRequest, CloseSessionResponse> serviceRequest) throws UaException {
+        close(serviceRequest.getRequest().getDeleteSubscriptions());
+
+        serviceRequest.setResponse(new CloseSessionResponse(serviceRequest.createResponseHeader()));
+    }
+
+    void close(boolean deleteSubscriptions) {
         if (checkTimeoutFuture != null) {
             checkTimeoutFuture.cancel(false);
         }
 
-        boolean deleteSubscriptions = serviceRequest.getRequest().getDeleteSubscriptions();
-
         subscriptionManager.sessionClosed(deleteSubscriptions);
 
         listeners.forEach(listener -> listener.onSessionClosed(this, deleteSubscriptions));
-
-        serviceRequest.setResponse(new CloseSessionResponse(serviceRequest.createResponseHeader()));
     }
 
     @Override
