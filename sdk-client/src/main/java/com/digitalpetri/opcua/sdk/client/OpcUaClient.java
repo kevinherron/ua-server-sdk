@@ -26,6 +26,9 @@ import com.digitalpetri.opcua.stack.core.types.structured.BrowseNextResponse;
 import com.digitalpetri.opcua.stack.core.types.structured.BrowsePath;
 import com.digitalpetri.opcua.stack.core.types.structured.BrowseRequest;
 import com.digitalpetri.opcua.stack.core.types.structured.BrowseResponse;
+import com.digitalpetri.opcua.stack.core.types.structured.CallMethodRequest;
+import com.digitalpetri.opcua.stack.core.types.structured.CallRequest;
+import com.digitalpetri.opcua.stack.core.types.structured.CallResponse;
 import com.digitalpetri.opcua.stack.core.types.structured.CreateMonitoredItemsRequest;
 import com.digitalpetri.opcua.stack.core.types.structured.CreateMonitoredItemsResponse;
 import com.digitalpetri.opcua.stack.core.types.structured.CreateSubscriptionRequest;
@@ -276,6 +279,17 @@ public class OpcUaClient implements UaClient {
             UnregisterNodesRequest request = new UnregisterNodesRequest(
                     newRequestHeader(session.getAuthenticationToken()),
                     a(nodesToUnregister, NodeId.class));
+
+            return sendRequest(request);
+        });
+    }
+
+    @Override
+    public CompletableFuture<CallResponse> call(List<CallMethodRequest> methodsToCall) {
+        return getSession().thenCompose(session -> {
+            CallRequest request = new CallRequest(
+                    newRequestHeader(session.getAuthenticationToken()),
+                    a(methodsToCall, CallMethodRequest.class));
 
             return sendRequest(request);
         });

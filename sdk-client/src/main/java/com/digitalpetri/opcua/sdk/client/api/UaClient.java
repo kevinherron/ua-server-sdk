@@ -21,6 +21,7 @@ import java.util.concurrent.CompletableFuture;
 
 import com.digitalpetri.opcua.sdk.client.OpcUaClientConfig;
 import com.digitalpetri.opcua.sdk.client.api.services.AttributeServices;
+import com.digitalpetri.opcua.sdk.client.api.services.MethodServices;
 import com.digitalpetri.opcua.sdk.client.api.services.MonitoredItemServices;
 import com.digitalpetri.opcua.sdk.client.api.services.SubscriptionServices;
 import com.digitalpetri.opcua.sdk.client.api.services.ViewServices;
@@ -30,7 +31,7 @@ import com.digitalpetri.opcua.stack.core.types.structured.EndpointDescription;
 import com.digitalpetri.opcua.stack.core.types.structured.SignatureData;
 import com.digitalpetri.opcua.stack.core.types.structured.UserIdentityToken;
 
-public interface UaClient extends AttributeServices, MonitoredItemServices, SubscriptionServices, ViewServices {
+public interface UaClient extends AttributeServices, MethodServices, MonitoredItemServices, SubscriptionServices, ViewServices {
 
     /**
      * @return the {@link OpcUaClientConfig} for this client.
