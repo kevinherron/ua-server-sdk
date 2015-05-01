@@ -52,7 +52,7 @@ public class OpcUaSession implements UaSession {
     }
 
     @Override
-    public NodeId getAuthToken() {
+    public NodeId getAuthenticationToken() {
         return authToken;
     }
 

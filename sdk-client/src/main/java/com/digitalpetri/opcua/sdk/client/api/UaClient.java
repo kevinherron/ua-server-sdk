@@ -22,8 +22,8 @@ import java.util.concurrent.CompletableFuture;
 import com.digitalpetri.opcua.sdk.client.OpcUaClientConfig;
 import com.digitalpetri.opcua.sdk.client.api.services.AttributeServices;
 import com.digitalpetri.opcua.sdk.client.api.services.MonitoredItemServices;
-import com.digitalpetri.opcua.sdk.client.api.services.ViewServices;
 import com.digitalpetri.opcua.sdk.client.api.services.SubscriptionServices;
+import com.digitalpetri.opcua.sdk.client.api.services.ViewServices;
 import com.digitalpetri.opcua.stack.core.serialization.UaRequestMessage;
 import com.digitalpetri.opcua.stack.core.serialization.UaResponseMessage;
 import com.digitalpetri.opcua.stack.core.types.structured.EndpointDescription;
@@ -32,22 +32,47 @@ import com.digitalpetri.opcua.stack.core.types.structured.UserIdentityToken;
 
 public interface UaClient extends AttributeServices, MonitoredItemServices, SubscriptionServices, ViewServices {
 
+    /**
+     * @return the {@link OpcUaClientConfig} for this client.
+     */
     OpcUaClientConfig getConfig();
 
+    /**
+     * Connect to the configured endpoint.
+     *
+     * @return a {@link CompletableFuture} holding this client instance.
+     */
     CompletableFuture<UaClient> connect();
 
+    /**
+     * Disconnect from the configured endpoint.
+     *
+     * @return a {@link CompletableFuture} holding this client instance.
+     */
     CompletableFuture<UaClient> disconnect();
 
+    /**
+     * @return a {@link CompletableFuture} holding the {@link UaSession}.
+     */
     CompletableFuture<UaSession> getSession();
 
+    /**
+     * Send a {@link UaRequestMessage}.
+     *
+     * @param request the request to send.
+     * @return a {@link CompletableFuture} holding the response.
+     */
     <T extends UaResponseMessage> CompletableFuture<T> sendRequest(UaRequestMessage request);
 
+    /**
+     * Send multiple {@link UaRequestMessage}s.
+     *
+     * @param requests the requests to send.
+     * @param futures  the {@link CompletableFuture}s to complete when responses arrive.
+     */
     void sendRequests(List<? extends UaRequestMessage> requests,
                       List<CompletableFuture<? extends UaResponseMessage>> futures);
 
-    interface ClientCallback {
-        void onLateResponse(UaResponseMessage response);
-    }
 
     interface IdentityTokenProvider {
 

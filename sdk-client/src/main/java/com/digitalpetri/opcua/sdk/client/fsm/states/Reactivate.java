@@ -48,7 +48,7 @@ public class Reactivate implements SessionState {
         activateSession(context, previousSession).whenComplete((asr, ex) -> {
             if (asr != null) {
                 session = new OpcUaSession(
-                        previousSession.getAuthToken(),
+                        previousSession.getAuthenticationToken(),
                         previousSession.getSessionId(),
                         context.getClient().getConfig().getSessionName().get(),
                         previousSession.getSessionTimeout(),
@@ -110,7 +110,7 @@ public class Reactivate implements SessionState {
                     session.getServerNonce());
 
             ActivateSessionRequest request = new ActivateSessionRequest(
-                    client.newRequestHeader(session.getAuthToken()),
+                    client.newRequestHeader(session.getAuthenticationToken()),
                     clientSignature,
                     new SignedSoftwareCertificate[0],
                     new String[0],

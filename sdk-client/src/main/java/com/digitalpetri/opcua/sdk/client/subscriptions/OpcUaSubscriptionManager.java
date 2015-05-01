@@ -255,7 +255,7 @@ public class OpcUaSubscriptionManager {
 
             client.getSession().thenCompose(session -> {
                 RequestHeader requestHeader = new RequestHeader(
-                        session.getAuthToken(),
+                        session.getAuthenticationToken(),
                         DateTime.now(),
                         client.nextRequestHandle(),
                         uint(0),

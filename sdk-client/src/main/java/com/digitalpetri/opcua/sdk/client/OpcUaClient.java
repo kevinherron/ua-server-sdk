@@ -165,7 +165,7 @@ public class OpcUaClient implements UaClient {
 
         return getSession().thenCompose(session -> {
             ReadRequest request = new ReadRequest(
-                    newRequestHeader(session.getAuthToken()),
+                    newRequestHeader(session.getAuthenticationToken()),
                     maxAge,
                     timestampsToReturn,
                     a(readValueIds, ReadValueId.class));
@@ -178,7 +178,7 @@ public class OpcUaClient implements UaClient {
     public CompletableFuture<WriteResponse> write(List<WriteValue> writeValues) {
         return getSession().thenCompose(session -> {
             WriteRequest request = new WriteRequest(
-                    newRequestHeader(session.getAuthToken()),
+                    newRequestHeader(session.getAuthenticationToken()),
                     a(writeValues, WriteValue.class));
 
             return sendRequest(request);
@@ -193,7 +193,7 @@ public class OpcUaClient implements UaClient {
 
         return getSession().thenCompose(session -> {
             HistoryReadRequest request = new HistoryReadRequest(
-                    newRequestHeader(session.getAuthToken()),
+                    newRequestHeader(session.getAuthenticationToken()),
                     new ExtensionObject(historyReadDetails),
                     timestampsToReturn,
                     releaseContinuationPoints,
@@ -211,7 +211,7 @@ public class OpcUaClient implements UaClient {
                     .toArray(ExtensionObject[]::new);
 
             HistoryUpdateRequest request = new HistoryUpdateRequest(
-                    newRequestHeader(session.getAuthToken()),
+                    newRequestHeader(session.getAuthenticationToken()),
                     details);
 
             return sendRequest(request);
@@ -225,7 +225,7 @@ public class OpcUaClient implements UaClient {
 
         return getSession().thenCompose(session -> {
             BrowseRequest request = new BrowseRequest(
-                    newRequestHeader(session.getAuthToken()),
+                    newRequestHeader(session.getAuthenticationToken()),
                     viewDescription,
                     maxReferencesPerNode,
                     a(nodesToBrowse, BrowseDescription.class));
@@ -240,7 +240,7 @@ public class OpcUaClient implements UaClient {
 
         return getSession().thenCompose(session -> {
             BrowseNextRequest request = new BrowseNextRequest(
-                    newRequestHeader(session.getAuthToken()),
+                    newRequestHeader(session.getAuthenticationToken()),
                     releaseContinuationPoints,
                     a(continuationPoints, ByteString.class));
 
@@ -252,7 +252,7 @@ public class OpcUaClient implements UaClient {
     public CompletableFuture<TranslateBrowsePathsToNodeIdsResponse> translateBrowsePaths(List<BrowsePath> browsePaths) {
         return getSession().thenCompose(session -> {
             TranslateBrowsePathsToNodeIdsRequest request = new TranslateBrowsePathsToNodeIdsRequest(
-                    newRequestHeader(session.getAuthToken()),
+                    newRequestHeader(session.getAuthenticationToken()),
                     a(browsePaths, BrowsePath.class));
 
             return sendRequest(request);
@@ -263,7 +263,7 @@ public class OpcUaClient implements UaClient {
     public CompletableFuture<RegisterNodesResponse> registerNodes(List<NodeId> nodesToRegister) {
         return getSession().thenCompose(session -> {
             RegisterNodesRequest request = new RegisterNodesRequest(
-                    newRequestHeader(session.getAuthToken()),
+                    newRequestHeader(session.getAuthenticationToken()),
                     a(nodesToRegister, NodeId.class));
 
             return sendRequest(request);
@@ -274,7 +274,7 @@ public class OpcUaClient implements UaClient {
     public CompletableFuture<UnregisterNodesResponse> unregisterNodes(List<NodeId> nodesToUnregister) {
         return getSession().thenCompose(session -> {
             UnregisterNodesRequest request = new UnregisterNodesRequest(
-                    newRequestHeader(session.getAuthToken()),
+                    newRequestHeader(session.getAuthenticationToken()),
                     a(nodesToUnregister, NodeId.class));
 
             return sendRequest(request);
@@ -291,7 +291,7 @@ public class OpcUaClient implements UaClient {
 
         return getSession().thenCompose(session -> {
             CreateSubscriptionRequest request = new CreateSubscriptionRequest(
-                    newRequestHeader(session.getAuthToken()),
+                    newRequestHeader(session.getAuthenticationToken()),
                     requestedPublishingInterval,
                     requestedLifetimeCount,
                     requestedMaxKeepAliveCount,
@@ -313,7 +313,7 @@ public class OpcUaClient implements UaClient {
 
         return getSession().thenCompose(session -> {
             ModifySubscriptionRequest request = new ModifySubscriptionRequest(
-                    newRequestHeader(session.getAuthToken()),
+                    newRequestHeader(session.getAuthenticationToken()),
                     subscriptionId,
                     requestedPublishingInterval,
                     requestedLifetimeCount,
@@ -329,7 +329,7 @@ public class OpcUaClient implements UaClient {
     public CompletableFuture<DeleteSubscriptionsResponse> deleteSubscriptions(List<UInteger> subscriptionIds) {
         return getSession().thenCompose(session -> {
             DeleteSubscriptionsRequest request = new DeleteSubscriptionsRequest(
-                    newRequestHeader(session.getAuthToken()),
+                    newRequestHeader(session.getAuthenticationToken()),
                     a(subscriptionIds, UInteger.class));
 
             return sendRequest(request);
@@ -342,7 +342,7 @@ public class OpcUaClient implements UaClient {
 
         return getSession().thenCompose(session -> {
             TransferSubscriptionsRequest request = new TransferSubscriptionsRequest(
-                    newRequestHeader(session.getAuthToken()),
+                    newRequestHeader(session.getAuthenticationToken()),
                     a(subscriptionIds, UInteger.class),
                     sendInitialValues);
 
@@ -356,7 +356,7 @@ public class OpcUaClient implements UaClient {
 
         return getSession().thenCompose(session -> {
             SetPublishingModeRequest request = new SetPublishingModeRequest(
-                    newRequestHeader(session.getAuthToken()),
+                    newRequestHeader(session.getAuthenticationToken()),
                     publishingEnabled,
                     a(subscriptionIds, UInteger.class));
 
@@ -368,7 +368,7 @@ public class OpcUaClient implements UaClient {
     public CompletableFuture<PublishResponse> publish(List<SubscriptionAcknowledgement> subscriptionAcknowledgements) {
         return getSession().thenCompose(session -> {
             PublishRequest request = new PublishRequest(
-                    newRequestHeader(session.getAuthToken()),
+                    newRequestHeader(session.getAuthenticationToken()),
                     a(subscriptionAcknowledgements, SubscriptionAcknowledgement.class));
 
             return sendRequest(request);
@@ -379,7 +379,7 @@ public class OpcUaClient implements UaClient {
     public CompletableFuture<RepublishResponse> republish(UInteger subscriptionId, UInteger retransmitSequenceNumber) {
         return getSession().thenCompose(session -> {
             RepublishRequest request = new RepublishRequest(
-                    newRequestHeader(session.getAuthToken()),
+                    newRequestHeader(session.getAuthenticationToken()),
                     subscriptionId,
                     retransmitSequenceNumber);
 
@@ -394,7 +394,7 @@ public class OpcUaClient implements UaClient {
 
         return getSession().thenCompose(session -> {
             CreateMonitoredItemsRequest request = new CreateMonitoredItemsRequest(
-                    newRequestHeader(session.getAuthToken()),
+                    newRequestHeader(session.getAuthenticationToken()),
                     subscriptionId,
                     timestampsToReturn,
                     a(itemsToCreate, MonitoredItemCreateRequest.class));
@@ -410,7 +410,7 @@ public class OpcUaClient implements UaClient {
 
         return getSession().thenCompose(session -> {
             ModifyMonitoredItemsRequest request = new ModifyMonitoredItemsRequest(
-                    newRequestHeader(session.getAuthToken()),
+                    newRequestHeader(session.getAuthenticationToken()),
                     subscriptionId,
                     timestampsToReturn,
                     a(itemsToModify, MonitoredItemModifyRequest.class));
@@ -425,7 +425,7 @@ public class OpcUaClient implements UaClient {
 
         return getSession().thenCompose(session -> {
             DeleteMonitoredItemsRequest request = new DeleteMonitoredItemsRequest(
-                    newRequestHeader(session.getAuthToken()),
+                    newRequestHeader(session.getAuthenticationToken()),
                     subscriptionId,
                     a(monitoredItemIds, UInteger.class));
 
@@ -440,7 +440,7 @@ public class OpcUaClient implements UaClient {
 
         return getSession().thenCompose(session -> {
             SetMonitoringModeRequest request = new SetMonitoringModeRequest(
-                    newRequestHeader(session.getAuthToken()),
+                    newRequestHeader(session.getAuthenticationToken()),
                     subscriptionId,
                     monitoringMode,
                     a(monitoredItemIds, UInteger.class));
@@ -457,7 +457,7 @@ public class OpcUaClient implements UaClient {
 
         return getSession().thenCompose(session -> {
             SetTriggeringRequest request = new SetTriggeringRequest(
-                    newRequestHeader(session.getAuthToken()),
+                    newRequestHeader(session.getAuthenticationToken()),
                     subscriptionId,
                     triggeringItemId,
                     a(linksToAdd, UInteger.class),

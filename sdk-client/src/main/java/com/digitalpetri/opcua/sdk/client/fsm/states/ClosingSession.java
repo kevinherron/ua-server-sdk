@@ -26,7 +26,7 @@ public class ClosingSession implements SessionState {
                 UaTcpStackClient stackClient = client.getStackClient();
 
                 CloseSessionRequest request = new CloseSessionRequest(
-                        client.newRequestHeader(session.getAuthToken()), true);
+                        client.newRequestHeader(session.getAuthenticationToken()), true);
 
                 stackClient.sendRequest(request).whenComplete((r, t) ->
                         context.handleEvent(SessionStateEvent.CLOSE_SESSION_SUCCEEDED));
