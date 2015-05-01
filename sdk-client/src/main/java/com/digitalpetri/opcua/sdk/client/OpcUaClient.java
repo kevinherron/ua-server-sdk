@@ -3,11 +3,13 @@ package com.digitalpetri.opcua.sdk.client;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import com.digitalpetri.opcua.sdk.client.api.UaSession;
 import com.digitalpetri.opcua.sdk.client.api.UaClient;
+import com.digitalpetri.opcua.sdk.client.api.UaSession;
 import com.digitalpetri.opcua.sdk.client.fsm.SessionStateContext;
 import com.digitalpetri.opcua.sdk.client.fsm.SessionStateEvent;
 import com.digitalpetri.opcua.stack.client.UaTcpStackClient;
+import com.digitalpetri.opcua.stack.client.fsm.ConnectionStateObserver;
+import com.digitalpetri.opcua.stack.core.UaServiceFaultException;
 import com.digitalpetri.opcua.stack.core.serialization.UaRequestMessage;
 import com.digitalpetri.opcua.stack.core.serialization.UaResponseMessage;
 import com.digitalpetri.opcua.stack.core.types.builtin.ByteString;
@@ -55,6 +57,7 @@ import com.digitalpetri.opcua.stack.core.types.structured.RegisterNodesResponse;
 import com.digitalpetri.opcua.stack.core.types.structured.RepublishRequest;
 import com.digitalpetri.opcua.stack.core.types.structured.RepublishResponse;
 import com.digitalpetri.opcua.stack.core.types.structured.RequestHeader;
+import com.digitalpetri.opcua.stack.core.types.structured.ServiceFault;
 import com.digitalpetri.opcua.stack.core.types.structured.SetMonitoringModeRequest;
 import com.digitalpetri.opcua.stack.core.types.structured.SetMonitoringModeResponse;
 import com.digitalpetri.opcua.stack.core.types.structured.SetPublishingModeRequest;
@@ -72,18 +75,23 @@ import com.digitalpetri.opcua.stack.core.types.structured.ViewDescription;
 import com.digitalpetri.opcua.stack.core.types.structured.WriteRequest;
 import com.digitalpetri.opcua.stack.core.types.structured.WriteResponse;
 import com.digitalpetri.opcua.stack.core.types.structured.WriteValue;
+import com.digitalpetri.opcua.stack.core.util.ExecutionQueue;
 import com.digitalpetri.opcua.stack.core.util.LongSequence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.digitalpetri.opcua.sdk.core.util.ConversionUtil.a;
 import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
+import static com.google.common.collect.Lists.newCopyOnWriteArrayList;
 
 public class OpcUaClient implements UaClient {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final LongSequence requestHandles = new LongSequence(0, UInteger.MAX_VALUE);
+
+    private final List<ServiceFaultHandler> faultHandlers = newCopyOnWriteArrayList();
+    private final ExecutionQueue faultNotificationQueue;
 
     private final UaTcpStackClient stackClient;
     private final SessionStateContext stateContext;
@@ -93,8 +101,20 @@ public class OpcUaClient implements UaClient {
     public OpcUaClient(OpcUaClientConfig config) {
         this.config = config;
 
-        stackClient = config.getStackClient();
         stateContext = new SessionStateContext(this);
+
+        stackClient = config.getStackClient();
+
+        final ConnectionStateObserver observer = new ConnectionStateObserver() {
+            @Override
+            public void onConnectionLost() {
+                stateContext.handleEvent(SessionStateEvent.ERR_CONNECTION_LOST);
+            }
+        };
+
+        stackClient.addStateObserver(observer);
+
+        faultNotificationQueue = new ExecutionQueue(config.getExecutorService());
     }
 
     public OpcUaClientConfig getConfig() {
@@ -127,12 +147,13 @@ public class OpcUaClient implements UaClient {
 
     @Override
     public CompletableFuture<UaClient> connect() {
-        return getSession().thenApply(s -> OpcUaClient.this);
+        return stackClient.connect().thenCompose(
+                c -> getSession().thenApply(s -> OpcUaClient.this));
     }
 
     @Override
     public CompletableFuture<UaClient> disconnect() {
-        stateContext.handleEvent(SessionStateEvent.CONNECTION_LOST);
+        stateContext.handleEvent(SessionStateEvent.CLOSE_SESSION_REQUESTED);
 
         return CompletableFuture.completedFuture(this);
     }
@@ -453,7 +474,13 @@ public class OpcUaClient implements UaClient {
 
     @Override
     public <T extends UaResponseMessage> CompletableFuture<T> sendRequest(UaRequestMessage request) {
-        return stackClient.sendRequest(request);
+        CompletableFuture<T> f = stackClient.sendRequest(request);
+
+        if (faultHandlers.size() > 0) {
+            f.whenCompleteAsync(this::maybeHandleServiceFault, getConfig().getExecutorService());
+        }
+
+        return f;
     }
 
     @Override
@@ -461,6 +488,29 @@ public class OpcUaClient implements UaClient {
                              List<CompletableFuture<? extends UaResponseMessage>> futures) {
 
         stackClient.sendRequests(requests, futures);
+    }
+
+    private void maybeHandleServiceFault(UaResponseMessage response, Throwable ex) {
+        if (faultHandlers.isEmpty()) return;
+
+        if (ex instanceof UaServiceFaultException) {
+            UaServiceFaultException faultException = (UaServiceFaultException) ex;
+            ServiceFault serviceFault = faultException.getServiceFault();
+
+            faultNotificationQueue.submit(() -> faultHandlers.stream().forEach(h -> {
+                if (h.accept(serviceFault)) {
+                    h.handle(serviceFault);
+                }
+            }));
+        }
+    }
+
+    public void addFaultHandler(ServiceFaultHandler faultHandler) {
+        faultHandlers.add(faultHandler);
+    }
+
+    public void removeFaultHandler(ServiceFaultHandler faultHandler) {
+        faultHandlers.remove(faultHandler);
     }
 
 }
