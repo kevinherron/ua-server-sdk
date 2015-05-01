@@ -44,7 +44,7 @@ public class TransferringSubscriptions implements SessionState {
     }
 
     @Override
-    public CompletableFuture<UaSession> sessionFuture() {
+    public CompletableFuture<UaSession> getSessionFuture() {
         return sessionFuture;
     }
     

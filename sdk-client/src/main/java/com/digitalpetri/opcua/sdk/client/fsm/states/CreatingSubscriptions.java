@@ -41,18 +41,18 @@ public class CreatingSubscriptions implements SessionState {
     @Override
     public SessionState transition(SessionStateEvent event, SessionStateContext context) {
         switch (event) {
-            case CREATE_SUBSCRIPTIONS_FAILED:
+            case ERR_CREATE_SUBSCRIPTIONS_FAILED:
                 return new Inactive();
 
             case CREATE_SUBSCRIPTIONS_SUCCEEDED:
                 return new Active(session, sessionFuture);
         }
-        
+
         return this;
     }
 
     @Override
-    public CompletableFuture<UaSession> sessionFuture() {
+    public CompletableFuture<UaSession> getSessionFuture() {
         return sessionFuture;
     }
 

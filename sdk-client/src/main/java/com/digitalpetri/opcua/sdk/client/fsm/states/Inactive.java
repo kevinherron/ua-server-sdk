@@ -22,10 +22,16 @@ import com.digitalpetri.opcua.sdk.client.api.UaSession;
 import com.digitalpetri.opcua.sdk.client.fsm.SessionState;
 import com.digitalpetri.opcua.sdk.client.fsm.SessionStateContext;
 import com.digitalpetri.opcua.sdk.client.fsm.SessionStateEvent;
+import com.digitalpetri.opcua.stack.core.StatusCodes;
+import com.digitalpetri.opcua.stack.core.UaException;
 
 public class Inactive implements SessionState {
 
-    private final CompletableFuture<UaSession> sessionFuture = new CompletableFuture<>();
+    private final CompletableFuture<UaSession> future = new CompletableFuture<>();
+
+    public Inactive() {
+        future.completeExceptionally(new UaException(StatusCodes.Bad_SessionClosed, "session inactive"));
+    }
 
     @Override
     public void activate(SessionStateEvent event, SessionStateContext context) {
@@ -35,16 +41,16 @@ public class Inactive implements SessionState {
     @Override
     public SessionState transition(SessionStateEvent event, SessionStateContext context) {
         switch (event) {
-            case CREATE_SESSION_REQUESTED:
-                return new CreatingSession(sessionFuture);
+            case CREATE_AND_ACTIVATE_REQUESTED:
+                return new CreateAndActivate(new CompletableFuture<>());
         }
 
         return this;
     }
 
     @Override
-    public CompletableFuture<UaSession> sessionFuture() {
-        return sessionFuture;
+    public CompletableFuture<UaSession> getSessionFuture() {
+        return future;
     }
 
 }

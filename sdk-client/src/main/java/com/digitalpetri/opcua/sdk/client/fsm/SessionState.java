@@ -42,6 +42,6 @@ public interface SessionState {
     /**
      * @return the {@link CompletableFuture} holding the {@link UaSession} for this client connection.
      */
-    CompletableFuture<UaSession> sessionFuture();
+    CompletableFuture<UaSession> getSessionFuture();
 
 }

@@ -16,23 +16,22 @@
 
 package com.digitalpetri.opcua.sdk.client;
 
-import java.security.cert.X509Certificate;
-import java.util.Optional;
-import javax.annotation.Nullable;
-
 import com.digitalpetri.opcua.sdk.client.api.UaSession;
+import com.digitalpetri.opcua.stack.core.types.builtin.ByteString;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.digitalpetri.opcua.stack.core.types.structured.SignedSoftwareCertificate;
 
 public class OpcUaSession implements UaSession {
 
+    private volatile ByteString serverNonce = ByteString.NULL_VALUE;
+
     private final NodeId authToken;
     private final NodeId sessionId;
     private final String sessionName;
     private final double sessionTimeout;
     private final UInteger maxRequestSize;
-    private final X509Certificate serverCertificate;
+    private final ByteString serverCertificate;
     private final SignedSoftwareCertificate[] serverSoftwareCertificates;
 
     public OpcUaSession(NodeId authToken,
@@ -40,7 +39,7 @@ public class OpcUaSession implements UaSession {
                         String sessionName,
                         double sessionTimeout,
                         UInteger maxRequestSize,
-                        @Nullable X509Certificate serverCertificate,
+                        ByteString serverCertificate,
                         SignedSoftwareCertificate[] serverSoftwareCertificates) {
 
         this.authToken = authToken;
@@ -78,13 +77,22 @@ public class OpcUaSession implements UaSession {
     }
 
     @Override
-    public Optional<X509Certificate> getServerCertificate() {
-        return Optional.ofNullable(serverCertificate);
+    public SignedSoftwareCertificate[] getServerSoftwareCertificates() {
+        return serverSoftwareCertificates;
     }
 
     @Override
-    public SignedSoftwareCertificate[] getServerSoftwareCertificates() {
-        return serverSoftwareCertificates;
+    public ByteString getServerCertificate() {
+        return serverCertificate;
+    }
+
+    @Override
+    public ByteString getServerNonce() {
+        return serverNonce;
+    }
+
+    public void setServerNonce(ByteString serverNonce) {
+        this.serverNonce = serverNonce;
     }
 
 }

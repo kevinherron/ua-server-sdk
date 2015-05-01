@@ -18,12 +18,20 @@ package com.digitalpetri.opcua.sdk.client.fsm.states;
 
 import java.util.concurrent.CompletableFuture;
 
+import com.digitalpetri.opcua.sdk.client.OpcUaClient;
+import com.digitalpetri.opcua.sdk.client.ServiceFaultHandler;
 import com.digitalpetri.opcua.sdk.client.api.UaSession;
 import com.digitalpetri.opcua.sdk.client.fsm.SessionState;
 import com.digitalpetri.opcua.sdk.client.fsm.SessionStateContext;
 import com.digitalpetri.opcua.sdk.client.fsm.SessionStateEvent;
+import com.digitalpetri.opcua.stack.core.StatusCodes;
+import com.digitalpetri.opcua.stack.core.types.structured.ServiceFault;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Active implements SessionState {
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final UaSession session;
     private final CompletableFuture<UaSession> sessionFuture;
@@ -35,21 +43,47 @@ public class Active implements SessionState {
 
     @Override
     public void activate(SessionStateEvent event, SessionStateContext context) {
+        final OpcUaClient client = context.getClient();
+
+        ServiceFaultHandler faultHandler = new ServiceFaultHandler() {
+            @Override
+            public boolean accept(ServiceFault serviceFault) {
+                long statusCode = serviceFault.getResponseHeader().getServiceResult().getValue();
+
+                return statusCode == StatusCodes.Bad_SessionIdInvalid;
+            }
+
+            @Override
+            public void handle(ServiceFault serviceFault) {
+                logger.warn("ServiceFault: {}", serviceFault.getResponseHeader().getServiceResult());
+                client.removeFaultHandler(this);
+                context.handleEvent(SessionStateEvent.CREATE_AND_ACTIVATE_REQUESTED);
+            }
+        };
+
+        client.addFaultHandler(faultHandler);
+
         sessionFuture.complete(session);
     }
 
     @Override
     public SessionState transition(SessionStateEvent event, SessionStateContext context) {
         switch (event) {
-            case CONNECTION_LOST:
-                return new Inactive();
+            case CREATE_AND_ACTIVATE_REQUESTED:
+                return new CreateAndActivate(new CompletableFuture<>());
+
+            case CLOSE_SESSION_REQUESTED:
+                return new ClosingSession(sessionFuture);
+
+            case ERR_CONNECTION_LOST:
+                return new Reactivate(session);
         }
         
         return this;
     }
 
     @Override
-    public CompletableFuture<UaSession> sessionFuture() {
+    public CompletableFuture<UaSession> getSessionFuture() {
         return sessionFuture;
     }
 

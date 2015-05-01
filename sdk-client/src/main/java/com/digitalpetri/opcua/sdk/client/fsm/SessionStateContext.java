@@ -16,20 +16,22 @@
 
 package com.digitalpetri.opcua.sdk.client.fsm;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
+
 import com.digitalpetri.opcua.sdk.client.OpcUaClient;
 import com.digitalpetri.opcua.sdk.client.api.UaSession;
+import com.digitalpetri.opcua.sdk.client.fsm.states.Active;
 import com.digitalpetri.opcua.sdk.client.fsm.states.Inactive;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class SessionStateContext {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final AtomicReference<SessionState> state = new AtomicReference<>(new Inactive());
+    private final AtomicReference<SessionState> state =
+            new AtomicReference<>(new Inactive());
 
     private final OpcUaClient client;
 
@@ -37,32 +39,33 @@ public class SessionStateContext {
         this.client = client;
     }
 
-    public synchronized SessionState handleEvent(SessionStateEvent event) {
+    public synchronized void handleEvent(SessionStateEvent event) {
         SessionState currState = state.get();
         SessionState nextState = currState.transition(event, this);
-
-        state.set(nextState);
 
         logger.debug("S({}) x E({}) = S'({})",
                 currState.getClass().getSimpleName(), event, nextState.getClass().getSimpleName());
 
         if (nextState != currState) {
+            state.set(nextState);
             nextState.activate(event, this);
         }
+    }
 
-        return nextState;
+    public synchronized CompletableFuture<UaSession> getSession() {
+        if (!isActive()) {
+            handleEvent(SessionStateEvent.CREATE_AND_ACTIVATE_REQUESTED);
+        }
+
+        return state.get().getSessionFuture();
+    }
+
+    public boolean isActive() {
+        return state.get() instanceof Active;
     }
 
     public OpcUaClient getClient() {
         return client;
-    }
-
-    public CompletableFuture<UaSession> getSession() {
-        if (state.get() instanceof Inactive) {
-            handleEvent(SessionStateEvent.CREATE_SESSION_REQUESTED);
-        }
-
-        return state.get().sessionFuture();
     }
 
 }

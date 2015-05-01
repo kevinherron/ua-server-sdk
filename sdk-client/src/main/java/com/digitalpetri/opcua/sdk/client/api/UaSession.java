@@ -16,6 +16,7 @@
 
 package com.digitalpetri.opcua.sdk.client.api;
 
+import com.digitalpetri.opcua.stack.core.types.builtin.ByteString;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.digitalpetri.opcua.stack.core.types.structured.SignedSoftwareCertificate;
@@ -35,7 +36,9 @@ public interface UaSession {
 
     UInteger getMaxRequestSize();
 
-    Optional<X509Certificate> getServerCertificate();
+    ByteString getServerCertificate();
+
+    ByteString getServerNonce();
 
     SignedSoftwareCertificate[] getServerSoftwareCertificates();
 
