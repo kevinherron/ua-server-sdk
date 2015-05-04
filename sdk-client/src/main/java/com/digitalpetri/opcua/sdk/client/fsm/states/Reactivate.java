@@ -26,6 +26,7 @@ import com.digitalpetri.opcua.stack.core.types.structured.SignatureData;
 import com.digitalpetri.opcua.stack.core.types.structured.SignedSoftwareCertificate;
 import com.digitalpetri.opcua.stack.core.types.structured.UserIdentityToken;
 import com.digitalpetri.opcua.stack.core.util.SignatureUtil;
+import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -100,9 +101,11 @@ public class Reactivate implements SessionState {
             EndpointDescription endpoint = stackClient.getEndpoint()
                     .orElseThrow(() -> new Exception("cannot create session with no endpoint configured"));
 
-            Object[] oa = client.getConfig().getIdentityTokenProvider().getIdentityToken(endpoint);
-            UserIdentityToken userIdentityToken = (UserIdentityToken) oa[0];
-            SignatureData userTokenSignature = (SignatureData) oa[1];
+            Tuple2<UserIdentityToken, SignatureData> tuple =
+                    client.getConfig().getIdentityProvider().getIdentityToken(endpoint, session.getServerNonce());
+
+            UserIdentityToken userIdentityToken = tuple.v1();
+            SignatureData userTokenSignature = tuple.v2();
 
             SignatureData clientSignature = buildClientSignature(
                     stackClient.getSecureChannel(),

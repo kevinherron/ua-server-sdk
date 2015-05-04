@@ -20,8 +20,8 @@ import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 
-import com.digitalpetri.opcua.sdk.client.api.UaClient;
-import com.digitalpetri.opcua.sdk.client.api.UaClient.IdentityTokenProvider;
+import com.digitalpetri.opcua.sdk.client.api.identity.AnonymousProvider;
+import com.digitalpetri.opcua.sdk.client.api.identity.IdentityProvider;
 import com.digitalpetri.opcua.stack.client.UaTcpStackClient;
 import com.digitalpetri.opcua.stack.core.Stack;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
@@ -29,6 +29,7 @@ import com.digitalpetri.opcua.stack.core.types.enumerated.UserTokenType;
 import com.digitalpetri.opcua.stack.core.types.structured.AnonymousIdentityToken;
 import com.digitalpetri.opcua.stack.core.types.structured.SignatureData;
 import com.digitalpetri.opcua.stack.core.types.structured.UserTokenPolicy;
+import org.jooq.lambda.tuple.Tuple2;
 
 import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
@@ -39,7 +40,7 @@ public class OpcUaClientConfig {
     private final double sessionTimeout;
     private final UInteger maxResponseMessageSize;
     private final double requestTimeout;
-    private final IdentityTokenProvider identityTokenProvider;
+    private final IdentityProvider identityProvider;
     private final ExecutorService executorService;
 
     public OpcUaClientConfig(UaTcpStackClient stackClient,
@@ -47,7 +48,7 @@ public class OpcUaClientConfig {
                              double sessionTimeout,
                              UInteger maxResponseMessageSize,
                              double requestTimeout,
-                             IdentityTokenProvider identityTokenProvider,
+                             IdentityProvider identityProvider,
                              ExecutorService executorService) {
 
         this.stackClient = stackClient;
@@ -55,7 +56,7 @@ public class OpcUaClientConfig {
         this.sessionTimeout = sessionTimeout;
         this.maxResponseMessageSize = maxResponseMessageSize;
         this.requestTimeout = requestTimeout;
-        this.identityTokenProvider = identityTokenProvider;
+        this.identityProvider = identityProvider;
         this.executorService = executorService;
     }
 
@@ -79,8 +80,8 @@ public class OpcUaClientConfig {
         return requestTimeout;
     }
 
-    public UaClient.IdentityTokenProvider getIdentityTokenProvider() {
-        return identityTokenProvider;
+    public IdentityProvider getIdentityProvider() {
+        return identityProvider;
     }
 
     public ExecutorService getExecutorService() {
@@ -101,18 +102,7 @@ public class OpcUaClientConfig {
         private double requestTimeout = 60000;
         private ExecutorService executorService = Stack.sharedExecutor();
 
-        private UaClient.IdentityTokenProvider identityTokenProvider = e -> {
-            String policyId = Arrays.stream(e.getUserIdentityTokens())
-                    .filter(t -> t.getTokenType() == UserTokenType.Anonymous)
-                    .findFirst()
-                    .map(UserTokenPolicy::getPolicyId)
-                    .orElseThrow(() -> new Exception("no anonymous token policy found"));
-
-            return new Object[] {
-                    new AnonymousIdentityToken(policyId),
-                    new SignatureData()
-            };
-        };
+        private IdentityProvider identityProvider = new AnonymousProvider();
 
         public OpcUaClientConfigBuilder setStackClient(UaTcpStackClient stackClient) {
             this.stackClient = stackClient;
@@ -139,8 +129,8 @@ public class OpcUaClientConfig {
             return this;
         }
 
-        public OpcUaClientConfigBuilder setIdentityTokenProvider(IdentityTokenProvider identityTokenProvider) {
-            this.identityTokenProvider = identityTokenProvider;
+        public OpcUaClientConfigBuilder setIdentityProvider(IdentityProvider identityProvider) {
+            this.identityProvider = identityProvider;
             return this;
         }
 
@@ -156,7 +146,7 @@ public class OpcUaClientConfig {
                     sessionTimeout,
                     maxResponseMessageSize,
                     requestTimeout,
-                    identityTokenProvider,
+                    identityProvider,
                     executorService);
         }
 

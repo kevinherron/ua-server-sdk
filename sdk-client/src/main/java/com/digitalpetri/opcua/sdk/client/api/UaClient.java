@@ -30,6 +30,7 @@ import com.digitalpetri.opcua.stack.core.serialization.UaResponseMessage;
 import com.digitalpetri.opcua.stack.core.types.structured.EndpointDescription;
 import com.digitalpetri.opcua.stack.core.types.structured.SignatureData;
 import com.digitalpetri.opcua.stack.core.types.structured.UserIdentityToken;
+import org.jooq.lambda.tuple.Tuple2;
 
 public interface UaClient extends AttributeServices, MethodServices, MonitoredItemServices, SubscriptionServices, ViewServices {
 
@@ -74,18 +75,5 @@ public interface UaClient extends AttributeServices, MethodServices, MonitoredIt
     void sendRequests(List<? extends UaRequestMessage> requests,
                       List<CompletableFuture<? extends UaResponseMessage>> futures);
 
-
-    interface IdentityTokenProvider {
-
-        /**
-         * Return the {@link UserIdentityToken} and {@link SignatureData} (if applicable for the token) to use when
-         * activating a session.
-         *
-         * @param endpoint the {@link EndpointDescription} being connected to.
-         * @return an Object[] containing the {@link UserIdentityToken} at index 0 and the {@link SignatureData} at index 1.
-         */
-        Object[] getIdentityToken(EndpointDescription endpoint) throws Exception;
-
-    }
 
 }
