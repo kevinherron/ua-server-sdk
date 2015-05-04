@@ -31,6 +31,7 @@ import com.digitalpetri.opcua.stack.core.UaException;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.DateTime;
 import com.digitalpetri.opcua.stack.core.types.builtin.ExtensionObject;
+import com.digitalpetri.opcua.stack.core.types.builtin.StatusCode;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.digitalpetri.opcua.stack.core.types.enumerated.TimestampsToReturn;
@@ -129,6 +130,7 @@ public class OpcUaSubscriptionManager {
 
         return future.thenApply(response -> {
             OpcUaSubscription subscription = new OpcUaSubscription(
+                    client,
                     response.getSubscriptionId(),
                     response.getRevisedPublishingInterval(),
                     response.getRevisedLifetimeCount(),
@@ -274,13 +276,25 @@ public class OpcUaSubscriptionManager {
                 if (ex != null) {
                     logger.warn("Publish service failure: {}", ex.getMessage(), ex);
 
+                    StatusCode statusCode = StatusCode.BAD;
+                    if (ex instanceof UaException) {
+                        statusCode = ((UaException) ex).getStatusCode();
+                    } else if (ex.getCause() instanceof UaException) {
+                        statusCode = ((UaException) ex.getCause()).getStatusCode();
+                    }
+
+                    if (statusCode.getValue() != StatusCodes.Bad_NoSubscription &&
+                            statusCode.getValue() != StatusCodes.Bad_TooManyPublishRequests) {
+                        maybeSendPublishRequest();
+                    }
+
                     // TODO Re-book-keep the SubscriptionAcknowledgements
-                    // TODO Log a warning? Notify someone?
                 } else {
                     processingQueue.submit(() -> onPublishComplete(response));
+
+                    maybeSendPublishRequest();
                 }
 
-                maybeSendPublishRequest();
             }, client.getConfig().getExecutorService());
         } else {
             pendingPublishes.decrementAndGet();

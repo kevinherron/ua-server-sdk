@@ -43,14 +43,14 @@ public class OpcUaMonitoredItem {
     private final ReadValueId readValueId;
     private final UInteger monitoredItemId;
 
-    public OpcUaMonitoredItem(UInteger clientHandle,
-                              ReadValueId readValueId,
-                              UInteger monitoredItemId,
-                              StatusCode statusCode,
-                              double revisedSamplingInterval,
-                              UInteger revisedQueueSize,
-                              ExtensionObject filterResult,
-                              MonitoringMode monitoringMode) {
+    OpcUaMonitoredItem(UInteger clientHandle,
+                       ReadValueId readValueId,
+                       UInteger monitoredItemId,
+                       StatusCode statusCode,
+                       double revisedSamplingInterval,
+                       UInteger revisedQueueSize,
+                       ExtensionObject filterResult,
+                       MonitoringMode monitoringMode) {
 
         this.clientHandle = clientHandle;
         this.readValueId = readValueId;

@@ -44,25 +44,28 @@ public class OpcUaSubscription {
     private final Map<UInteger, OpcUaMonitoredItem> itemsByClientHandle = Maps.newConcurrentMap();
     private final Map<UInteger, OpcUaMonitoredItem> itemsByServerHandle = Maps.newConcurrentMap();
 
-    private final UInteger subscriptionId;
-
     private volatile long lastSequenceNumber = 0L;
-
     private volatile double revisedPublishingInterval = 0.0;
+
     private volatile UInteger revisedLifetimeCount = uint(0);
+
     private volatile UInteger revisedMaxKeepAliveCount = uint(0);
     private volatile UInteger maxNotificationsPerPublish;
     private volatile boolean publishingEnabled;
     private volatile UByte priority;
 
-    public OpcUaSubscription(UInteger subscriptionId,
-                             double revisedPublishingInterval,
-                             UInteger revisedLifetimeCount,
-                             UInteger revisedMaxKeepAliveCount,
-                             UInteger maxNotificationsPerPublish,
-                             boolean publishingEnabled,
-                             UByte priority) {
+    private final OpcUaClient client;
+    private final UInteger subscriptionId;
 
+    OpcUaSubscription(OpcUaClient client, UInteger subscriptionId,
+                      double revisedPublishingInterval,
+                      UInteger revisedLifetimeCount,
+                      UInteger revisedMaxKeepAliveCount,
+                      UInteger maxNotificationsPerPublish,
+                      boolean publishingEnabled,
+                      UByte priority) {
+
+        this.client = client;
         this.subscriptionId = subscriptionId;
         this.revisedPublishingInterval = revisedPublishingInterval;
         this.revisedLifetimeCount = revisedLifetimeCount;
@@ -72,8 +75,7 @@ public class OpcUaSubscription {
         this.priority = priority;
     }
 
-    public CompletableFuture<List<OpcUaMonitoredItem>> createMonitoredItems(OpcUaClient client,
-                                                                            TimestampsToReturn timestampsToReturn,
+    public CompletableFuture<List<OpcUaMonitoredItem>> createMonitoredItems(TimestampsToReturn timestampsToReturn,
                                                                             List<MonitoredItemCreateRequest> itemsToCreate) {
 
         return client.createMonitoredItems(
@@ -111,8 +113,7 @@ public class OpcUaSubscription {
         });
     }
 
-    public CompletableFuture<List<StatusCode>> modifyMonitoredItems(OpcUaClient client,
-                                                                    TimestampsToReturn timestampsToReturn,
+    public CompletableFuture<List<StatusCode>> modifyMonitoredItems(TimestampsToReturn timestampsToReturn,
                                                                     List<MonitoredItemModifyRequest> itemsToModify) {
 
         CompletableFuture<ModifyMonitoredItemsResponse> future =
@@ -144,8 +145,7 @@ public class OpcUaSubscription {
         });
     }
 
-    public CompletableFuture<List<StatusCode>> deleteMonitoredItems(OpcUaClient client,
-                                                                    List<OpcUaMonitoredItem> itemsToDelete) {
+    public CompletableFuture<List<StatusCode>> deleteMonitoredItems(List<OpcUaMonitoredItem> itemsToDelete) {
 
         List<UInteger> monitoredItemIds = itemsToDelete.stream()
                 .map(OpcUaMonitoredItem::getMonitoredItemId)
@@ -158,8 +158,7 @@ public class OpcUaSubscription {
         });
     }
 
-    public CompletableFuture<List<StatusCode>> setMonitoringMode(OpcUaClient client,
-                                                                 MonitoringMode monitoringMode,
+    public CompletableFuture<List<StatusCode>> setMonitoringMode(MonitoringMode monitoringMode,
                                                                  List<OpcUaMonitoredItem> items) {
 
         List<UInteger> monitoredItemIds = items.stream()
@@ -184,13 +183,13 @@ public class OpcUaSubscription {
         });
     }
 
-    public CompletableFuture<StatusCode> setPublishingMode(OpcUaClient client, boolean publishingEnabled) {
+    public CompletableFuture<StatusCode> setPublishingMode(boolean publishingEnabled) {
         return client.setPublishingMode(publishingEnabled, newArrayList(subscriptionId))
                 .thenApply(response -> {
                     StatusCode statusCode = response.getResults()[0];
 
                     if (statusCode.isGood()) {
-                        this.publishingEnabled = publishingEnabled;
+                        setPublishingEnabled(publishingEnabled);
                     }
 
                     return statusCode;
