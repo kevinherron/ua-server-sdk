@@ -20,7 +20,11 @@
 package com.digitalpetri.opcua.sdk.client.fsm.states;
 
 import java.nio.ByteBuffer;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.Signature;
+import java.security.SignatureException;
 import java.security.cert.X509Certificate;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -60,6 +64,8 @@ public class CreateAndActivate implements SessionState {
 
     private final AtomicReference<OpcUaSession> session = new AtomicReference<>();
 
+    private volatile ByteString clientNonce = ByteString.NULL_VALUE;
+
     private final CompletableFuture<UaSession> future;
 
     public CreateAndActivate(CompletableFuture<UaSession> future) {
@@ -72,20 +78,23 @@ public class CreateAndActivate implements SessionState {
             logger.debug("CreateSession succeeded, id={}, timeout={}",
                     csr.getSessionId(), csr.getRevisedSessionTimeout());
 
+            SecurityPolicy securityPolicy =
+                    context.getClient().getStackClient().getSecureChannel().getSecurityPolicy();
+
+            if (securityPolicy != SecurityPolicy.None) {
+                try {
+                    verifyServerSignature(context, csr);
+                } catch (Exception e) {
+                    logger.warn("Failed to verify SignatureData from CreateSessionResponse: {}", e.getMessage(), e);
+
+                    CompletableFuture<OpcUaSession> failed = new CompletableFuture<>();
+                    failed.completeExceptionally(e);
+                    return failed;
+                }
+            }
+
             return activateSession(context, csr).thenApply(asr -> {
                 logger.debug("ActivationSession succeeded, id={}", csr.getSessionId());
-
-                ByteString bs = csr.getServerCertificate();
-
-                X509Certificate serverCertificate = null;
-
-                if (bs.isNotNull()) {
-                    try {
-                        serverCertificate = CertificateUtil.decodeCertificate(bs.bytes());
-                    } catch (UaException e) {
-                        logger.warn("Error decoding server certificate: {}", e.getMessage(), e);
-                    }
-                }
 
                 OpcUaSession session = new OpcUaSession(
                         csr.getAuthenticationToken(),
@@ -93,7 +102,7 @@ public class CreateAndActivate implements SessionState {
                         context.getClient().getConfig().getSessionName().get(),
                         csr.getRevisedSessionTimeout(),
                         csr.getMaxRequestMessageSize(),
-                        bs,
+                        csr.getServerCertificate(),
                         csr.getServerSoftwareCertificates());
 
                 session.setServerNonce(asr.getServerNonce());
@@ -118,6 +127,29 @@ public class CreateAndActivate implements SessionState {
         });
     }
 
+    private void verifyServerSignature(SessionStateContext context, CreateSessionResponse csr) throws UaException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+        ByteString serverCertificateBs = csr.getServerCertificate();
+        ByteString clientCertificateBs =
+                context.getClient().getStackClient().getSecureChannel().getLocalCertificateBytes();
+
+        ByteBuffer clientNonceAndCertificateBytes =
+                ByteBuffer.allocate(clientNonce.length() + clientCertificateBs.length());
+
+        clientNonceAndCertificateBytes.put(Optional.ofNullable(clientCertificateBs.bytes()).orElse(new byte[0]));
+        clientNonceAndCertificateBytes.put(Optional.ofNullable(clientNonce.bytes()).orElse(new byte[0]));
+        clientNonceAndCertificateBytes.flip();
+
+        X509Certificate serverCertificate = CertificateUtil.decodeCertificate(serverCertificateBs.bytes());
+        SignatureData signatureData = csr.getServerSignature();
+        SecurityAlgorithm algorithm = SecurityAlgorithm.fromUri(signatureData.getAlgorithm());
+        ByteString signatureBs = signatureData.getSignature();
+
+        Signature signature = Signature.getInstance(algorithm.getTransformation());
+        signature.initVerify(serverCertificate);
+        signature.update(clientNonceAndCertificateBytes);
+        signature.verify(signatureBs.bytes());
+    }
+
     private CompletableFuture<CreateSessionResponse> createSession(SessionStateContext context) {
         OpcUaClient client = context.getClient();
         UaTcpStackClient stackClient = client.getStackClient();
@@ -132,10 +164,7 @@ public class CreateAndActivate implements SessionState {
             }
         }).orElse(null);
 
-
-        SecurityAlgorithm algorithm = secureChannel.getSecurityPolicy()
-                .getAsymmetricEncryptionAlgorithm();
-        ByteString clientNonce = NonceUtil.generateNonce(algorithm);
+        clientNonce = NonceUtil.generateNonce(32);
 
         ByteString clientCertificate;
         try {
@@ -219,8 +248,7 @@ public class CreateAndActivate implements SessionState {
                 signature = SignatureUtil.sign(
                         signatureAlgorithm,
                         privateKey,
-                        ByteBuffer.wrap(signature)
-                );
+                        ByteBuffer.wrap(signature));
             } catch (Throwable t) {
                 logger.warn("Asymmetric signing failed: {}", t.getMessage(), t);
             }
