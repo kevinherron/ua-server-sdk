@@ -92,8 +92,12 @@ public class OpcUaClientConfig {
     public static class OpcUaClientConfigBuilder {
 
         private UaTcpStackClient stackClient;
+
         private Supplier<String> sessionName =
-                () -> "UaSession:" + System.currentTimeMillis();
+                () -> String.format("UaSession:%s:%s",
+                        stackClient.getApplication().getApplicationName().getText(),
+                        System.currentTimeMillis());
+
         private double sessionTimeout = 120000;
         private UInteger maxResponseMessageSize = uint(0);
         private double requestTimeout = 60000;
