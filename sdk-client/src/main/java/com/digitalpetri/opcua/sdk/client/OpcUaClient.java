@@ -120,6 +120,7 @@ public class OpcUaClient implements UaClient {
         faultNotificationQueue = new ExecutionQueue(config.getExecutorService());
     }
 
+    @Override
     public OpcUaClientConfig getConfig() {
         return config;
     }
@@ -128,10 +129,21 @@ public class OpcUaClient implements UaClient {
         return stackClient;
     }
 
+    /**
+     * Build a new {@link RequestHeader} using a null authentication token.
+     *
+     * @return a new {@link RequestHeader} with a null authentication token.
+     */
     public RequestHeader newRequestHeader() {
         return newRequestHeader(NodeId.NULL_VALUE);
     }
 
+    /**
+     * Build a new {@link RequestHeader} using {@code authToken}.
+     *
+     * @param authToken the authentication token (from the session) to use.
+     * @return a new {@link RequestHeader}.
+     */
     public RequestHeader newRequestHeader(NodeId authToken) {
         return new RequestHeader(
                 authToken,
@@ -140,10 +152,12 @@ public class OpcUaClient implements UaClient {
                 uint(0),
                 null,
                 uint((long) config.getRequestTimeout()),
-                null
-        );
+                null);
     }
 
+    /**
+     * @return the next {@link UInteger} to use as a request handle.
+     */
     public UInteger nextRequestHandle() {
         return uint(requestHandles.getAndIncrement());
     }

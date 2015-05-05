@@ -28,6 +28,9 @@ import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * An {@link IdentityProvider} that will choose the first available username+password {@link UserTokenPolicy}.
+ */
 public class UsernameProvider implements IdentityProvider {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
@@ -50,12 +53,18 @@ public class UsernameProvider implements IdentityProvider {
 
         String policyId = tokenPolicy.getPolicyId();
 
-        SecurityPolicy securityPolicy = SecurityPolicy.fromUri(endpoint.getSecurityPolicyUri());
+        SecurityPolicy securityPolicy = SecurityPolicy.None;
 
+        String securityPolicyUri = tokenPolicy.getSecurityPolicyUri();
         try {
-            securityPolicy = SecurityPolicy.fromUri(tokenPolicy.getSecurityPolicyUri());
+            if (securityPolicyUri != null && !securityPolicyUri.isEmpty()) {
+                securityPolicy = SecurityPolicy.fromUri(securityPolicyUri);
+            } else {
+                securityPolicyUri = endpoint.getSecurityPolicyUri();
+                securityPolicy = SecurityPolicy.fromUri(securityPolicyUri);
+            }
         } catch (Throwable t) {
-            logger.warn("Error parsing SecurityPolicy from UserTokenPolicy; falling back to channel SecurityPolicy.");
+            logger.warn("Error parsing SecurityPolicy for uri={}, falling back to no security.", securityPolicyUri);
         }
 
         byte[] passwordBytes = password.getBytes("UTF-8");
@@ -96,7 +105,7 @@ public class UsernameProvider implements IdentityProvider {
                 policyId,
                 username,
                 ByteString.of(bs),
-                "encryptionAlgorithm");
+                securityPolicy.getAsymmetricEncryptionAlgorithm().getUri());
 
         return new Tuple2<>(token, new SignatureData());
     }

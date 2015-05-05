@@ -11,6 +11,9 @@ import com.digitalpetri.opcua.stack.core.types.structured.UserIdentityToken;
 import com.digitalpetri.opcua.stack.core.types.structured.UserTokenPolicy;
 import org.jooq.lambda.tuple.Tuple2;
 
+/**
+ * An {@link IdentityProvider} that will choose the first available anonymous {@link UserTokenPolicy}.
+ */
 public class AnonymousProvider implements IdentityProvider {
 
     @Override
