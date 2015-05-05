@@ -23,6 +23,8 @@ import java.nio.ByteBuffer;
 import java.security.PrivateKey;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 import com.digitalpetri.opcua.sdk.client.OpcUaClient;
 import com.digitalpetri.opcua.sdk.client.OpcUaSession;
@@ -31,6 +33,7 @@ import com.digitalpetri.opcua.sdk.client.fsm.SessionState;
 import com.digitalpetri.opcua.sdk.client.fsm.SessionStateContext;
 import com.digitalpetri.opcua.sdk.client.fsm.SessionStateEvent;
 import com.digitalpetri.opcua.stack.client.UaTcpStackClient;
+import com.digitalpetri.opcua.stack.core.Stack;
 import com.digitalpetri.opcua.stack.core.StatusCodes;
 import com.digitalpetri.opcua.stack.core.UaException;
 import com.digitalpetri.opcua.stack.core.channel.ClientSecureChannel;
@@ -38,6 +41,7 @@ import com.digitalpetri.opcua.stack.core.security.SecurityAlgorithm;
 import com.digitalpetri.opcua.stack.core.security.SecurityPolicy;
 import com.digitalpetri.opcua.stack.core.types.builtin.ByteString;
 import com.digitalpetri.opcua.stack.core.types.builtin.ExtensionObject;
+import com.digitalpetri.opcua.stack.core.types.builtin.StatusCode;
 import com.digitalpetri.opcua.stack.core.types.structured.ActivateSessionRequest;
 import com.digitalpetri.opcua.stack.core.types.structured.ActivateSessionResponse;
 import com.digitalpetri.opcua.stack.core.types.structured.EndpointDescription;
@@ -51,49 +55,72 @@ import org.slf4j.LoggerFactory;
 
 public class Reactivate implements SessionState {
 
+    private static final int MAX_REACTIVATE_DELAY_SECONDS = 16;
+
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final CompletableFuture<UaSession> future = new CompletableFuture<>();
 
+    private volatile ScheduledFuture<?> scheduledFuture;
     private volatile OpcUaSession session;
 
     private final UaSession previousSession;
+    private final long delay;
 
-    public Reactivate(UaSession previousSession) {
+    public Reactivate(UaSession previousSession, long delay) {
         this.previousSession = previousSession;
+        this.delay = delay;
     }
 
     @Override
     public void activate(SessionStateEvent event, SessionStateContext context) {
-        activateSession(context, previousSession).whenComplete((asr, ex) -> {
-            if (asr != null) {
-                session = new OpcUaSession(
-                        previousSession.getAuthenticationToken(),
-                        previousSession.getSessionId(),
-                        context.getClient().getConfig().getSessionName().get(),
-                        previousSession.getSessionTimeout(),
-                        previousSession.getMaxRequestSize(),
-                        previousSession.getServerCertificate(),
-                        previousSession.getServerSoftwareCertificates());
+        Runnable activate = () -> {
+            scheduledFuture = null;
 
-                session.setServerNonce(asr.getServerNonce());
+            activateSession(context, previousSession).whenComplete((asr, ex) -> {
+                if (asr != null) {
+                    session = new OpcUaSession(
+                            previousSession.getAuthenticationToken(),
+                            previousSession.getSessionId(),
+                            context.getClient().getConfig().getSessionName().get(),
+                            previousSession.getSessionTimeout(),
+                            previousSession.getMaxRequestSize(),
+                            previousSession.getServerCertificate(),
+                            previousSession.getServerSoftwareCertificates());
 
-                context.handleEvent(SessionStateEvent.REACTIVATE_SUCCEEDED);
-            } else {
-                if (ex.getCause() instanceof UaException) {
-                    UaException uax = (UaException) ex.getCause();
-                    if (uax.getStatusCode().getValue() == StatusCodes.Bad_SessionIdInvalid) {
+                    session.setServerNonce(asr.getServerNonce());
+
+                    context.handleEvent(SessionStateEvent.REACTIVATE_SUCCEEDED);
+                } else {
+                    StatusCode statusCode = StatusCode.BAD;
+
+                    if (ex instanceof UaException) {
+                        statusCode = ((UaException) ex).getStatusCode();
+                    } else if (ex.getCause() instanceof UaException) {
+                        statusCode = ((UaException) ex.getCause()).getStatusCode();
+                    }
+
+                    if (statusCode.getValue() == StatusCodes.Bad_SessionIdInvalid ||
+                            statusCode.getValue() == StatusCodes.Bad_SessionClosed ||
+                            statusCode.getValue() == StatusCodes.Bad_SessionNotActivated) {
+
+                        // Treat any session-related errors as re-activate failed.
                         context.handleEvent(SessionStateEvent.ERR_REACTIVATE_FAILED);
                     } else {
                         context.handleEvent(SessionStateEvent.ERR_CONNECTION_LOST);
                     }
-                } else {
-                    context.handleEvent(SessionStateEvent.ERR_CONNECTION_LOST);
-                }
 
-                future.completeExceptionally(ex);
-            }
-        });
+                    future.completeExceptionally(ex);
+                }
+            });
+        };
+
+        if (scheduledFuture == null || (scheduledFuture != null && scheduledFuture.cancel(false))) {
+            logger.debug("Reactivating in {} seconds...", delay);
+
+            scheduledFuture = Stack.sharedScheduledExecutor().schedule(activate, delay, TimeUnit.SECONDS);
+        }
+
     }
 
     @Override
@@ -106,7 +133,7 @@ public class Reactivate implements SessionState {
                 return new CreateAndActivate(new CompletableFuture<>()); // TODO flag to indicate transfer subscriptions needed
 
             case ERR_CONNECTION_LOST:
-                return new Reactivate(previousSession);
+                return new Reactivate(previousSession, nextDelay());
         }
 
         return this;
@@ -184,4 +211,13 @@ public class Reactivate implements SessionState {
     public CompletableFuture<UaSession> getSessionFuture() {
         return future;
     }
+
+    private long nextDelay() {
+        if (delay == 0) {
+            return 1;
+        } else {
+            return Math.min(delay << 1, MAX_REACTIVATE_DELAY_SECONDS);
+        }
+    }
+
 }

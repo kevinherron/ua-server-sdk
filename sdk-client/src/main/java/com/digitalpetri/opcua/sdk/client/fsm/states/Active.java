@@ -79,7 +79,7 @@ public class Active implements SessionState {
                 return new ClosingSession(sessionFuture);
 
             case ERR_CONNECTION_LOST:
-                return new Reactivate(session);
+                return new Reactivate(session, 0);
         }
         
         return this;
