@@ -1,17 +1,20 @@
 /*
- * Copyright 2014
+ * digitalpetri OPC-UA SDK
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Copyright (C) 2015 Kevin Herron
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 package com.digitalpetri.opcua.sdk.server.model;
@@ -22,10 +25,6 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.model.Property.BasicProperty;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import com.digitalpetri.opcua.sdk.core.AttributeIds;
 import com.digitalpetri.opcua.sdk.core.Reference;
 import com.digitalpetri.opcua.sdk.core.ValueRank;
@@ -33,6 +32,8 @@ import com.digitalpetri.opcua.sdk.core.model.UaOptional;
 import com.digitalpetri.opcua.sdk.core.nodes.Node;
 import com.digitalpetri.opcua.sdk.core.nodes.ObjectNode;
 import com.digitalpetri.opcua.sdk.core.nodes.ObjectTypeNode;
+import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
+import com.digitalpetri.opcua.sdk.server.model.Property.BasicProperty;
 import com.digitalpetri.opcua.stack.core.Identifiers;
 import com.digitalpetri.opcua.stack.core.types.builtin.ByteString;
 import com.digitalpetri.opcua.stack.core.types.builtin.ExpandedNodeId;
@@ -43,6 +44,8 @@ import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.digitalpetri.opcua.stack.core.types.enumerated.NamingRuleType;
 import com.digitalpetri.opcua.stack.core.types.enumerated.NodeClass;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 import static com.digitalpetri.opcua.sdk.core.Reference.HAS_COMPONENT_PREDICATE;
 import static com.digitalpetri.opcua.sdk.core.Reference.HAS_DESCRIPTION_PREDICATE;

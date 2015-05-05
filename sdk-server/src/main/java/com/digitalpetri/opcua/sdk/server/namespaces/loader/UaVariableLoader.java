@@ -1,32 +1,51 @@
+/*
+ * digitalpetri OPC-UA SDK
+ *
+ * Copyright (C) 2015 Kevin Herron
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package com.digitalpetri.opcua.sdk.server.namespaces.loader;
 
 import java.io.StringReader;
 import java.util.Optional;
 
 import com.digitalpetri.opcua.sdk.core.Reference;
+import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
 import com.digitalpetri.opcua.sdk.server.model.UaVariableNode;
+import com.digitalpetri.opcua.sdk.server.model.variables.BaseDataVariableNode;
 import com.digitalpetri.opcua.sdk.server.model.variables.BuildInfoNode;
+import com.digitalpetri.opcua.sdk.server.model.variables.ConditionVariableNode;
 import com.digitalpetri.opcua.sdk.server.model.variables.DataTypeDescriptionNode;
+import com.digitalpetri.opcua.sdk.server.model.variables.DataTypeDictionaryNode;
+import com.digitalpetri.opcua.sdk.server.model.variables.FiniteStateVariableNode;
+import com.digitalpetri.opcua.sdk.server.model.variables.FiniteTransitionVariableNode;
 import com.digitalpetri.opcua.sdk.server.model.variables.ProgramDiagnosticNode;
 import com.digitalpetri.opcua.sdk.server.model.variables.PropertyNode;
+import com.digitalpetri.opcua.sdk.server.model.variables.SamplingIntervalDiagnosticsArrayNode;
 import com.digitalpetri.opcua.sdk.server.model.variables.ServerDiagnosticsSummaryNode;
 import com.digitalpetri.opcua.sdk.server.model.variables.ServerStatusNode;
 import com.digitalpetri.opcua.sdk.server.model.variables.ServerVendorCapabilityNode;
 import com.digitalpetri.opcua.sdk.server.model.variables.SessionDiagnosticsArrayNode;
+import com.digitalpetri.opcua.sdk.server.model.variables.SessionDiagnosticsVariableNode;
 import com.digitalpetri.opcua.sdk.server.model.variables.SessionSecurityDiagnosticsArrayNode;
+import com.digitalpetri.opcua.sdk.server.model.variables.SessionSecurityDiagnosticsNode;
 import com.digitalpetri.opcua.sdk.server.model.variables.StateVariableNode;
+import com.digitalpetri.opcua.sdk.server.model.variables.SubscriptionDiagnosticsArrayNode;
 import com.digitalpetri.opcua.sdk.server.model.variables.TransitionVariableNode;
 import com.digitalpetri.opcua.sdk.server.model.variables.TwoStateVariableNode;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.model.variables.BaseDataVariableNode;
-import com.digitalpetri.opcua.sdk.server.model.variables.ConditionVariableNode;
-import com.digitalpetri.opcua.sdk.server.model.variables.DataTypeDictionaryNode;
-import com.digitalpetri.opcua.sdk.server.model.variables.FiniteStateVariableNode;
-import com.digitalpetri.opcua.sdk.server.model.variables.FiniteTransitionVariableNode;
-import com.digitalpetri.opcua.sdk.server.model.variables.SamplingIntervalDiagnosticsArrayNode;
-import com.digitalpetri.opcua.sdk.server.model.variables.SessionDiagnosticsVariableNode;
-import com.digitalpetri.opcua.sdk.server.model.variables.SessionSecurityDiagnosticsNode;
-import com.digitalpetri.opcua.sdk.server.model.variables.SubscriptionDiagnosticsArrayNode;
 import com.digitalpetri.opcua.stack.core.serialization.xml.XmlDecoder;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.ExpandedNodeId;

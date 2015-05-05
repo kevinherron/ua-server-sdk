@@ -1,30 +1,49 @@
+/*
+ * digitalpetri OPC-UA SDK
+ *
+ * Copyright (C) 2015 Kevin Herron
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package com.digitalpetri.opcua.sdk.server.namespaces.loader;
 
 import java.util.Optional;
 
 import com.digitalpetri.opcua.sdk.core.Reference;
+import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
+import com.digitalpetri.opcua.sdk.server.model.UaObjectNode;
 import com.digitalpetri.opcua.sdk.server.model.objects.AddressSpaceFileNode;
 import com.digitalpetri.opcua.sdk.server.model.objects.AggregateConfigurationNode;
 import com.digitalpetri.opcua.sdk.server.model.objects.AggregateFunctionNode;
 import com.digitalpetri.opcua.sdk.server.model.objects.BaseObjectNode;
-import com.digitalpetri.opcua.sdk.server.model.objects.FolderNode;
-import com.digitalpetri.opcua.sdk.server.model.objects.ModellingRuleNode;
-import com.digitalpetri.opcua.sdk.server.model.objects.NamespacesNode;
-import com.digitalpetri.opcua.sdk.server.model.objects.OperationLimitsNode;
-import com.digitalpetri.opcua.sdk.server.model.objects.ServerDiagnosticsNode;
-import com.digitalpetri.opcua.sdk.server.model.objects.SessionDiagnosticsObjectNode;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.model.UaObjectNode;
 import com.digitalpetri.opcua.sdk.server.model.objects.DataTypeEncodingNode;
 import com.digitalpetri.opcua.sdk.server.model.objects.DataTypeSystemNode;
 import com.digitalpetri.opcua.sdk.server.model.objects.ExclusiveLimitStateMachineNode;
+import com.digitalpetri.opcua.sdk.server.model.objects.FolderNode;
 import com.digitalpetri.opcua.sdk.server.model.objects.HistoricalDataConfigurationNode;
 import com.digitalpetri.opcua.sdk.server.model.objects.HistoryServerCapabilitiesNode;
 import com.digitalpetri.opcua.sdk.server.model.objects.LockNode;
+import com.digitalpetri.opcua.sdk.server.model.objects.ModellingRuleNode;
 import com.digitalpetri.opcua.sdk.server.model.objects.NamespaceMetadataNode;
+import com.digitalpetri.opcua.sdk.server.model.objects.NamespacesNode;
+import com.digitalpetri.opcua.sdk.server.model.objects.OperationLimitsNode;
 import com.digitalpetri.opcua.sdk.server.model.objects.ServerCapabilitiesNode;
+import com.digitalpetri.opcua.sdk.server.model.objects.ServerDiagnosticsNode;
 import com.digitalpetri.opcua.sdk.server.model.objects.ServerNode;
 import com.digitalpetri.opcua.sdk.server.model.objects.ServerRedundancyNode;
+import com.digitalpetri.opcua.sdk.server.model.objects.SessionDiagnosticsObjectNode;
 import com.digitalpetri.opcua.sdk.server.model.objects.SessionsDiagnosticsSummaryNode;
 import com.digitalpetri.opcua.sdk.server.model.objects.ShelvedStateMachineNode;
 import com.digitalpetri.opcua.sdk.server.model.objects.StateNode;
