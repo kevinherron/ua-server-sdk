@@ -22,6 +22,7 @@ package com.digitalpetri.opcua.sdk.client;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import com.digitalpetri.opcua.sdk.client.api.ServiceFaultHandler;
 import com.digitalpetri.opcua.sdk.client.api.UaClient;
 import com.digitalpetri.opcua.sdk.client.api.UaSession;
 import com.digitalpetri.opcua.sdk.client.fsm.SessionStateContext;
@@ -533,6 +534,8 @@ public class OpcUaClient implements UaClient {
     @Override
     public void sendRequests(List<? extends UaRequestMessage> requests,
                              List<CompletableFuture<? extends UaResponseMessage>> futures) {
+
+        futures.forEach(f -> f.whenCompleteAsync(this::maybeHandleServiceFault, getConfig().getExecutorService()));
 
         stackClient.sendRequests(requests, futures);
     }

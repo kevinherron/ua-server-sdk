@@ -22,7 +22,7 @@ package com.digitalpetri.opcua.sdk.client.fsm.states;
 import java.util.concurrent.CompletableFuture;
 
 import com.digitalpetri.opcua.sdk.client.OpcUaClient;
-import com.digitalpetri.opcua.sdk.client.ServiceFaultHandler;
+import com.digitalpetri.opcua.sdk.client.api.ServiceFaultHandler;
 import com.digitalpetri.opcua.sdk.client.api.UaSession;
 import com.digitalpetri.opcua.sdk.client.fsm.SessionState;
 import com.digitalpetri.opcua.sdk.client.fsm.SessionStateContext;
