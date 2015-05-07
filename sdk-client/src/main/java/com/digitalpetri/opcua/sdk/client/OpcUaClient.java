@@ -109,8 +109,6 @@ import static com.google.common.collect.Lists.newCopyOnWriteArrayList;
 
 public class OpcUaClient implements UaClient {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-
     private final LongSequence requestHandles = new LongSequence(0, UInteger.MAX_VALUE);
 
     private final List<ServiceFaultHandler> faultHandlers = newCopyOnWriteArrayList();
@@ -547,11 +545,8 @@ public class OpcUaClient implements UaClient {
             UaServiceFaultException faultException = (UaServiceFaultException) ex;
             ServiceFault serviceFault = faultException.getServiceFault();
 
-            faultNotificationQueue.submit(() -> faultHandlers.stream().forEach(h -> {
-                if (h.accept(serviceFault)) {
-                    h.handle(serviceFault);
-                }
-            }));
+            faultNotificationQueue.submit(() ->
+                    faultHandlers.stream().forEach(h -> h.handle(serviceFault)));
         }
     }
 

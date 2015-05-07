@@ -36,6 +36,8 @@ public class Active implements SessionState {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    private volatile ServiceFaultHandler faultHandler;
+
     private final UaSession session;
     private final CompletableFuture<UaSession> sessionFuture;
 
@@ -46,42 +48,45 @@ public class Active implements SessionState {
 
     @Override
     public void activate(SessionStateEvent event, SessionStateContext context) {
-        final OpcUaClient client = context.getClient();
+        OpcUaClient client = context.getClient();
 
-        ServiceFaultHandler faultHandler = new ServiceFaultHandler() {
-            @Override
-            public boolean accept(ServiceFault serviceFault) {
-                long statusCode = serviceFault.getResponseHeader().getServiceResult().getValue();
-
-                return statusCode == StatusCodes.Bad_SessionIdInvalid;
-            }
-
+        client.addFaultHandler(faultHandler = new ServiceFaultHandler() {
             @Override
             public void handle(ServiceFault serviceFault) {
-                logger.warn("ServiceFault: {}", serviceFault.getResponseHeader().getServiceResult());
-                client.removeFaultHandler(this);
-                context.handleEvent(SessionStateEvent.CREATE_AND_ACTIVATE_REQUESTED);
-            }
-        };
+                long statusCode = serviceFault.getResponseHeader().getServiceResult().getValue();
 
-        client.addFaultHandler(faultHandler);
+                if (statusCode == StatusCodes.Bad_SessionIdInvalid) {
+                    logger.warn("ServiceFault: {}", serviceFault.getResponseHeader().getServiceResult());
+                    client.removeFaultHandler(this);
+                    context.handleEvent(SessionStateEvent.CREATE_AND_ACTIVATE_REQUESTED);
+                }
+            }
+        });
 
         sessionFuture.complete(session);
     }
 
     @Override
     public SessionState transition(SessionStateEvent event, SessionStateContext context) {
+        OpcUaClient client = context.getClient();
+
         switch (event) {
             case CREATE_AND_ACTIVATE_REQUESTED:
+                client.removeFaultHandler(faultHandler);
+
                 return new CreateAndActivate(new CompletableFuture<>());
 
             case CLOSE_SESSION_REQUESTED:
+                client.removeFaultHandler(faultHandler);
+
                 return new ClosingSession(sessionFuture);
 
             case ERR_CONNECTION_LOST:
+                client.removeFaultHandler(faultHandler);
+
                 return new Reactivate(session, 0);
         }
-        
+
         return this;
     }
 
@@ -89,5 +94,6 @@ public class Active implements SessionState {
     public CompletableFuture<UaSession> getSessionFuture() {
         return sessionFuture;
     }
+
 
 }
