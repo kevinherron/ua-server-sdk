@@ -138,7 +138,10 @@ public class BrowseHelper {
 
             referencesFuture.whenComplete((references, ex) -> {
                 if (references != null) {
-                    browse(references).thenAccept(future::complete);
+                    browse(references).whenComplete((result, ex2) -> {
+                       if (result != null) future.complete(result);
+                       else future.complete(NODE_ID_UNKNOWN_RESULT);
+                    });
                 } else {
                     future.complete(NODE_ID_UNKNOWN_RESULT);
                 }
