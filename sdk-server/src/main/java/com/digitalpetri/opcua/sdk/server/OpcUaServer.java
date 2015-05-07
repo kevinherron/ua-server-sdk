@@ -35,6 +35,7 @@ import com.digitalpetri.opcua.sdk.core.ServerTable;
 import com.digitalpetri.opcua.sdk.core.api.ReferenceType;
 import com.digitalpetri.opcua.sdk.server.api.OpcUaServerConfig;
 import com.digitalpetri.opcua.sdk.server.namespaces.OpcUaNamespace;
+import com.digitalpetri.opcua.sdk.server.namespaces.VendorNamespace;
 import com.digitalpetri.opcua.sdk.server.services.helpers.BrowseHelper.BrowseContinuationPoint;
 import com.digitalpetri.opcua.sdk.server.subscriptions.Subscription;
 import com.digitalpetri.opcua.stack.core.Stack;
@@ -94,6 +95,7 @@ public class OpcUaServer {
     private final EventBus eventBus;
 
     private final OpcUaNamespace uaNamespace;
+
     private final OpcUaServerConfig config;
 
     public OpcUaServer(OpcUaServerConfig config) {
@@ -110,6 +112,11 @@ public class OpcUaServer {
         server.addServiceSet((ViewServiceSet) sessionManager);
 
         namespaceManager.addNamespace(uaNamespace = new OpcUaNamespace(this));
+
+        namespaceManager.registerAndAdd(
+                config.getApplicationUri(),
+                index -> new VendorNamespace(OpcUaServer.this, config.getApplicationUri()));
+
         serverTable.addUri(server.getApplicationDescription().getApplicationUri());
 
         for (ReferenceType referenceType : com.digitalpetri.opcua.sdk.core.ReferenceType.values()) {
@@ -277,4 +284,5 @@ public class OpcUaServer {
     public Map<ByteString, BrowseContinuationPoint> getBrowseContinuationPoints() {
         return browseContinuationPoints;
     }
+
 }
