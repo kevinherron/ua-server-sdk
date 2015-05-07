@@ -38,17 +38,15 @@ import com.google.common.collect.Lists;
 
 public interface OpcUaServerConfig {
 
-    public static final UserTokenPolicy USER_TOKEN_POLICY_ANONYMOUS = new UserTokenPolicy(
+    UserTokenPolicy USER_TOKEN_POLICY_ANONYMOUS = new UserTokenPolicy(
             "anonymous",
             UserTokenType.Anonymous,
-            null, null, null
-    );
+            null, null, null);
 
-    public static final UserTokenPolicy USER_TOKEN_POLICY_USERNAME = new UserTokenPolicy(
+    UserTokenPolicy USER_TOKEN_POLICY_USERNAME = new UserTokenPolicy(
             "username",
             UserTokenType.UserName,
-            null, null, null
-    );
+            null, null, null);
 
     CertificateManager getCertificateManager();
 

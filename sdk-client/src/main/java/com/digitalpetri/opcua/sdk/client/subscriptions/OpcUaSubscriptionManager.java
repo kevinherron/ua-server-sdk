@@ -20,6 +20,7 @@
 package com.digitalpetri.opcua.sdk.client.subscriptions;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -109,12 +110,11 @@ public class OpcUaSubscriptionManager {
     /**
      * Create a {@link OpcUaSubscription}.
      *
-     * @param requestedPublishingInterval
-     * @param requestedLifetimeCount
-     * @param requestedMaxKeepAliveCount
-     * @param maxNotificationsPerPublish
-     * @param publishingEnabled
-     * @param priority
+     * @param requestedPublishingInterval the requested publishing interval.
+     * @param requestedLifetimeCount      the requested lifetime count.
+     * @param requestedMaxKeepAliveCount  the requested max keep-alive count.
+     * @param maxNotificationsPerPublish  the maximum number of notifications allowed in a publish response.
+     * @param priority                    the relative priority to assing to the subscription.
      * @return a {@link CompletableFuture} containing the {@link OpcUaSubscription}.
      */
     public CompletableFuture<OpcUaSubscription> createSubscription(double requestedPublishingInterval,
@@ -184,13 +184,13 @@ public class OpcUaSubscriptionManager {
     /**
      * Modify a {@link OpcUaSubscription}.
      *
-     * @param subscription
-     * @param requestedPublishingInterval
-     * @param requestedLifetimeCount
-     * @param requestedMaxKeepAliveCount
-     * @param maxNotificationsPerPublish
-     * @param priority
-     * @return
+     * @param subscription                the {@link OpcUaSubscription} to modify.
+     * @param requestedPublishingInterval the requested publishing interval.
+     * @param requestedLifetimeCount      the requested lifetime count.
+     * @param requestedMaxKeepAliveCount  the requested max keep-alive count.
+     * @param maxNotificationsPerPublish  the maximum number of notifications allowed in a publish response.
+     * @param priority                    the relative priority to assing to the subscription.
+     * @return a {@link CompletableFuture} containing the {@link OpcUaSubscription}.
      */
     public CompletableFuture<OpcUaSubscription> modifySubscription(OpcUaSubscription subscription,
                                                                    double requestedPublishingInterval,
@@ -220,6 +220,12 @@ public class OpcUaSubscriptionManager {
         });
     }
 
+    /**
+     * Delete a {@link OpcUaSubscription}.
+     *
+     * @param subscription the {@link OpcUaSubscription} to delete.
+     * @return a {@link CompletableFuture} containing the {@link OpcUaSubscription}.
+     */
     public CompletableFuture<OpcUaSubscription> deleteSubscription(OpcUaSubscription subscription) {
         List<UInteger> subscriptionIds = newArrayList(subscription.getSubscriptionId());
 
@@ -291,7 +297,9 @@ public class OpcUaSubscriptionManager {
                         maybeSendPublishRequest();
                     }
 
-                    // TODO Re-book-keep the SubscriptionAcknowledgements
+                    synchronized (acknowledgements) {
+                        Collections.addAll(acknowledgements, subscriptionAcknowledgements);
+                    }
                 } else {
                     processingQueue.submit(() -> onPublishComplete(response));
 
@@ -328,7 +336,7 @@ public class OpcUaSubscriptionManager {
                             subscriptionId, ex.getMessage(), ex);
 
                     List<OpcUaMonitoredItem> items = Optional.ofNullable(subscriptions.get(subscriptionId))
-                            .map(s -> newArrayList(s.getItems().values()))
+                            .map(s -> newArrayList(s.getMonitoredItems()))
                             .orElse(newArrayList());
 
                     List<ReadValueId> values = items.stream()
@@ -416,11 +424,11 @@ public class OpcUaSubscriptionManager {
     private void onNotificationMessage(UInteger subscriptionId, NotificationMessage notificationMessage) {
         DateTime publishTime = notificationMessage.getPublishTime();
 
-        logger.info("onNotificationMessage(), subscriptionId={}, sequenceNumber={}, publishTime={}",
+        logger.debug("onNotificationMessage(), subscriptionId={}, sequenceNumber={}, publishTime={}",
                 subscriptionId, notificationMessage.getSequenceNumber(), publishTime);
 
         Map<UInteger, OpcUaMonitoredItem> items = Optional.ofNullable(subscriptions.get(subscriptionId))
-                .map(OpcUaSubscription::getItems)
+                .map(OpcUaSubscription::getItemsByClientHandle)
                 .orElse(Maps.newHashMap());
 
         for (ExtensionObject xo : notificationMessage.getNotificationData()) {
@@ -429,7 +437,7 @@ public class OpcUaSubscriptionManager {
             if (o instanceof DataChangeNotification) {
                 DataChangeNotification dcn = (DataChangeNotification) o;
 
-                logger.info("Received {} MonitoredItemNotifications", dcn.getMonitoredItems().length);
+                logger.debug("Received {} MonitoredItemNotifications", dcn.getMonitoredItems().length);
 
                 for (MonitoredItemNotification min : dcn.getMonitoredItems()) {
                     logger.trace("MonitoredItemNotification: clientHandle={}, value={}",
