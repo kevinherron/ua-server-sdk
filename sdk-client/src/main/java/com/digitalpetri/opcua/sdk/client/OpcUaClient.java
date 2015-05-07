@@ -100,8 +100,6 @@ import com.digitalpetri.opcua.stack.core.types.structured.WriteResponse;
 import com.digitalpetri.opcua.stack.core.types.structured.WriteValue;
 import com.digitalpetri.opcua.stack.core.util.ExecutionQueue;
 import com.digitalpetri.opcua.stack.core.util.LongSequence;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static com.digitalpetri.opcua.sdk.core.util.ConversionUtil.a;
 import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
