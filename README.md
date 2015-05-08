@@ -2,6 +2,8 @@
 
 This is currently under active development.
 
+See examples at https://github.com/digitalpetri/opc-ua-sdk-examples
+
 Support, questions, etc... at http://discourse.digitalpetri.com/
 
 Maven
