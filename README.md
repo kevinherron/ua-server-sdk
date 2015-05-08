@@ -1,6 +1,8 @@
 # OPC-UA SDK
 
-This is currently under development.
+This is currently under active development.
+
+Support, questions, etc... at http://discourse.digitalpetri.com/
 
 Maven
 --------
@@ -43,6 +45,6 @@ Contact kevinherron@gmail.com for more information.
 License
 --------
 
-The SDK is licensed under the GNU Affero General Public License v3 (AGPL-3.0).
+The digitalpetri OPC-UA SDK is licensed under the GNU Affero General Public License v3 (AGPL-3.0).
 
 Commercial-friendly licensing may be purchased.
