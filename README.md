@@ -2,19 +2,47 @@
 
 This is currently under development.
 
+Maven
+--------
 
-## Current 1.0.0 Release Blockers
+Snapshots are available from the Sonatype repository:
+```xml
+<repository>
+    <id>oss-sonatype</id>
+    <name>oss-sonatype</name>
+    <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+</repository>
+```
 
-### Client SDK
+Release versions will be available from Maven Central and won't require an explicit repository definition.
 
-* State machine for re-establishing connections described in Part 4, section 6.5
-* API review, freeze, and documentation
-* Licensing
+#### Client SDK
+```xml
+<dependency>
+    <groupId>com.digitalpetri.opcua</groupId>
+    <artifactId>sdk-client</artifactId>
+    <version>0.3.0-SNAPSHOT</version>
+</dependency>
+```
 
-### Server SDK
+#### Server SDK
+```xml
+<dependency>
+    <groupId>com.digitalpetri.opcua</groupId>
+    <artifactId>sdk-server</artifactId>
+    <version>0.3.0-SNAPSHOT</version>
+</dependency>
+```
 
-* Event support
-* Diagnostics? (ServerDiagnosticsSummary, SubscriptionDiagnosticsArray, SessionDiagnosticsSummary, etc...)
-* API review, freeze, and documentation
-* Licensing
+Get Help
+--------
 
+Contact kevinherron@gmail.com for more information.
+
+
+License
+--------
+
+The SDK is licensed under the GNU Affero General Public License v3 (AGPL-3.0).
+
+Commercial-friendly licensing may be purchased.
