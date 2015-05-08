@@ -32,16 +32,16 @@ public class AttributeIds {
     public static final int Symmetric = 9;
     public static final int InverseName = 10;
     public static final int ContainsNoLoops = 11;
-    public final static int EventNotifier = 12;
-    public final static int Value = 13;
-    public final static int DataType = 14;
-    public final static int ValueRank = 15;
-    public final static int ArrayDimensions = 16;
-    public final static int AccessLevel = 17;
-    public final static int UserAccessLevel = 18;
-    public final static int MinimumSamplingInterval = 19;
-    public final static int Historizing = 20;
-    public final static int Executable = 21;
-    public final static int UserExecutable = 22;
+    public static final int EventNotifier = 12;
+    public static final int Value = 13;
+    public static final int DataType = 14;
+    public static final int ValueRank = 15;
+    public static final int ArrayDimensions = 16;
+    public static final int AccessLevel = 17;
+    public static final int UserAccessLevel = 18;
+    public static final int MinimumSamplingInterval = 19;
+    public static final int Historizing = 20;
+    public static final int Executable = 21;
+    public static final int UserExecutable = 22;
 
 }

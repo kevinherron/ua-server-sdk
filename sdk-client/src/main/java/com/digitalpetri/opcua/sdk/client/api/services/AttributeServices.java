@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.codepoetics.protonpack.StreamUtils;
+import com.digitalpetri.opcua.sdk.core.AttributeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
@@ -110,7 +111,7 @@ public interface AttributeServices {
                                                           List<NodeId> nodeIds) {
 
         List<ReadValueId> readValueIds = nodeIds.stream()
-                .map(nodeId -> new ReadValueId(nodeId, uint(13), null, QualifiedName.NULL_VALUE))
+                .map(nodeId -> new ReadValueId(nodeId, AttributeId.VALUE.uid(), null, QualifiedName.NULL_VALUE))
                 .collect(Collectors.toList());
 
         return read(maxAge, timestampsToReturn, readValueIds)
