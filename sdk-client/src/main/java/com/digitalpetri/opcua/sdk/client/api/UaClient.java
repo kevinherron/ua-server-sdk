@@ -22,7 +22,7 @@ package com.digitalpetri.opcua.sdk.client.api;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import com.digitalpetri.opcua.sdk.client.OpcUaClientConfig;
+import com.digitalpetri.opcua.sdk.client.api.config.OpcUaClientConfig;
 import com.digitalpetri.opcua.sdk.client.api.services.AttributeServices;
 import com.digitalpetri.opcua.sdk.client.api.services.MethodServices;
 import com.digitalpetri.opcua.sdk.client.api.services.MonitoredItemServices;

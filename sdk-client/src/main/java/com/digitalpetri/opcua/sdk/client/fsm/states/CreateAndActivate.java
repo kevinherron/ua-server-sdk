@@ -181,7 +181,7 @@ public class CreateAndActivate implements SessionState {
                 client.getConfig().getSessionName().get(),
                 clientNonce,
                 clientCertificate,
-                client.getConfig().getSessionTimeout(),
+                client.getConfig().getSessionTimeout().doubleValue(),
                 client.getConfig().getMaxResponseMessageSize());
 
         logger.debug("Sending CreateSessionRequest...");

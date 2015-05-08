@@ -25,6 +25,7 @@ import java.util.concurrent.CompletableFuture;
 import com.digitalpetri.opcua.sdk.client.api.ServiceFaultHandler;
 import com.digitalpetri.opcua.sdk.client.api.UaClient;
 import com.digitalpetri.opcua.sdk.client.api.UaSession;
+import com.digitalpetri.opcua.sdk.client.api.config.OpcUaClientConfig;
 import com.digitalpetri.opcua.sdk.client.fsm.SessionStateContext;
 import com.digitalpetri.opcua.sdk.client.fsm.SessionStateEvent;
 import com.digitalpetri.opcua.stack.client.UaTcpStackClient;
@@ -122,7 +123,7 @@ public class OpcUaClient implements UaClient {
 
         stateContext = new SessionStateContext(this);
 
-        stackClient = config.getStackClient();
+        stackClient = new UaTcpStackClient(config);
 
         final ConnectionStateObserver observer = new ConnectionStateObserver() {
             @Override
@@ -133,7 +134,7 @@ public class OpcUaClient implements UaClient {
 
         stackClient.addStateObserver(observer);
 
-        faultNotificationQueue = new ExecutionQueue(config.getExecutorService());
+        faultNotificationQueue = new ExecutionQueue(config.getExecutor());
     }
 
     @Override
@@ -167,7 +168,7 @@ public class OpcUaClient implements UaClient {
                 uint(requestHandles.getAndIncrement()),
                 uint(0),
                 null,
-                uint((long) config.getRequestTimeout()),
+                config.getRequestTimeout(),
                 null);
     }
 
@@ -521,7 +522,7 @@ public class OpcUaClient implements UaClient {
         CompletableFuture<T> f = stackClient.sendRequest(request);
 
         if (faultHandlers.size() > 0) {
-            f.whenCompleteAsync(this::maybeHandleServiceFault, getConfig().getExecutorService());
+            f.whenCompleteAsync(this::maybeHandleServiceFault, getConfig().getExecutor());
         }
 
         return f;
@@ -531,7 +532,7 @@ public class OpcUaClient implements UaClient {
     public void sendRequests(List<? extends UaRequestMessage> requests,
                              List<CompletableFuture<? extends UaResponseMessage>> futures) {
 
-        futures.forEach(f -> f.whenCompleteAsync(this::maybeHandleServiceFault, getConfig().getExecutorService()));
+        futures.forEach(f -> f.whenCompleteAsync(this::maybeHandleServiceFault, getConfig().getExecutor()));
 
         stackClient.sendRequests(requests, futures);
     }

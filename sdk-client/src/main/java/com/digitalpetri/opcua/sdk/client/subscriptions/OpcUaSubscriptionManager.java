@@ -82,8 +82,8 @@ public class OpcUaSubscriptionManager {
     public OpcUaSubscriptionManager(OpcUaClient client) {
         this.client = client;
 
-        deliveryQueue = new ExecutionQueue(client.getConfig().getExecutorService());
-        processingQueue = new ExecutionQueue(client.getConfig().getExecutorService());
+        deliveryQueue = new ExecutionQueue(client.getConfig().getExecutor());
+        processingQueue = new ExecutionQueue(client.getConfig().getExecutor());
     }
 
     /**
@@ -246,7 +246,7 @@ public class OpcUaSubscriptionManager {
         double minKeepAlive = subscriptions.values().stream()
                 .map(s -> s.getRevisedPublishingInterval() * s.getRevisedMaxKeepAliveCount().doubleValue())
                 .min(Comparator.<Double>naturalOrder())
-                .orElse(client.getConfig().getRequestTimeout());
+                .orElse(client.getConfig().getRequestTimeout().doubleValue());
 
         long timeoutHint = (long) (getMaxPendingPublishes() * minKeepAlive * 1.25) * 2;
 
@@ -306,7 +306,7 @@ public class OpcUaSubscriptionManager {
                     maybeSendPublishRequest();
                 }
 
-            }, client.getConfig().getExecutorService());
+            }, client.getConfig().getExecutor());
         } else {
             pendingPublishes.decrementAndGet();
         }
