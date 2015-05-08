@@ -28,6 +28,7 @@ import com.digitalpetri.opcua.sdk.client.api.UaSession;
 import com.digitalpetri.opcua.sdk.client.api.config.OpcUaClientConfig;
 import com.digitalpetri.opcua.sdk.client.fsm.SessionStateContext;
 import com.digitalpetri.opcua.sdk.client.fsm.SessionStateEvent;
+import com.digitalpetri.opcua.sdk.client.subscriptions.OpcUaSubscriptionManager;
 import com.digitalpetri.opcua.stack.client.UaTcpStackClient;
 import com.digitalpetri.opcua.stack.client.fsm.ConnectionStateObserver;
 import com.digitalpetri.opcua.stack.core.UaServiceFaultException;
@@ -113,6 +114,8 @@ public class OpcUaClient implements UaClient {
     private final List<ServiceFaultHandler> faultHandlers = newCopyOnWriteArrayList();
     private final ExecutionQueue faultNotificationQueue;
 
+    private final OpcUaSubscriptionManager subscriptionManager;
+
     private final UaTcpStackClient stackClient;
     private final SessionStateContext stateContext;
 
@@ -135,6 +138,8 @@ public class OpcUaClient implements UaClient {
         stackClient.addStateObserver(observer);
 
         faultNotificationQueue = new ExecutionQueue(config.getExecutor());
+
+        subscriptionManager = new OpcUaSubscriptionManager(this);
     }
 
     @Override
@@ -190,6 +195,11 @@ public class OpcUaClient implements UaClient {
         stateContext.handleEvent(SessionStateEvent.CLOSE_SESSION_REQUESTED);
 
         return CompletableFuture.completedFuture(this);
+    }
+
+    @Override
+    public OpcUaSubscriptionManager getSubscriptionManager() {
+        return subscriptionManager;
     }
 
     @Override
