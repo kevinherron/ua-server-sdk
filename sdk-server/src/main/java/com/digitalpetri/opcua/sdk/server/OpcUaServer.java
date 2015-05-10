@@ -33,7 +33,7 @@ import java.util.concurrent.ThreadFactory;
 
 import com.digitalpetri.opcua.sdk.core.ServerTable;
 import com.digitalpetri.opcua.sdk.core.api.ReferenceType;
-import com.digitalpetri.opcua.sdk.server.api.OpcUaServerConfig;
+import com.digitalpetri.opcua.sdk.server.api.config.OpcUaServerConfig;
 import com.digitalpetri.opcua.sdk.server.namespaces.OpcUaNamespace;
 import com.digitalpetri.opcua.sdk.server.namespaces.VendorNamespace;
 import com.digitalpetri.opcua.sdk.server.services.helpers.BrowseHelper.BrowseContinuationPoint;
@@ -91,7 +91,7 @@ public class OpcUaServer {
     private final SessionManager sessionManager = new SessionManager(this);
     private final ServerTable serverTable = new ServerTable();
 
-    private final UaStackServer server;
+    private final UaStackServer stackServer;
     private final EventBus eventBus;
 
     private final OpcUaNamespace uaNamespace;
@@ -101,15 +101,15 @@ public class OpcUaServer {
     public OpcUaServer(OpcUaServerConfig config) {
         this.config = config;
 
-        server = buildServer();
+        stackServer = buildStackServer();
 
-        server.addServiceSet((AttributeServiceSet) sessionManager);
-        server.addServiceSet((MethodServiceSet) sessionManager);
-        server.addServiceSet((MonitoredItemServiceSet) sessionManager);
-        server.addServiceSet((NodeManagementServiceSet) sessionManager);
-        server.addServiceSet((SessionServiceSet) sessionManager);
-        server.addServiceSet((SubscriptionServiceSet) sessionManager);
-        server.addServiceSet((ViewServiceSet) sessionManager);
+        stackServer.addServiceSet((AttributeServiceSet) sessionManager);
+        stackServer.addServiceSet((MethodServiceSet) sessionManager);
+        stackServer.addServiceSet((MonitoredItemServiceSet) sessionManager);
+        stackServer.addServiceSet((NodeManagementServiceSet) sessionManager);
+        stackServer.addServiceSet((SessionServiceSet) sessionManager);
+        stackServer.addServiceSet((SubscriptionServiceSet) sessionManager);
+        stackServer.addServiceSet((ViewServiceSet) sessionManager);
 
         namespaceManager.addNamespace(uaNamespace = new OpcUaNamespace(this));
 
@@ -117,7 +117,7 @@ public class OpcUaServer {
                 config.getApplicationUri(),
                 index -> new VendorNamespace(OpcUaServer.this, config.getApplicationUri()));
 
-        serverTable.addUri(server.getApplicationDescription().getApplicationUri());
+        serverTable.addUri(stackServer.getApplicationDescription().getApplicationUri());
 
         for (ReferenceType referenceType : com.digitalpetri.opcua.sdk.core.ReferenceType.values()) {
             referenceTypes.put(referenceType.getNodeId(), referenceType);
@@ -141,33 +141,33 @@ public class OpcUaServer {
                     logger.info("Binding endpoint {} to {} [{}/{}]",
                             endpointUrl, bindUrl, securityPolicy, messageSecurity);
 
-                    server.addEndpoint(endpointUrl, address, null, securityPolicy, messageSecurity);
+                    stackServer.addEndpoint(endpointUrl, address, null, securityPolicy, messageSecurity);
                 } else {
                     for (X509Certificate certificate : config.getCertificateManager().getCertificates()) {
                         logger.info("Binding endpoint {} to {} [{}/{}]",
                                 endpointUrl, bindUrl, securityPolicy, messageSecurity);
 
-                        server.addEndpoint(endpointUrl, address, certificate, securityPolicy, messageSecurity);
+                        stackServer.addEndpoint(endpointUrl, address, certificate, securityPolicy, messageSecurity);
                     }
                 }
             }
         }
 
-        eventBus = new AsyncEventBus("server", server.getExecutorService());
+        eventBus = new AsyncEventBus("server", stackServer.getExecutorService());
 
         logger.info("digitalpetri opc-ua stack version: {}", Stack.VERSION);
         logger.info("digitalpetri opc-ua sdk version: {}", SDK_VERSION);
     }
 
     public void startup() {
-        server.startup();
+        stackServer.startup();
     }
 
     public void shutdown() {
-        server.shutdown();
+        stackServer.shutdown();
     }
 
-    private UaStackServer buildServer() {
+    private UaStackServer buildStackServer() {
         UaTcpServerBuilder bootstrap = new UaTcpServerBuilder();
 
         bootstrap.setServerName(config.getServerName());
@@ -234,15 +234,15 @@ public class OpcUaServer {
     }
 
     public Optional<KeyPair> getKeyPair(ByteString thumbprint) {
-        return server.getCertificateManager().getKeyPair(thumbprint);
+        return stackServer.getCertificateManager().getKeyPair(thumbprint);
     }
 
     public Optional<X509Certificate> getCertificate(ByteString thumbprint) {
-        return server.getCertificateManager().getCertificate(thumbprint);
+        return stackServer.getCertificateManager().getCertificate(thumbprint);
     }
 
     public ExecutorService getExecutorService() {
-        return server.getExecutorService();
+        return stackServer.getExecutorService();
     }
 
     public ScheduledExecutorService getScheduledExecutorService() {
@@ -250,31 +250,31 @@ public class OpcUaServer {
     }
 
     public ChannelConfig getChannelConfig() {
-        return server.getChannelConfig();
+        return stackServer.getChannelConfig();
     }
 
     public EndpointDescription[] getEndpointDescriptions() {
-        return server.getEndpointDescriptions();
+        return stackServer.getEndpointDescriptions();
     }
 
     public List<UserTokenPolicy> getUserTokenPolicies() {
-        return server.getUserTokenPolicies();
+        return stackServer.getUserTokenPolicies();
     }
 
     public ApplicationDescription getApplicationDescription() {
-        return server.getApplicationDescription();
+        return stackServer.getApplicationDescription();
     }
 
     public SignedSoftwareCertificate[] getSoftwareCertificates() {
-        return server.getSoftwareCertificates();
+        return stackServer.getSoftwareCertificates();
     }
 
     public void closeSecureChannel(ServerSecureChannel secureChannel) {
-        server.closeSecureChannel(secureChannel);
+        stackServer.closeSecureChannel(secureChannel);
     }
 
     public UaStackServer getServer() {
-        return server;
+        return stackServer;
     }
 
     public Map<NodeId, ReferenceType> getReferenceTypes() {

@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.digitalpetri.opcua.sdk.server.api;
+package com.digitalpetri.opcua.sdk.server.api.config;
 
 import java.util.concurrent.TimeUnit;
 

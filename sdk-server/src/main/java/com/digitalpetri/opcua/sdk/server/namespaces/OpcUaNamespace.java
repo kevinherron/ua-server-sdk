@@ -36,7 +36,7 @@ import com.digitalpetri.opcua.sdk.server.api.DataItem;
 import com.digitalpetri.opcua.sdk.server.api.EventItem;
 import com.digitalpetri.opcua.sdk.server.api.MethodInvocationHandler;
 import com.digitalpetri.opcua.sdk.server.api.MonitoredItem;
-import com.digitalpetri.opcua.sdk.server.api.OpcUaServerConfigLimits;
+import com.digitalpetri.opcua.sdk.server.api.config.OpcUaServerConfigLimits;
 import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
 import com.digitalpetri.opcua.sdk.server.model.DerivedVariableNode;
 import com.digitalpetri.opcua.sdk.server.model.UaMethodNode;
