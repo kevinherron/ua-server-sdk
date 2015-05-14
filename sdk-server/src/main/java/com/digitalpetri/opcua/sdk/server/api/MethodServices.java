@@ -23,6 +23,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import com.digitalpetri.opcua.sdk.server.DiagnosticsContext;
+import com.digitalpetri.opcua.sdk.server.OpcUaServer;
+import com.digitalpetri.opcua.sdk.server.Session;
 import com.digitalpetri.opcua.sdk.server.api.MethodInvocationHandler.NodeIdUnknownHandler;
 import com.digitalpetri.opcua.stack.core.StatusCodes;
 import com.digitalpetri.opcua.stack.core.types.builtin.DiagnosticInfo;
@@ -41,10 +44,10 @@ public interface MethodServices {
     /**
      * Invoke one or more methods belonging to this {@link MethodServices}.
      *
+     * @param context  the {@link CallContext}.
      * @param requests The {@link CallMethodRequest}s for the methods to invoke.
-     * @param future   The future to complete with the {@link CallMethodResult}s.
      */
-    default void call(List<CallMethodRequest> requests, CompletableFuture<List<CallMethodResult>> future) {
+    default void call(CallContext context, List<CallMethodRequest> requests) {
         List<CompletableFuture<CallMethodResult>> results = Lists.newArrayListWithCapacity(requests.size());
 
         for (CallMethodRequest request : requests) {
@@ -68,7 +71,7 @@ public interface MethodServices {
             results.add(resultFuture);
         }
 
-        sequence(results).thenAccept(future::complete);
+        sequence(results).thenAccept(rs -> context.getFuture().complete(rs));
     }
 
     /**
@@ -79,6 +82,14 @@ public interface MethodServices {
      */
     default Optional<MethodInvocationHandler> getInvocationHandler(NodeId methodId) {
         return Optional.empty();
+    }
+
+    final class CallContext extends OperationContext<CallMethodRequest, CallMethodResult> {
+        public CallContext(OpcUaServer server, Session session,
+                           DiagnosticsContext<CallMethodRequest> diagnosticsContext) {
+
+            super(server, session, diagnosticsContext);
+        }
     }
 
 }
