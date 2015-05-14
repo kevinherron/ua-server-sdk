@@ -20,44 +20,10 @@
 package com.digitalpetri.opcua.sdk.server.api;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
-import com.digitalpetri.opcua.stack.core.UaException;
-import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
-import com.digitalpetri.opcua.stack.core.types.builtin.StatusCode;
-import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.digitalpetri.opcua.stack.core.types.enumerated.MonitoringMode;
 
 public interface MonitoredItemManager {
-
-    /**
-     * The client is creating a {@link MonitoredItem}.
-     * <p>
-     * If the {@code nodeId} and {@code attributeId} are valid, complete {@code revisedSamplingInterval} with any
-     * necessary revisions to the sampling interval.
-     * <p>
-     * Otherwise, complete exceptionally with the appropriate {@link UaException} and {@link StatusCode}.
-     *
-     * @param nodeId                    the requested {@link NodeId} of the node to monitor.
-     * @param attributeId               the attribute id of the attribute to monitor.
-     * @param requestedSamplingInterval the requested sampling interval.
-     * @param revisedSamplingInterval   the {@link CompletableFuture} to complete.
-     */
-    void onCreateMonitoredItem(NodeId nodeId,
-                               UInteger attributeId,
-                               double requestedSamplingInterval,
-                               CompletableFuture<Double> revisedSamplingInterval);
-
-    /**
-     * The client is modifying a {@link MonitoredItem}.
-     * <p>
-     * Complete {@code revisedSamplingInterval} with any necessary revisions to the sampling interval.
-     *
-     * @param requestedSamplingInterval the sampling interval being requested.
-     * @param revisedSamplingInterval   the {@link CompletableFuture} to complete.
-     */
-    void onModifyMonitoredItem(double requestedSamplingInterval,
-                               CompletableFuture<Double> revisedSamplingInterval);
 
     /**
      * {@link DataItem}s have been created for nodes belonging to this {@link NodeManager}.
@@ -72,8 +38,7 @@ public interface MonitoredItemManager {
     /**
      * {@link DataItem}s have been modified for nodes belonging to this {@link NodeManager}.
      * <p>
-     * Check to see if the sampling rate has changed or if sampling has been enabled or disabled. Result have not been
-     * returned to the client yet, so if the requested sampling rate cannot be supported now is the time to revise it.
+     * Check to see if the sampling rate has changed or if sampling has been enabled or disabled.
      *
      * @param dataItems the {@link DataItem}s that were modified.
      */

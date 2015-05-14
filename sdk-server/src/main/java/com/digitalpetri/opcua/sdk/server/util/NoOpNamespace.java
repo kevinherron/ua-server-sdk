@@ -33,7 +33,6 @@ import com.digitalpetri.opcua.stack.core.UaException;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.StatusCode;
-import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UShort;
 import com.digitalpetri.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import com.digitalpetri.opcua.stack.core.types.structured.ReadValueId;
@@ -78,22 +77,6 @@ public class NoOpNamespace implements Namespace {
                 writeValues.size(), new StatusCode(StatusCodes.Bad_NodeIdUnknown));
 
         context.getFuture().complete(results);
-    }
-
-    @Override
-    public void onCreateMonitoredItem(NodeId nodeId,
-                                      UInteger attributeId,
-                                      double requestedSamplingInterval,
-                                      CompletableFuture<Double> revisedSamplingInterval) {
-
-        revisedSamplingInterval.completeExceptionally(new UaException(StatusCodes.Bad_NodeIdUnknown));
-    }
-
-    @Override
-    public void onModifyMonitoredItem(double requestedSamplingInterval,
-                                      CompletableFuture<Double> revisedSamplingInterval) {
-        
-        revisedSamplingInterval.completeExceptionally(new UaException(StatusCodes.Bad_NodeIdUnknown));
     }
 
     @Override

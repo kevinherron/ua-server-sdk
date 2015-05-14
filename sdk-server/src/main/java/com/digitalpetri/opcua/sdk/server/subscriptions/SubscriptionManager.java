@@ -20,17 +20,24 @@
 package com.digitalpetri.opcua.sdk.server.subscriptions;
 
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.digitalpetri.opcua.sdk.core.AccessLevel;
+import com.digitalpetri.opcua.sdk.core.AttributeId;
 import com.digitalpetri.opcua.sdk.core.AttributeIds;
 import com.digitalpetri.opcua.sdk.core.NumericRange;
+import com.digitalpetri.opcua.sdk.server.DiagnosticsContext;
 import com.digitalpetri.opcua.sdk.server.OpcUaServer;
 import com.digitalpetri.opcua.sdk.server.Session;
+import com.digitalpetri.opcua.sdk.server.api.AttributeManager.ReadContext;
 import com.digitalpetri.opcua.sdk.server.api.DataItem;
 import com.digitalpetri.opcua.sdk.server.api.EventItem;
 import com.digitalpetri.opcua.sdk.server.api.MonitoredItem;
@@ -46,6 +53,7 @@ import com.digitalpetri.opcua.stack.core.types.builtin.DiagnosticInfo;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 import com.digitalpetri.opcua.stack.core.types.builtin.StatusCode;
+import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UShort;
 import com.digitalpetri.opcua.stack.core.types.enumerated.MonitoringMode;
@@ -70,6 +78,7 @@ import com.digitalpetri.opcua.stack.core.types.structured.MonitoringParameters;
 import com.digitalpetri.opcua.stack.core.types.structured.NotificationMessage;
 import com.digitalpetri.opcua.stack.core.types.structured.PublishRequest;
 import com.digitalpetri.opcua.stack.core.types.structured.PublishResponse;
+import com.digitalpetri.opcua.stack.core.types.structured.ReadValueId;
 import com.digitalpetri.opcua.stack.core.types.structured.RepublishRequest;
 import com.digitalpetri.opcua.stack.core.types.structured.RepublishResponse;
 import com.digitalpetri.opcua.stack.core.types.structured.ResponseHeader;
@@ -82,12 +91,15 @@ import com.digitalpetri.opcua.stack.core.types.structured.SetTriggeringResponse;
 import com.digitalpetri.opcua.stack.core.types.structured.SubscriptionAcknowledgement;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.jooq.lambda.tuple.Tuple3;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.digitalpetri.opcua.sdk.core.util.ConversionUtil.a;
 import static com.digitalpetri.opcua.sdk.server.util.FutureUtils.sequence;
+import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.ubyte;
 import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
+import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.newArrayListWithCapacity;
 import static java.util.stream.Collectors.toList;
 
@@ -342,58 +354,55 @@ public class SubscriptionManager {
 
                 Namespace namespace = server.getNamespaceManager().getNamespace(nodeId.getNamespaceIndex());
 
-                double samplingInterval = r.getRequestedParameters().getSamplingInterval();
-                double minSupportedSampleRate = server.getConfig().getLimits().getMinSupportedSampleRate();
-                double maxSupportedSampleRate = server.getConfig().getLimits().getMaxSupportedSampleRate();
+                readAttributes(namespace, nodeId).thenAccept(as -> {
+                    EnumSet<AccessLevel> accessLevels = as.v1();
+                    EnumSet<AccessLevel> userAccessLevels = as.v2();
+                    double minimumSamplingInterval = as.v3();
 
-                if (samplingInterval < 0) samplingInterval = subscription.getPublishingInterval();
-                if (samplingInterval < minSupportedSampleRate) samplingInterval = minSupportedSampleRate;
-                if (samplingInterval > maxSupportedSampleRate) samplingInterval = maxSupportedSampleRate;
+                    double samplingInterval = r.getRequestedParameters().getSamplingInterval();
+                    double minSupportedSampleRate = server.getConfig().getLimits().getMinSupportedSampleRate();
+                    double maxSupportedSampleRate = server.getConfig().getLimits().getMaxSupportedSampleRate();
 
-                namespace.onCreateMonitoredItem(nodeId, attributeId, samplingInterval, p.getCreateFuture());
+                    if (samplingInterval < 0) samplingInterval = subscription.getPublishingInterval();
+                    if (samplingInterval < minimumSamplingInterval) samplingInterval = minimumSamplingInterval;
+                    if (samplingInterval < minSupportedSampleRate) samplingInterval = minSupportedSampleRate;
+                    if (samplingInterval > maxSupportedSampleRate) samplingInterval = maxSupportedSampleRate;
 
-                p.getCreateFuture().whenComplete((revisedSamplingInterval, ex) -> {
-                    if (revisedSamplingInterval != null) {
-                        try {
-                            String indexRange = r.getItemToMonitor().getIndexRange();
-                            if (indexRange != null) NumericRange.parse(indexRange);
-
-                            MonitoredDataItem item = new MonitoredDataItem(
-                                    uint(subscription.nextItemId()),
-                                    r.getItemToMonitor(),
-                                    r.getMonitoringMode(),
-                                    timestamps,
-                                    r.getRequestedParameters().getClientHandle(),
-                                    revisedSamplingInterval,
-                                    r.getRequestedParameters().getFilter(),
-                                    r.getRequestedParameters().getQueueSize(),
-                                    r.getRequestedParameters().getDiscardOldest());
-
-                            createdItems.add(item);
-
-                            MonitoredItemCreateResult result = new MonitoredItemCreateResult(
-                                    StatusCode.GOOD,
-                                    item.getId(),
-                                    item.getSamplingInterval(),
-                                    uint(item.getQueueSize()),
-                                    item.getFilterResult());
-
-                            p.getResultFuture().complete(result);
-                        } catch (UaException e) {
-                            MonitoredItemCreateResult result =
-                                    new MonitoredItemCreateResult(e.getStatusCode(), uint(0), 0d, uint(0), null);
-
-                            p.getResultFuture().complete(result);
+                    try {
+                        if (!accessLevels.contains(AccessLevel.CurrentRead)) {
+                            throw new UaException(StatusCodes.Bad_NotReadable);
                         }
-                    } else {
-                        StatusCode statusCode = StatusCode.BAD;
-
-                        if (ex instanceof UaException) {
-                            statusCode = ((UaException) ex).getStatusCode();
+                        if (!userAccessLevels.contains(AccessLevel.CurrentRead)) {
+                            throw new UaException(StatusCodes.Bad_UserAccessDenied);
                         }
 
+                        String indexRange = r.getItemToMonitor().getIndexRange();
+                        if (indexRange != null) NumericRange.parse(indexRange);
+
+                        MonitoredDataItem item = new MonitoredDataItem(
+                                uint(subscription.nextItemId()),
+                                r.getItemToMonitor(),
+                                r.getMonitoringMode(),
+                                timestamps,
+                                r.getRequestedParameters().getClientHandle(),
+                                samplingInterval,
+                                r.getRequestedParameters().getFilter(),
+                                r.getRequestedParameters().getQueueSize(),
+                                r.getRequestedParameters().getDiscardOldest());
+
+                        createdItems.add(item);
+
+                        MonitoredItemCreateResult result = new MonitoredItemCreateResult(
+                                StatusCode.GOOD,
+                                item.getId(),
+                                item.getSamplingInterval(),
+                                uint(item.getQueueSize()),
+                                item.getFilterResult());
+
+                        p.getResultFuture().complete(result);
+                    } catch (UaException e) {
                         MonitoredItemCreateResult result =
-                                new MonitoredItemCreateResult(statusCode, uint(0), 0d, uint(0), null);
+                                new MonitoredItemCreateResult(e.getStatusCode(), uint(0), 0d, uint(0), null);
 
                         p.getResultFuture().complete(result);
                     }
@@ -489,57 +498,42 @@ public class SubscriptionManager {
 
                     p.getResultFuture().complete(result);
                 } else {
-                    double samplingInterval = parameters.getSamplingInterval();
-                    double minSupportedSampleRate = server.getConfig().getLimits().getMinSupportedSampleRate();
-                    double maxSupportedSampleRate = server.getConfig().getLimits().getMaxSupportedSampleRate();
-
-                    if (samplingInterval < 0) samplingInterval = subscription.getPublishingInterval();
-                    if (samplingInterval < minSupportedSampleRate) samplingInterval = minSupportedSampleRate;
-                    if (samplingInterval > maxSupportedSampleRate) samplingInterval = maxSupportedSampleRate;
-
                     NodeId nodeId = item.getReadValueId().getNodeId();
                     Namespace namespace = server.getNamespaceManager().getNamespace(nodeId.getNamespaceIndex());
 
-                    namespace.onModifyMonitoredItem(samplingInterval, p.getCreateFuture());
+                    readAttributes(namespace, nodeId).thenAccept(as -> {
+                        double minimumSamplingInterval = as.v3();
 
-                    p.getCreateFuture().whenComplete((revisedSamplingInterval, ex) -> {
-                        if (revisedSamplingInterval != null) {
-                            try {
-                                item.modify(
-                                        timestamps,
-                                        parameters.getClientHandle(),
-                                        revisedSamplingInterval,
-                                        parameters.getFilter(),
-                                        parameters.getQueueSize(),
-                                        parameters.getDiscardOldest());
+                        double samplingInterval = parameters.getSamplingInterval();
+                        double minSupportedSampleRate = server.getConfig().getLimits().getMinSupportedSampleRate();
+                        double maxSupportedSampleRate = server.getConfig().getLimits().getMaxSupportedSampleRate();
 
-                                modifiedItems.add(item);
+                        if (samplingInterval < 0) samplingInterval = subscription.getPublishingInterval();
+                        if (samplingInterval < minimumSamplingInterval) samplingInterval = minimumSamplingInterval;
+                        if (samplingInterval < minSupportedSampleRate) samplingInterval = minSupportedSampleRate;
+                        if (samplingInterval > maxSupportedSampleRate) samplingInterval = maxSupportedSampleRate;
 
-                                MonitoredItemModifyResult result = new MonitoredItemModifyResult(
-                                        StatusCode.GOOD,
-                                        item.getSamplingInterval(),
-                                        uint(item.getQueueSize()),
-                                        item.getFilterResult());
+                        try {
+                            item.modify(
+                                    timestamps,
+                                    parameters.getClientHandle(),
+                                    samplingInterval,
+                                    parameters.getFilter(),
+                                    parameters.getQueueSize(),
+                                    parameters.getDiscardOldest());
 
-                                p.getResultFuture().complete(result);
-                            } catch (UaException e) {
-                                MonitoredItemModifyResult result = new MonitoredItemModifyResult(
-                                        e.getStatusCode(),
-                                        item.getSamplingInterval(),
-                                        uint(item.getQueueSize()),
-                                        item.getFilterResult());
-
-                                p.getResultFuture().complete(result);
-                            }
-                        } else {
-                            StatusCode statusCode = StatusCode.BAD;
-
-                            if (ex instanceof UaException) {
-                                statusCode = ((UaException) ex).getStatusCode();
-                            }
+                            modifiedItems.add(item);
 
                             MonitoredItemModifyResult result = new MonitoredItemModifyResult(
-                                    statusCode,
+                                    StatusCode.GOOD,
+                                    item.getSamplingInterval(),
+                                    uint(item.getQueueSize()),
+                                    item.getFilterResult());
+
+                            p.getResultFuture().complete(result);
+                        } catch (UaException e) {
+                            MonitoredItemModifyResult result = new MonitoredItemModifyResult(
+                                    e.getStatusCode(),
                                     item.getSamplingInterval(),
                                     uint(item.getQueueSize()),
                                     item.getFilterResult());
@@ -600,6 +594,38 @@ public class SubscriptionManager {
             });
         } catch (UaException e) {
             service.setServiceFault(e);
+        }
+    }
+
+    private CompletableFuture<NodeAttributes> readAttributes(Namespace namespace, NodeId nodeId) {
+        Function<AttributeId, ReadValueId> f = id ->
+                new ReadValueId(nodeId, id.uid(), null, QualifiedName.NULL_VALUE);
+
+        ReadContext readContext = new ReadContext(
+                server, null, new DiagnosticsContext<>());
+
+        List<ReadValueId> readValueIds = newArrayList(
+                f.apply(AttributeId.ACCESS_LEVEL),
+                f.apply(AttributeId.USER_ACCESS_LEVEL),
+                f.apply(AttributeId.MINIMUM_SAMPLING_INTERVAL));
+
+        namespace.read(0.0, TimestampsToReturn.Neither, readValueIds, readContext);
+
+        return readContext.getFuture().thenApply(values -> {
+            UByte accessLevel = Optional.ofNullable((UByte) values.get(0).getValue().getValue()).orElse(ubyte(1));
+            UByte userAccessLevel = Optional.ofNullable((UByte) values.get(1).getValue().getValue()).orElse(ubyte(1));
+            Double minimumSamplingInterval = Optional.ofNullable((Double) values.get(2).getValue().getValue()).orElse(0.0);
+
+            return new NodeAttributes(
+                    AccessLevel.fromMask(accessLevel),
+                    AccessLevel.fromMask(userAccessLevel),
+                    minimumSamplingInterval);
+        });
+    }
+
+    private static class NodeAttributes extends Tuple3<EnumSet<AccessLevel>, EnumSet<AccessLevel>, Double> {
+        public NodeAttributes(EnumSet<AccessLevel> v1, EnumSet<AccessLevel> v2, Double v3) {
+            super(v1, v2, v3);
         }
     }
 

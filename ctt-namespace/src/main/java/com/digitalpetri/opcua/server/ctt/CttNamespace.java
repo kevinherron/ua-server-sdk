@@ -468,34 +468,6 @@ public class CttNamespace implements UaNamespace {
     }
 
     @Override
-    public void onCreateMonitoredItem(NodeId nodeId,
-                                      UInteger attributeId,
-                                      double requestedSamplingInterval,
-                                      CompletableFuture<Double> revisedSamplingInterval) {
-
-        UaNode node = nodes.get(nodeId);
-
-        if (node != null) {
-            if (node.hasAttribute(attributeId)) {
-                revisedSamplingInterval.complete(requestedSamplingInterval);
-            } else {
-                revisedSamplingInterval.completeExceptionally(
-                        new UaException(StatusCodes.Bad_AttributeIdInvalid));
-            }
-        } else {
-            revisedSamplingInterval.completeExceptionally(
-                    new UaException(StatusCodes.Bad_NodeIdUnknown));
-        }
-    }
-
-    @Override
-    public void onModifyMonitoredItem(double requestedSamplingInterval,
-                                      CompletableFuture<Double> revisedSamplingInterval) {
-
-        revisedSamplingInterval.complete(requestedSamplingInterval);
-    }
-
-    @Override
     public void onDataItemsCreated(List<DataItem> dataItems) {
         subscriptionModel.onDataItemsCreated(dataItems);
     }

@@ -26,7 +26,6 @@ import com.digitalpetri.opcua.stack.core.types.structured.MonitoredItemCreateRes
 
 final class PendingItemCreation {
 
-    private final CompletableFuture<Double> createFuture = new CompletableFuture<>();
     private final CompletableFuture<MonitoredItemCreateResult> resultFuture = new CompletableFuture<>();
 
     private final MonitoredItemCreateRequest request;
@@ -37,10 +36,6 @@ final class PendingItemCreation {
 
     public MonitoredItemCreateRequest getRequest() {
         return request;
-    }
-
-    public CompletableFuture<Double> getCreateFuture() {
-        return createFuture;
     }
 
     public CompletableFuture<MonitoredItemCreateResult> getResultFuture() {
