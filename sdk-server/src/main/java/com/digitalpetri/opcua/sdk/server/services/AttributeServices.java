@@ -119,10 +119,10 @@ public class AttributeServices implements AttributeServiceSet {
                         .collect(toList());
 
                 namespace.read(
+                        context,
                         request.getMaxAge(),
                         request.getTimestampsToReturn(),
-                        readValueIds,
-                        context);
+                        readValueIds);
             });
 
             context.getFuture().thenAccept(values -> {
@@ -196,7 +196,7 @@ public class AttributeServices implements AttributeServiceSet {
                         .map(PendingWrite::getInput)
                         .collect(toList());
 
-                namespace.write(writeValues, context);
+                namespace.write(context, writeValues);
             });
 
             context.getFuture().thenAccept(statusCodes -> {

@@ -121,7 +121,7 @@ public class VendorNamespace implements UaNamespace {
     }
 
     @Override
-    public void read(Double maxAge, TimestampsToReturn timestamps, List<ReadValueId> readValueIds, ReadContext context) {
+    public void read(ReadContext context, Double maxAge, TimestampsToReturn timestamps, List<ReadValueId> readValueIds) {
         List<DataValue> results = Lists.newArrayListWithCapacity(readValueIds.size());
 
         for (ReadValueId id : readValueIds) {
@@ -138,7 +138,7 @@ public class VendorNamespace implements UaNamespace {
     }
 
     @Override
-    public void write(List<WriteValue> writeValues, WriteContext context) {
+    public void write(WriteContext context, List<WriteValue> writeValues) {
         List<StatusCode> results = writeValues.stream().map(value -> {
             if (nodes.containsKey(value.getNodeId())) {
                 return new StatusCode(StatusCodes.Bad_NotWritable);

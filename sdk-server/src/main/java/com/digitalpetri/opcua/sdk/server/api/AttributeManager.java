@@ -37,25 +37,25 @@ public interface AttributeManager {
      * <p>
      * When the operation is finished, complete {@link ReadContext#getFuture()}.
      *
+     * @param context      the {@link ReadContext}.
      * @param maxAge       requested max age.
      * @param timestamps   requested timestamp values.
      * @param readValueIds the values to read.
-     * @param context      the {@link ReadContext}.
      */
-    void read(Double maxAge,
+    void read(ReadContext context,
+              Double maxAge,
               TimestampsToReturn timestamps,
-              List<ReadValueId> readValueIds,
-              ReadContext context);
+              List<ReadValueId> readValueIds);
 
     /**
      * Write one or more values to nodes belonging to this {@link AttributeManager}.
      * <p>
      * When the operation is finished, complete {@link WriteContext#getFuture()}.
      *
-     * @param writeValues the values to write.
      * @param context     the {@link WriteContext}.
+     * @param writeValues the values to write.
      */
-    void write(List<WriteValue> writeValues, WriteContext context);
+    void write(WriteContext context, List<WriteValue> writeValues);
 
     final class ReadContext extends OperationContext<ReadValueId, DataValue> {
         public ReadContext(OpcUaServer server, Session session,

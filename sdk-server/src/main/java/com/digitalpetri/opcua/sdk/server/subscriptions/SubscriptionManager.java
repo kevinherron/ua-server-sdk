@@ -609,7 +609,7 @@ public class SubscriptionManager {
                 f.apply(AttributeId.USER_ACCESS_LEVEL),
                 f.apply(AttributeId.MINIMUM_SAMPLING_INTERVAL));
 
-        namespace.read(0.0, TimestampsToReturn.Neither, readValueIds, readContext);
+        namespace.read(readContext, 0.0, TimestampsToReturn.Neither, readValueIds);
 
         return readContext.getFuture().thenApply(values -> {
             UByte accessLevel = Optional.ofNullable((UByte) values.get(0).getValue().getValue()).orElse(ubyte(1));

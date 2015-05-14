@@ -256,7 +256,7 @@ public class BrowseHelper {
             ReadContext context = new ReadContext(server, null, new DiagnosticsContext<>());
 
             server.getNamespaceManager().getNamespace(nodeId.getNamespaceIndex()).read(
-                    0.0, TimestampsToReturn.Neither, readValueIds, context);
+                    context, 0.0, TimestampsToReturn.Neither, readValueIds);
 
             return context.getFuture().thenApply(values -> {
                 QualifiedName browseName = QualifiedName.NULL_VALUE;

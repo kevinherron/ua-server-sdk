@@ -161,7 +161,7 @@ public class SubscriptionModel {
                 }
             }, executor);
 
-            executor.execute(() -> attributeServices.read(0d, TimestampsToReturn.Both, ids, context));
+            executor.execute(() -> attributeServices.read(context, 0d, TimestampsToReturn.Both, ids));
         }
 
     }

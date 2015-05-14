@@ -25,9 +25,11 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import com.digitalpetri.opcua.sdk.server.DiagnosticsContext;
 import com.digitalpetri.opcua.sdk.server.OpcUaServer;
+import com.digitalpetri.opcua.sdk.server.Session;
+import com.digitalpetri.opcua.sdk.server.api.MethodServices.CallContext;
 import com.digitalpetri.opcua.sdk.server.api.Namespace;
-import com.digitalpetri.opcua.sdk.server.util.Pending;
 import com.digitalpetri.opcua.sdk.server.util.PendingCall;
 import com.digitalpetri.opcua.stack.core.application.services.MethodServiceSet;
 import com.digitalpetri.opcua.stack.core.application.services.ServiceRequest;
@@ -50,7 +52,10 @@ public class MethodServices implements MethodServiceSet {
     public void onCall(ServiceRequest<CallRequest, CallResponse> service) {
         callCounter.record(service);
 
+        DiagnosticsContext<CallMethodRequest> diagnosticsContext = new DiagnosticsContext<>();
+
         OpcUaServer server = service.attr(ServiceAttributes.SERVER_KEY).get();
+        Session session = service.attr(ServiceAttributes.SESSION_KEY).get();
 
         CallRequest request = service.getRequest();
 
@@ -74,9 +79,15 @@ public class MethodServices implements MethodServiceSet {
 
             Namespace namespace = server.getNamespaceManager().getNamespace(index);
 
-            CompletableFuture<List<CallMethodResult>> future = Pending.callback(pending);
+            CallContext context = new CallContext(server, session, diagnosticsContext);
 
-            server.getExecutorService().execute(() -> namespace.call(requests, future));
+            server.getExecutorService().execute(() -> namespace.call(context, requests));
+
+            context.getFuture().thenAccept(values -> {
+                for (int i = 0; i < values.size(); i++) {
+                    pending.get(i).getFuture().complete(values.get(i));
+                }
+            });
         });
 
         /*

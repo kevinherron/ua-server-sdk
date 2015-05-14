@@ -60,10 +60,9 @@ public class NoOpNamespace implements Namespace {
     }
 
     @Override
-    public void read(Double maxAge,
+    public void read(ReadContext context, Double maxAge,
                      TimestampsToReturn timestamps,
-                     List<ReadValueId> readValueIds,
-                     ReadContext context) {
+                     List<ReadValueId> readValueIds) {
 
         List<DataValue> values = Collections.nCopies(
                 readValueIds.size(), new DataValue(StatusCodes.Bad_NodeIdUnknown));
@@ -72,7 +71,7 @@ public class NoOpNamespace implements Namespace {
     }
 
     @Override
-    public void write(List<WriteValue> writeValues, WriteContext context) {
+    public void write(WriteContext context, List<WriteValue> writeValues) {
         List<StatusCode> results = Collections.nCopies(
                 writeValues.size(), new StatusCode(StatusCodes.Bad_NodeIdUnknown));
 

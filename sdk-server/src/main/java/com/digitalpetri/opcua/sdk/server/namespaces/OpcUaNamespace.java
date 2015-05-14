@@ -139,10 +139,9 @@ public class OpcUaNamespace implements UaNamespace {
     }
 
     @Override
-    public void read(Double maxAge,
+    public void read(ReadContext context, Double maxAge,
                      TimestampsToReturn timestamps,
-                     List<ReadValueId> readValueIds,
-                     ReadContext context) {
+                     List<ReadValueId> readValueIds) {
 
         List<DataValue> results = newArrayListWithCapacity(readValueIds.size());
 
@@ -167,7 +166,7 @@ public class OpcUaNamespace implements UaNamespace {
     }
 
     @Override
-    public void write(List<WriteValue> writeValues, WriteContext context) {
+    public void write(WriteContext context, List<WriteValue> writeValues) {
         List<StatusCode> results = writeValues.stream().map(value -> {
             if (nodes.containsKey(value.getNodeId())) {
                 return new StatusCode(StatusCodes.Bad_NotWritable);

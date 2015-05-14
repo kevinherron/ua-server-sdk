@@ -245,7 +245,7 @@ public class BrowsePathsHelper {
 
                 ReadContext context = new ReadContext(server, null, new DiagnosticsContext<>());
 
-                namespace.read(0.0, TimestampsToReturn.Neither, newArrayList(readValueId), context);
+                namespace.read(context, 0.0, TimestampsToReturn.Neither, newArrayList(readValueId));
 
                 return context.getFuture();
             }).orElse(completedFuture(newArrayList(new DataValue(StatusCodes.Bad_NodeIdUnknown))));

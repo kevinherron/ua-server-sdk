@@ -408,7 +408,7 @@ public class CttNamespace implements UaNamespace {
     }
 
     @Override
-    public void read(Double maxAge, TimestampsToReturn timestamps, List<ReadValueId> readValueIds, ReadContext context) {
+    public void read(ReadContext context, Double maxAge, TimestampsToReturn timestamps, List<ReadValueId> readValueIds) {
         List<DataValue> results = Lists.newArrayListWithCapacity(readValueIds.size());
 
         for (ReadValueId id : readValueIds) {
@@ -437,7 +437,7 @@ public class CttNamespace implements UaNamespace {
     }
 
     @Override
-    public void write(List<WriteValue> writeValues, WriteContext context) {
+    public void write(WriteContext context, List<WriteValue> writeValues) {
         List<StatusCode> results = Lists.newArrayListWithCapacity(writeValues.size());
 
         for (WriteValue writeValue : writeValues) {
