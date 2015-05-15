@@ -38,10 +38,10 @@ import static java.util.stream.Collectors.toList;
 
 public interface ViewManager {
 
-    default void browse(ViewDescription view,
+    default void browse(BrowseContext context,
+                        ViewDescription view,
                         UInteger maxReferencesPerNode,
-                        List<BrowseDescription> nodesToBrowse,
-                        BrowseContext context) {
+                        List<BrowseDescription> nodesToBrowse) {
 
         OpcUaServer server = context.getServer();
 

@@ -111,10 +111,10 @@ public class ViewServices implements ViewServiceSet {
                         .collect(toList());
 
                 namespace.browse(
+                        context,
                         request.getView(),
                         request.getRequestedMaxReferencesPerNode(),
-                        browseDescriptions,
-                        context);
+                        browseDescriptions);
             });
 
             context.getFuture().thenAccept(results -> {
