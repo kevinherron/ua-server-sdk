@@ -23,7 +23,10 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import com.digitalpetri.opcua.stack.core.types.structured.CallMethodRequest;
+import com.digitalpetri.opcua.stack.core.types.structured.CallMethodResult;
 import com.digitalpetri.opcua.stack.core.types.structured.CallResponse;
+
+import static com.google.common.collect.Lists.newArrayList;
 
 public interface MethodServices {
 
@@ -36,5 +39,17 @@ public interface MethodServices {
      * @return a {@link CompletableFuture} containing the {@link CallResponse}.
      */
     CompletableFuture<CallResponse> call(List<CallMethodRequest> methodsToCall);
+
+    /**
+     * Call (invoke) a method.
+     *
+     * @param request the {@link CallMethodRequest} describing the method to invoke.
+     * @return a {@link CompletableFuture} containing the {@link CallMethodResult}.
+     * @see #call(List)
+     */
+    default CompletableFuture<CallMethodResult> call(CallMethodRequest request) {
+        return call(newArrayList(request))
+                .thenApply(response -> response.getResults()[0]);
+    }
 
 }
