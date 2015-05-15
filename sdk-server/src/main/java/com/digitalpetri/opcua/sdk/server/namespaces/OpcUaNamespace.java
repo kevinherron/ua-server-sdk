@@ -221,11 +221,9 @@ public class OpcUaNamespace implements UaNamespace {
         eventItems.forEach(item -> server.getEventBus().unregister(item));
     }
 
-    @Override
     public void addReference(NodeId sourceNodeId,
                              NodeId referenceTypeId,
                              boolean forward,
-                             String targetServerUri,
                              ExpandedNodeId targetNodeId,
                              NodeClass targetNodeClass) throws UaException {
 
@@ -237,8 +235,7 @@ public class OpcUaNamespace implements UaNamespace {
                     referenceTypeId,
                     targetNodeId,
                     targetNodeClass,
-                    forward
-            );
+                    forward);
 
             node.addReference(reference);
         } else {

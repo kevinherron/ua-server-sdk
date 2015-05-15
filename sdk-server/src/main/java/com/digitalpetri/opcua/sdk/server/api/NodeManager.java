@@ -19,49 +19,81 @@
 
 package com.digitalpetri.opcua.sdk.server.api;
 
-import java.util.Optional;
+import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.List;
 
+import com.digitalpetri.opcua.sdk.server.DiagnosticsContext;
+import com.digitalpetri.opcua.sdk.server.OpcUaServer;
+import com.digitalpetri.opcua.sdk.server.Session;
 import com.digitalpetri.opcua.stack.core.StatusCodes;
-import com.digitalpetri.opcua.stack.core.UaException;
-import com.digitalpetri.opcua.stack.core.types.builtin.ExpandedNodeId;
-import com.digitalpetri.opcua.stack.core.types.builtin.ExtensionObject;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
-import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
-import com.digitalpetri.opcua.stack.core.types.enumerated.NodeClass;
+import com.digitalpetri.opcua.stack.core.types.builtin.StatusCode;
+import com.digitalpetri.opcua.stack.core.types.structured.AddNodesItem;
+import com.digitalpetri.opcua.stack.core.types.structured.AddNodesResult;
+import com.digitalpetri.opcua.stack.core.types.structured.AddReferencesItem;
+import com.digitalpetri.opcua.stack.core.types.structured.DeleteNodesItem;
+import com.digitalpetri.opcua.stack.core.types.structured.DeleteReferencesItem;
 
 public interface NodeManager {
 
-    default NodeId addNode(Optional<ExpandedNodeId> requestedNodeId,
-                           QualifiedName browseName,
-                           NodeClass nodeClass,
-                           ExtensionObject nodeAttributes,
-                           ExpandedNodeId typeDefinition) throws UaException {
+    default void addNode(AddNodesContext context, List<AddNodesItem> nodesToAdd) {
+        AddNodesResult result = new AddNodesResult(
+                new StatusCode(StatusCodes.Bad_NotSupported),
+                NodeId.NULL_VALUE);
 
-        throw new UaException(StatusCodes.Bad_NotSupported);
+        context.getFuture().complete(Collections.nCopies(nodesToAdd.size(), result));
     }
 
 
-    default void deleteNode(NodeId nodeId, boolean deleteTargetReferences) throws UaException {
-        throw new UaException(StatusCodes.Bad_NotSupported);
+    default void deleteNode(DeleteNodesContext context, List<DeleteNodesItem> nodesToDelete) {
+        StatusCode statusCode = new StatusCode(StatusCodes.Bad_NotSupported);
+
+        context.getFuture().complete(Collections.nCopies(nodesToDelete.size(), statusCode));
     }
 
-    default void addReference(NodeId sourceNodeId,
-                              NodeId referenceTypeId,
-                              boolean forward,
-                              String targetServerUri,
-                              ExpandedNodeId targetNodeId,
-                              NodeClass targetNodeClass) throws UaException {
+    default void addReference(AddReferencesContext context, List<AddReferencesItem> referencesToAdd) {
+        StatusCode statusCode = new StatusCode(StatusCodes.Bad_NotSupported);
 
-        throw new UaException(StatusCodes.Bad_NotSupported);
+        context.getFuture().complete(Collections.nCopies(referencesToAdd.size(), statusCode));
     }
 
-    default void deleteReference(NodeId sourceNodeId,
-                                 NodeId referenceTypeId,
-                                 boolean forward,
-                                 ExpandedNodeId targetNodeId,
-                                 boolean bidirectional) throws UaException {
+    default void deleteReference(DeleteReferencesContext context, List<DeleteReferencesItem> referencesToDelete) {
+        StatusCode statusCode = new StatusCode(StatusCodes.Bad_NotSupported);
 
-        throw new UaException(StatusCodes.Bad_NotSupported);
+        context.getFuture().complete(Collections.nCopies(referencesToDelete.size(), statusCode));
+    }
+
+    final class AddNodesContext extends OperationContext<AddNodesItem, AddNodesResult> {
+        public AddNodesContext(OpcUaServer server, @Nullable Session session,
+                               DiagnosticsContext<AddNodesItem> diagnosticsContext) {
+
+            super(server, session, diagnosticsContext);
+        }
+    }
+
+    final class DeleteNodesContext extends OperationContext<DeleteNodesItem, StatusCode> {
+        public DeleteNodesContext(OpcUaServer server, @Nullable Session session,
+                                  DiagnosticsContext<DeleteNodesItem> diagnosticsContext) {
+
+            super(server, session, diagnosticsContext);
+        }
+    }
+
+    final class AddReferencesContext extends OperationContext<AddReferencesItem, StatusCode> {
+        public AddReferencesContext(OpcUaServer server, @Nullable Session session,
+                                    DiagnosticsContext<AddReferencesItem> diagnosticsContext) {
+
+            super(server, session, diagnosticsContext);
+        }
+    }
+
+    final class DeleteReferencesContext extends OperationContext<DeleteReferencesItem, StatusCode> {
+        public DeleteReferencesContext(OpcUaServer server, @Nullable Session session,
+                                       DiagnosticsContext<DeleteReferencesItem> diagnosticsContext) {
+
+            super(server, session, diagnosticsContext);
+        }
     }
 
 }

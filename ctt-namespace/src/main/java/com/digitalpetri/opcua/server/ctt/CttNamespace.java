@@ -107,8 +107,9 @@ public class CttNamespace implements UaNamespace {
             server.getUaNamespace().addReference(
                     Identifiers.ObjectsFolder,
                     Identifiers.Organizes,
-                    true, server.getServerTable().getUri(0),
-                    cttNodeId.expanded(), NodeClass.Object);
+                    true,
+                    cttNodeId.expanded(),
+                    NodeClass.Object);
         } catch (UaException e) {
             logger.error("Error adding reference to Connections folder.", e);
         }
