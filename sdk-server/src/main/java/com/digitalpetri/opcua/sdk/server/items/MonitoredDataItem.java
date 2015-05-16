@@ -115,8 +115,7 @@ public class MonitoredDataItem extends BaseMonitoredItem<DataValue> implements D
                     lastValue.getValue(),
                     quality,
                     DateTime.now(),
-                    DateTime.now()
-            );
+                    DateTime.now());
 
             setValue(value);
         }

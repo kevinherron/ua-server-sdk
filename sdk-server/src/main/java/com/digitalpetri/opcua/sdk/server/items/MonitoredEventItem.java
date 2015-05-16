@@ -54,12 +54,33 @@ public class MonitoredEventItem extends BaseMonitoredItem<Variant[]> implements 
 
     @Override
     public void setEvent(BaseEventType event) {
+        // TODO Apply EventFilter...
 
+        Variant[] variants = new Variant[]{
+                new Variant(event.getEventId()),
+                new Variant(event.getEventType()),
+                new Variant(event.getSourceNode()),
+                new Variant(event.getSourceNode()),
+                new Variant(event.getTime())
+        };
+
+        enqueue(variants);
     }
 
     @Override
     protected void enqueue(Variant[] value) {
-
+        if (queueSize < queue.maxSize()) {
+            queue.add(value);
+        } else {
+            if (getQueueSize() > 1) {
+                // TODO Send an EventQueueOverflowEventType...
+            }
+            if (discardOldest) {
+                queue.add(value);
+            } else {
+                queue.set(queue.maxSize() - 1, value);
+            }
+        }
     }
 
     @Override
@@ -82,7 +103,4 @@ public class MonitoredEventItem extends BaseMonitoredItem<Variant[]> implements 
         return getMonitoringMode() != MonitoringMode.Disabled;
     }
 
-    public static BaseMonitoredItem<?> create() {
-        return null; // TODO
-    }
 }

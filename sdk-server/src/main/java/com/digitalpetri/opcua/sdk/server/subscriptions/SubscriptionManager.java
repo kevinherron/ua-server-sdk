@@ -354,59 +354,99 @@ public class SubscriptionManager {
 
                 Namespace namespace = server.getNamespaceManager().getNamespace(nodeId.getNamespaceIndex());
 
-                readAttributes(namespace, nodeId).thenAccept(as -> {
-                    EnumSet<AccessLevel> accessLevels = as.v1();
-                    EnumSet<AccessLevel> userAccessLevels = as.v2();
-                    double minimumSamplingInterval = as.v3();
+                if (attributeId.equals(AttributeId.EVENT_NOTIFIER.uid())) {
+                    readEventAttributes(namespace, nodeId).thenAccept(as -> {
+                        Optional<UByte> eventNotifier = as.v3();
 
-                    double samplingInterval = r.getRequestedParameters().getSamplingInterval();
-                    double minSupportedSampleRate = server.getConfig().getLimits().getMinSupportedSampleRate();
-                    double maxSupportedSampleRate = server.getConfig().getLimits().getMaxSupportedSampleRate();
+                        try {
+                            if (!eventNotifier.isPresent()) {
+                                throw new UaException(StatusCodes.Bad_AttributeIdInvalid);
+                            }
 
-                    if (samplingInterval < 0) samplingInterval = subscription.getPublishingInterval();
-                    if (samplingInterval < minimumSamplingInterval) samplingInterval = minimumSamplingInterval;
-                    if (samplingInterval < minSupportedSampleRate) samplingInterval = minSupportedSampleRate;
-                    if (samplingInterval > maxSupportedSampleRate) samplingInterval = maxSupportedSampleRate;
+                            MonitoredEventItem item = new MonitoredEventItem(
+                                    uint(subscription.nextItemId()),
+                                    r.getItemToMonitor(),
+                                    r.getMonitoringMode(),
+                                    timestamps,
+                                    r.getRequestedParameters().getClientHandle(),
+                                    0.0,
+                                    r.getRequestedParameters().getQueueSize(),
+                                    r.getRequestedParameters().getDiscardOldest(),
+                                    r.getRequestedParameters().getFilter());
 
-                    try {
-                        if (!accessLevels.contains(AccessLevel.CurrentRead)) {
-                            throw new UaException(StatusCodes.Bad_NotReadable);
+                            createdItems.add(item);
+
+                            MonitoredItemCreateResult result = new MonitoredItemCreateResult(
+                                    StatusCode.GOOD,
+                                    item.getId(),
+                                    item.getSamplingInterval(),
+                                    uint(item.getQueueSize()),
+                                    item.getFilterResult());
+
+                            p.getResultFuture().complete(result);
+                        } catch (UaException e) {
+                            MonitoredItemCreateResult result =
+                                    new MonitoredItemCreateResult(e.getStatusCode(), uint(0), 0d, uint(0), null);
+
+                            p.getResultFuture().complete(result);
                         }
-                        if (!userAccessLevels.contains(AccessLevel.CurrentRead)) {
-                            throw new UaException(StatusCodes.Bad_UserAccessDenied);
+                    });
+                } else {
+                    readDataAttributes(namespace, nodeId).thenAccept(as -> {
+                        EnumSet<AccessLevel> accessLevels = as.v1();
+                        EnumSet<AccessLevel> userAccessLevels = as.v2();
+                        double minimumSamplingInterval = as.v3();
+
+                        double samplingInterval = r.getRequestedParameters().getSamplingInterval();
+                        double minSupportedSampleRate = server.getConfig().getLimits().getMinSupportedSampleRate();
+                        double maxSupportedSampleRate = server.getConfig().getLimits().getMaxSupportedSampleRate();
+
+                        if (samplingInterval < 0) samplingInterval = subscription.getPublishingInterval();
+                        if (samplingInterval < minimumSamplingInterval) samplingInterval = minimumSamplingInterval;
+                        if (samplingInterval < minSupportedSampleRate) samplingInterval = minSupportedSampleRate;
+                        if (samplingInterval > maxSupportedSampleRate) samplingInterval = maxSupportedSampleRate;
+
+                        try {
+                            if (!accessLevels.contains(AccessLevel.CurrentRead)) {
+                                throw new UaException(StatusCodes.Bad_NotReadable);
+                            }
+                            if (!userAccessLevels.contains(AccessLevel.CurrentRead)) {
+                                // TODO We didn't read with the session, so this isn't right.
+                                throw new UaException(StatusCodes.Bad_UserAccessDenied);
+                            }
+
+                            String indexRange = r.getItemToMonitor().getIndexRange();
+                            if (indexRange != null) NumericRange.parse(indexRange);
+
+                            MonitoredDataItem item = new MonitoredDataItem(
+                                    uint(subscription.nextItemId()),
+                                    r.getItemToMonitor(),
+                                    r.getMonitoringMode(),
+                                    timestamps,
+                                    r.getRequestedParameters().getClientHandle(),
+                                    samplingInterval,
+                                    r.getRequestedParameters().getFilter(),
+                                    r.getRequestedParameters().getQueueSize(),
+                                    r.getRequestedParameters().getDiscardOldest());
+
+                            createdItems.add(item);
+
+                            MonitoredItemCreateResult result = new MonitoredItemCreateResult(
+                                    StatusCode.GOOD,
+                                    item.getId(),
+                                    item.getSamplingInterval(),
+                                    uint(item.getQueueSize()),
+                                    item.getFilterResult());
+
+                            p.getResultFuture().complete(result);
+                        } catch (UaException e) {
+                            MonitoredItemCreateResult result =
+                                    new MonitoredItemCreateResult(e.getStatusCode(), uint(0), 0d, uint(0), null);
+
+                            p.getResultFuture().complete(result);
                         }
-
-                        String indexRange = r.getItemToMonitor().getIndexRange();
-                        if (indexRange != null) NumericRange.parse(indexRange);
-
-                        MonitoredDataItem item = new MonitoredDataItem(
-                                uint(subscription.nextItemId()),
-                                r.getItemToMonitor(),
-                                r.getMonitoringMode(),
-                                timestamps,
-                                r.getRequestedParameters().getClientHandle(),
-                                samplingInterval,
-                                r.getRequestedParameters().getFilter(),
-                                r.getRequestedParameters().getQueueSize(),
-                                r.getRequestedParameters().getDiscardOldest());
-
-                        createdItems.add(item);
-
-                        MonitoredItemCreateResult result = new MonitoredItemCreateResult(
-                                StatusCode.GOOD,
-                                item.getId(),
-                                item.getSamplingInterval(),
-                                uint(item.getQueueSize()),
-                                item.getFilterResult());
-
-                        p.getResultFuture().complete(result);
-                    } catch (UaException e) {
-                        MonitoredItemCreateResult result =
-                                new MonitoredItemCreateResult(e.getStatusCode(), uint(0), 0d, uint(0), null);
-
-                        p.getResultFuture().complete(result);
-                    }
-                });
+                    });
+                }
             }
 
             List<CompletableFuture<MonitoredItemCreateResult>> futures = pending.stream()
@@ -501,7 +541,7 @@ public class SubscriptionManager {
                     NodeId nodeId = item.getReadValueId().getNodeId();
                     Namespace namespace = server.getNamespaceManager().getNamespace(nodeId.getNamespaceIndex());
 
-                    readAttributes(namespace, nodeId).thenAccept(as -> {
+                    readDataAttributes(namespace, nodeId).thenAccept(as -> {
                         double minimumSamplingInterval = as.v3();
 
                         double samplingInterval = parameters.getSamplingInterval();
@@ -597,7 +637,7 @@ public class SubscriptionManager {
         }
     }
 
-    private CompletableFuture<NodeAttributes> readAttributes(Namespace namespace, NodeId nodeId) {
+    private CompletableFuture<DataAttributes> readDataAttributes(Namespace namespace, NodeId nodeId) {
         Function<AttributeId, ReadValueId> f = id ->
                 new ReadValueId(nodeId, id.uid(), null, QualifiedName.NULL_VALUE);
 
@@ -616,15 +656,47 @@ public class SubscriptionManager {
             UByte userAccessLevel = Optional.ofNullable((UByte) values.get(1).getValue().getValue()).orElse(ubyte(1));
             Double minimumSamplingInterval = Optional.ofNullable((Double) values.get(2).getValue().getValue()).orElse(0.0);
 
-            return new NodeAttributes(
+            return new DataAttributes(
                     AccessLevel.fromMask(accessLevel),
                     AccessLevel.fromMask(userAccessLevel),
                     minimumSamplingInterval);
         });
     }
 
-    private static class NodeAttributes extends Tuple3<EnumSet<AccessLevel>, EnumSet<AccessLevel>, Double> {
-        public NodeAttributes(EnumSet<AccessLevel> v1, EnumSet<AccessLevel> v2, Double v3) {
+    private CompletableFuture<EventAttributes> readEventAttributes(Namespace namespace, NodeId nodeId) {
+        Function<AttributeId, ReadValueId> f = id ->
+                new ReadValueId(nodeId, id.uid(), null, QualifiedName.NULL_VALUE);
+
+        ReadContext readContext = new ReadContext(
+                server, null, new DiagnosticsContext<>());
+
+        List<ReadValueId> readValueIds = newArrayList(
+                f.apply(AttributeId.ACCESS_LEVEL),
+                f.apply(AttributeId.USER_ACCESS_LEVEL),
+                f.apply(AttributeId.EVENT_NOTIFIER));
+
+        namespace.read(readContext, 0.0, TimestampsToReturn.Neither, readValueIds);
+
+        return readContext.getFuture().thenApply(values -> {
+            UByte accessLevel = Optional.ofNullable((UByte) values.get(0).getValue().getValue()).orElse(ubyte(1));
+            UByte userAccessLevel = Optional.ofNullable((UByte) values.get(1).getValue().getValue()).orElse(ubyte(1));
+            Optional<UByte> eventNotifier = Optional.ofNullable((UByte) values.get(2).getValue().getValue());
+
+            return new EventAttributes(
+                    AccessLevel.fromMask(accessLevel),
+                    AccessLevel.fromMask(userAccessLevel),
+                    eventNotifier);
+        });
+    }
+
+    private static class DataAttributes extends Tuple3<EnumSet<AccessLevel>, EnumSet<AccessLevel>, Double> {
+        public DataAttributes(EnumSet<AccessLevel> v1, EnumSet<AccessLevel> v2, Double v3) {
+            super(v1, v2, v3);
+        }
+    }
+
+    private static class EventAttributes extends Tuple3<EnumSet<AccessLevel>, EnumSet<AccessLevel>, Optional<UByte>> {
+        public EventAttributes(EnumSet<AccessLevel> v1, EnumSet<AccessLevel> v2, Optional<UByte> v3) {
             super(v1, v2, v3);
         }
     }
