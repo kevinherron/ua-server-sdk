@@ -19,7 +19,11 @@
 
 package com.digitalpetri.opcua.sdk.core;
 
+import java.util.EnumSet;
+
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
@@ -47,6 +51,60 @@ public enum AttributeId {
     HISTORIZING(20),
     EXECUTABLE(21),
     USER_EXECUTABLE(22);
+
+    public static final ImmutableSet<AttributeId> BASE_NODE_ATTRIBUTES = ImmutableSet.copyOf(
+            EnumSet.of(
+                    NODE_ID, NODE_CLASS, BROWSE_NAME, DISPLAY_NAME, DESCRIPTION, WRITE_MASK, USER_WRITE_MASK)
+    );
+
+    public static final ImmutableSet<AttributeId> DATA_TYPE_NODE_ATTRIBUTES = ImmutableSet.copyOf(
+            Sets.union(
+                    BASE_NODE_ATTRIBUTES,
+                    EnumSet.of(IS_ABSTRACT))
+    );
+
+    public static final ImmutableSet<AttributeId> METHOD_NODE_ATTRIBUTES = ImmutableSet.copyOf(
+            Sets.union(
+                    BASE_NODE_ATTRIBUTES,
+                    EnumSet.of(EXECUTABLE, USER_EXECUTABLE))
+    );
+
+    public static final ImmutableSet<AttributeId> OBJECT_NODE_ATTRIBUTES = ImmutableSet.copyOf(
+            Sets.union(
+                    BASE_NODE_ATTRIBUTES,
+                    EnumSet.of(EVENT_NOTIFIER))
+    );
+
+    public static final ImmutableSet<AttributeId> OBJECT_TYPE_NODE_ATTRIBUTES = ImmutableSet.copyOf(
+            Sets.union(
+                    BASE_NODE_ATTRIBUTES,
+                    EnumSet.of(IS_ABSTRACT))
+    );
+
+    public static final ImmutableSet<AttributeId> REFERENCE_TYPE_NODE_ATTRIBUTES = ImmutableSet.copyOf(
+            Sets.union(
+                    BASE_NODE_ATTRIBUTES,
+                    EnumSet.of(IS_ABSTRACT, SYMMETRIC, INVERSE_NAME))
+    );
+
+    public static final ImmutableSet<AttributeId> VARIABLE_NODE_ATTRIBUTES = ImmutableSet.copyOf(
+            Sets.union(
+                    BASE_NODE_ATTRIBUTES,
+                    EnumSet.of(VALUE, DATA_TYPE, VALUE_RANK, ARRAY_DIMENSIONS,
+                            ACCESS_LEVEL, USER_ACCESS_LEVEL, MINIMUM_SAMPLING_INTERVAL, HISTORIZING))
+    );
+
+    public static final ImmutableSet<AttributeId> VARIABLE_TYPE_NODE_ATTRIBUTES = ImmutableSet.copyOf(
+            Sets.union(
+                    BASE_NODE_ATTRIBUTES,
+                    EnumSet.of(VALUE, DATA_TYPE, VALUE_RANK, ARRAY_DIMENSIONS, IS_ABSTRACT))
+    );
+
+    public static final ImmutableSet<AttributeId> VIEW_NODE_ATTRIBUTES = ImmutableSet.copyOf(
+            Sets.union(
+                    BASE_NODE_ATTRIBUTES,
+                    EnumSet.of(CONTAINS_NO_LOOPS, EVENT_NOTIFIER))
+    );
 
     private final int id;
 
