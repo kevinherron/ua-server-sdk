@@ -26,8 +26,12 @@ import com.digitalpetri.opcua.sdk.client.api.ServiceFaultHandler;
 import com.digitalpetri.opcua.sdk.client.api.UaClient;
 import com.digitalpetri.opcua.sdk.client.api.UaSession;
 import com.digitalpetri.opcua.sdk.client.api.config.OpcUaClientConfig;
+import com.digitalpetri.opcua.sdk.client.api.nodes.AddressSpace;
+import com.digitalpetri.opcua.sdk.client.api.nodes.NodeCache;
 import com.digitalpetri.opcua.sdk.client.fsm.SessionStateContext;
 import com.digitalpetri.opcua.sdk.client.fsm.SessionStateEvent;
+import com.digitalpetri.opcua.sdk.client.nodes.DefaultAddressSpace;
+import com.digitalpetri.opcua.sdk.client.nodes.DefaultNodeCache;
 import com.digitalpetri.opcua.sdk.client.subscriptions.OpcUaSubscriptionManager;
 import com.digitalpetri.opcua.stack.client.UaTcpStackClient;
 import com.digitalpetri.opcua.stack.client.fsm.ConnectionStateObserver;
@@ -114,6 +118,8 @@ public class OpcUaClient implements UaClient {
     private final List<ServiceFaultHandler> faultHandlers = newCopyOnWriteArrayList();
     private final ExecutionQueue faultNotificationQueue;
 
+    private final AddressSpace addressSpace;
+    private final NodeCache nodeCache = new DefaultNodeCache();
     private final OpcUaSubscriptionManager subscriptionManager;
 
     private final UaTcpStackClient stackClient;
@@ -139,6 +145,7 @@ public class OpcUaClient implements UaClient {
 
         faultNotificationQueue = new ExecutionQueue(config.getExecutor());
 
+        addressSpace = new DefaultAddressSpace(this);
         subscriptionManager = new OpcUaSubscriptionManager(this);
     }
 
@@ -149,6 +156,16 @@ public class OpcUaClient implements UaClient {
 
     public UaTcpStackClient getStackClient() {
         return stackClient;
+    }
+
+    @Override
+    public NodeCache getNodeCache() {
+        return nodeCache;
+    }
+
+    @Override
+    public AddressSpace getAddressSpace() {
+        return addressSpace;
     }
 
     /**

@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import com.digitalpetri.opcua.sdk.client.api.config.OpcUaClientConfig;
+import com.digitalpetri.opcua.sdk.client.api.nodes.AddressSpace;
+import com.digitalpetri.opcua.sdk.client.api.nodes.NodeCache;
 import com.digitalpetri.opcua.sdk.client.api.services.AttributeServices;
 import com.digitalpetri.opcua.sdk.client.api.services.MethodServices;
 import com.digitalpetri.opcua.sdk.client.api.services.MonitoredItemServices;
@@ -57,6 +59,16 @@ public interface UaClient extends AttributeServices, MethodServices, MonitoredIt
      * @return a {@link CompletableFuture} holding the {@link UaSession}.
      */
     CompletableFuture<UaSession> getSession();
+
+    /**
+     * @return the {@link AddressSpace}.
+     */
+    AddressSpace getAddressSpace();
+
+    /**
+     * @return the {@link NodeCache}.
+     */
+    NodeCache getNodeCache();
 
     /**
      * @return the {@link OpcUaSubscriptionManager} for this client.
