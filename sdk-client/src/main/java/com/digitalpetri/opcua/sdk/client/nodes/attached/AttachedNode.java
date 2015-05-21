@@ -102,7 +102,9 @@ public class AttachedNode implements UaNode {
             return future.thenApply(response -> {
                 DataValue value = response.getResults()[0];
 
-                nodeCache.putAttribute(nodeId, attributeId, value);
+                if (attributeId != AttributeId.VALUE) {
+                    nodeCache.putAttribute(nodeId, attributeId, value);
+                }
 
                 return value;
             });
