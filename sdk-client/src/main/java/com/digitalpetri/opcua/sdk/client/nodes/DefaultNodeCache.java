@@ -19,6 +19,7 @@
 
 package com.digitalpetri.opcua.sdk.client.nodes;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -40,11 +41,10 @@ public class DefaultNodeCache implements NodeCache {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final Cache<NodeId, Map<AttributeId, DataValue>> cache = CacheBuilder.newBuilder()
-            .expireAfterWrite(2, TimeUnit.MINUTES)
-            .maximumSize(1024)
-            .recordStats()
-            .build();
+    private volatile long expireAfterNanos = Duration.ofMinutes(2).toNanos();
+    private volatile long maximumSize = 1024;
+
+    private volatile Cache<NodeId, Map<AttributeId, DataValue>> cache = buildCache();
 
     @Override
     @SuppressWarnings("unchecked")
@@ -90,6 +90,34 @@ public class DefaultNodeCache implements NodeCache {
 
     public CacheStats getStats() {
         return cache.stats();
+    }
+
+    public synchronized void setExpireAfter(long duration, TimeUnit unit) {
+        this.expireAfterNanos = unit.toNanos(duration);
+
+        Cache<NodeId, Map<AttributeId, DataValue>> newCache = buildCache();
+
+        newCache.putAll(cache.asMap());
+
+        cache = newCache;
+    }
+
+    public synchronized void setMaximumSize(long maximumSize) {
+        this.maximumSize = maximumSize;
+
+        Cache<NodeId, Map<AttributeId, DataValue>> newCache = buildCache();
+
+        newCache.putAll(cache.asMap());
+
+        cache = newCache;
+    }
+
+    private Cache<NodeId, Map<AttributeId, DataValue>> buildCache() {
+        return CacheBuilder.newBuilder()
+                .expireAfterWrite(expireAfterNanos, TimeUnit.NANOSECONDS)
+                .maximumSize(maximumSize)
+                .recordStats()
+                .build();
     }
 
 }
