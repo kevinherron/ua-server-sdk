@@ -92,13 +92,9 @@ public class Reactivate implements SessionState {
 
                     context.handleEvent(SessionStateEvent.REACTIVATE_SUCCEEDED);
                 } else {
-                    StatusCode statusCode = StatusCode.BAD;
-
-                    if (ex instanceof UaException) {
-                        statusCode = ((UaException) ex).getStatusCode();
-                    } else if (ex.getCause() instanceof UaException) {
-                        statusCode = ((UaException) ex.getCause()).getStatusCode();
-                    }
+                    StatusCode statusCode = UaException.extract(ex)
+                            .map(UaException::getStatusCode)
+                            .orElse(StatusCode.BAD);
 
                     if (statusCode.getValue() == StatusCodes.Bad_SessionIdInvalid ||
                             statusCode.getValue() == StatusCodes.Bad_SessionClosed ||

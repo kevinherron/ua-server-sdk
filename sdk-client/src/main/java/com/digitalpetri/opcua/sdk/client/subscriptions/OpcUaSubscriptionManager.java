@@ -56,6 +56,7 @@ import com.digitalpetri.opcua.stack.core.types.structured.RequestHeader;
 import com.digitalpetri.opcua.stack.core.types.structured.StatusChangeNotification;
 import com.digitalpetri.opcua.stack.core.types.structured.SubscriptionAcknowledgement;
 import com.digitalpetri.opcua.stack.core.util.ExecutionQueue;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,6 +72,8 @@ public class OpcUaSubscriptionManager implements UaSubscriptionManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final Map<UInteger, OpcUaSubscription> subscriptions = Maps.newConcurrentMap();
+
+    private final List<SubscriptionListener> subscriptionListeners = Lists.newCopyOnWriteArrayList();
 
     private final AtomicInteger pendingPublishes = new AtomicInteger(0);
 
@@ -219,6 +222,16 @@ public class OpcUaSubscriptionManager implements UaSubscriptionManager {
         });
     }
 
+    @Override
+    public void addSubscriptionListener(SubscriptionListener listener) {
+        subscriptionListeners.add(listener);
+    }
+
+    @Override
+    public void removeSubscriptionListener(SubscriptionListener listener) {
+        subscriptionListeners.remove(listener);
+    }
+
     private int getMaxPendingPublishes() {
         return subscriptions.size() * 2;
     }
@@ -266,12 +279,9 @@ public class OpcUaSubscriptionManager implements UaSubscriptionManager {
                 if (ex != null) {
                     logger.warn("Publish service failure: {}", ex.getMessage(), ex);
 
-                    StatusCode statusCode = StatusCode.BAD;
-                    if (ex instanceof UaException) {
-                        statusCode = ((UaException) ex).getStatusCode();
-                    } else if (ex.getCause() instanceof UaException) {
-                        statusCode = ((UaException) ex.getCause()).getStatusCode();
-                    }
+                    StatusCode statusCode = UaException.extract(ex)
+                            .map(UaException::getStatusCode)
+                            .orElse(StatusCode.BAD);
 
                     if (statusCode.getValue() != StatusCodes.Bad_NoSubscription &&
                             statusCode.getValue() != StatusCodes.Bad_TooManyPublishRequests) {
@@ -281,6 +291,9 @@ public class OpcUaSubscriptionManager implements UaSubscriptionManager {
                     synchronized (acknowledgements) {
                         Collections.addAll(acknowledgements, subscriptionAcknowledgements);
                     }
+
+                    UaException uax = UaException.extract(ex).orElse(new UaException(ex));
+                    subscriptionListeners.forEach(l -> l.onPublishFailure(uax));
                 } else {
                     processingQueue.submit(() -> onPublishComplete(response));
 
@@ -408,17 +421,19 @@ public class OpcUaSubscriptionManager implements UaSubscriptionManager {
         logger.debug("onNotificationMessage(), subscriptionId={}, sequenceNumber={}, publishTime={}",
                 subscriptionId, notificationMessage.getSequenceNumber(), publishTime);
 
-        Map<UInteger, OpcUaMonitoredItem> items = Optional.ofNullable(subscriptions.get(subscriptionId))
-                .map(OpcUaSubscription::getItemsByClientHandle)
-                .orElse(Maps.newHashMap());
+        OpcUaSubscription subscription = subscriptions.get(subscriptionId);
+        if (subscription == null) return;
+
+        Map<UInteger, OpcUaMonitoredItem> items = subscription.getItemsByClientHandle();
 
         for (ExtensionObject xo : notificationMessage.getNotificationData()) {
             Object o = xo.getObject();
 
             if (o instanceof DataChangeNotification) {
                 DataChangeNotification dcn = (DataChangeNotification) o;
+                int notificationCount = dcn.getMonitoredItems().length;
 
-                logger.debug("Received {} MonitoredItemNotifications", dcn.getMonitoredItems().length);
+                logger.debug("Received {} MonitoredItemNotifications", notificationCount);
 
                 for (MonitoredItemNotification min : dcn.getMonitoredItems()) {
                     logger.trace("MonitoredItemNotification: clientHandle={}, value={}",
@@ -427,6 +442,10 @@ public class OpcUaSubscriptionManager implements UaSubscriptionManager {
                     OpcUaMonitoredItem item = items.get(min.getClientHandle());
                     if (item != null) item.onValueArrived(min.getValue());
                     else logger.warn("no item for clientHandle=" + min.getClientHandle());
+                }
+
+                if (notificationCount == 0) {
+                    subscriptionListeners.forEach(l -> l.onKeepAlive(subscription, publishTime));
                 }
             } else if (o instanceof EventNotificationList) {
                 EventNotificationList enl = (EventNotificationList) o;
@@ -441,7 +460,9 @@ public class OpcUaSubscriptionManager implements UaSubscriptionManager {
             } else if (o instanceof StatusChangeNotification) {
                 StatusChangeNotification scn = (StatusChangeNotification) o;
 
-                logger.info("StatusChangeNotification: {}", scn.getStatus());
+                logger.debug("StatusChangeNotification: {}", scn.getStatus());
+
+                subscriptionListeners.forEach(l -> l.onStatusChanged(subscription, scn.getStatus()));
             }
         }
     }

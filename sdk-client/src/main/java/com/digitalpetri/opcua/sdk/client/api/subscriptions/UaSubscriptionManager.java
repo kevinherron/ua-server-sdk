@@ -92,13 +92,47 @@ public interface UaSubscriptionManager {
      */
     CompletableFuture<UaSubscription> deleteSubscription(UInteger subscriptionId);
 
+    /**
+     * Add a {@link SubscriptionListener}.
+     *
+     * @param listener the {@link SubscriptionListener} to add.
+     */
     void addSubscriptionListener(SubscriptionListener listener);
+
+    /**
+     * Remove a {@link SubscriptionListener}.
+     *
+     * @param listener the {@link SubscriptionListener} to remove.
+     */
     void removeSubscriptionListener(SubscriptionListener listener);
 
     interface SubscriptionListener {
+
+        /**
+         * A keep-alive message was received.
+         *
+         * @param subscription the {@link UaSubscription} that received the keep-alive.
+         * @param publishTime  the time the server published the keep-alive.
+         */
         void onKeepAlive(UaSubscription subscription, DateTime publishTime);
-        void onStatusChanged(UaSubscription subscription, StatusCode statusCode);
-        void onPublishRequestFailure(UaException exception);
+
+        /**
+         * A status change notification was received.
+         *
+         * @param subscription the {@link UaSubscription} that received the status change.
+         * @param status       the new subscription status.
+         */
+        void onStatusChanged(UaSubscription subscription, StatusCode status);
+
+        /**
+         * A publish failure has occurred.
+         * <p>
+         * No additional action is required.
+         *
+         * @param exception the cause of the failure.
+         */
+        void onPublishFailure(UaException exception);
+
     }
 
 }
