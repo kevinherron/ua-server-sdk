@@ -21,6 +21,7 @@ package com.digitalpetri.opcua.sdk.client.subscriptions;
 
 import java.util.function.Consumer;
 
+import com.digitalpetri.opcua.sdk.client.api.subscriptions.UaMonitoredItem;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.ExtensionObject;
 import com.digitalpetri.opcua.stack.core.types.builtin.StatusCode;
@@ -31,7 +32,7 @@ import com.digitalpetri.opcua.stack.core.types.structured.ReadValueId;
 
 import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
-public class OpcUaMonitoredItem {
+public class OpcUaMonitoredItem implements UaMonitoredItem {
 
     private volatile Consumer<DataValue> valueConsumer;
     private volatile Consumer<Variant[]> eventConsumer;
@@ -46,7 +47,7 @@ public class OpcUaMonitoredItem {
     private final ReadValueId readValueId;
     private final UInteger monitoredItemId;
 
-    OpcUaMonitoredItem(UInteger clientHandle,
+    public OpcUaMonitoredItem(UInteger clientHandle,
                        ReadValueId readValueId,
                        UInteger monitoredItemId,
                        StatusCode statusCode,
@@ -65,42 +66,52 @@ public class OpcUaMonitoredItem {
         this.monitoringMode = monitoringMode;
     }
 
+    @Override
     public UInteger getClientHandle() {
         return clientHandle;
     }
 
+    @Override
     public ReadValueId getReadValueId() {
         return readValueId;
     }
 
+    @Override
     public UInteger getMonitoredItemId() {
         return monitoredItemId;
     }
 
+    @Override
     public StatusCode getStatusCode() {
         return statusCode;
     }
 
+    @Override
     public double getRevisedSamplingInterval() {
         return revisedSamplingInterval;
     }
 
+    @Override
     public UInteger getRevisedQueueSize() {
         return revisedQueueSize;
     }
 
+    @Override
     public ExtensionObject getFilterResult() {
         return filterResult;
     }
 
+    @Override
     public MonitoringMode getMonitoringMode() {
         return monitoringMode;
     }
 
+    @Override
     public void setValueConsumer(Consumer<DataValue> valueConsumer) {
         this.valueConsumer = valueConsumer;
     }
 
+    @Override
     public void setEventConsumer(Consumer<Variant[]> eventConsumer) {
         this.eventConsumer = eventConsumer;
     }

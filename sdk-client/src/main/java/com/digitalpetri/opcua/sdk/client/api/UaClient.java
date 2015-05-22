@@ -30,6 +30,7 @@ import com.digitalpetri.opcua.sdk.client.api.services.MethodServices;
 import com.digitalpetri.opcua.sdk.client.api.services.MonitoredItemServices;
 import com.digitalpetri.opcua.sdk.client.api.services.SubscriptionServices;
 import com.digitalpetri.opcua.sdk.client.api.services.ViewServices;
+import com.digitalpetri.opcua.sdk.client.api.subscriptions.UaSubscriptionManager;
 import com.digitalpetri.opcua.sdk.client.subscriptions.OpcUaSubscriptionManager;
 import com.digitalpetri.opcua.stack.core.serialization.UaRequestMessage;
 import com.digitalpetri.opcua.stack.core.serialization.UaResponseMessage;
@@ -73,7 +74,7 @@ public interface UaClient extends AttributeServices, MethodServices, MonitoredIt
     /**
      * @return the {@link OpcUaSubscriptionManager} for this client.
      */
-    OpcUaSubscriptionManager getSubscriptionManager();
+    UaSubscriptionManager getSubscriptionManager();
 
     /**
      * Send a {@link UaRequestMessage}.

@@ -30,6 +30,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import com.digitalpetri.opcua.sdk.client.OpcUaClient;
+import com.digitalpetri.opcua.sdk.client.api.subscriptions.UaSubscription;
+import com.digitalpetri.opcua.sdk.client.api.subscriptions.UaSubscriptionManager;
 import com.digitalpetri.opcua.stack.core.StatusCodes;
 import com.digitalpetri.opcua.stack.core.UaException;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
@@ -62,7 +64,7 @@ import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.
 import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 import static com.google.common.collect.Lists.newArrayList;
 
-public class OpcUaSubscriptionManager {
+public class OpcUaSubscriptionManager implements UaSubscriptionManager {
 
     public static final UInteger DEFAULT_MAX_NOTIFICATIONS_PER_PUBLISH = uint(65535);
 
@@ -86,13 +88,9 @@ public class OpcUaSubscriptionManager {
         processingQueue = new ExecutionQueue(client.getConfig().getExecutor());
     }
 
-    /**
-     * Create a {@link OpcUaSubscription} using default parameters.
-     *
-     * @param requestedPublishingInterval the requested publishing interval of the subscription.
-     * @return a {@link CompletableFuture} containing the {@link OpcUaSubscription}.
-     */
-    public CompletableFuture<OpcUaSubscription> createSubscription(double requestedPublishingInterval) {
+
+    @Override
+    public CompletableFuture<UaSubscription> createSubscription(double requestedPublishingInterval) {
         // Keep-alive every ~10-12s or every publishing interval if longer.
         UInteger maxKeepAliveCount = uint(Math.max(1, (int) Math.ceil(10000.0 / requestedPublishingInterval)));
 
@@ -107,22 +105,13 @@ public class OpcUaSubscriptionManager {
                 true, ubyte(0));
     }
 
-    /**
-     * Create a {@link OpcUaSubscription}.
-     *
-     * @param requestedPublishingInterval the requested publishing interval.
-     * @param requestedLifetimeCount      the requested lifetime count.
-     * @param requestedMaxKeepAliveCount  the requested max keep-alive count.
-     * @param maxNotificationsPerPublish  the maximum number of notifications allowed in a publish response.
-     * @param priority                    the relative priority to assing to the subscription.
-     * @return a {@link CompletableFuture} containing the {@link OpcUaSubscription}.
-     */
-    public CompletableFuture<OpcUaSubscription> createSubscription(double requestedPublishingInterval,
-                                                                   UInteger requestedLifetimeCount,
-                                                                   UInteger requestedMaxKeepAliveCount,
-                                                                   UInteger maxNotificationsPerPublish,
-                                                                   boolean publishingEnabled,
-                                                                   UByte priority) {
+    @Override
+    public CompletableFuture<UaSubscription> createSubscription(double requestedPublishingInterval,
+                                                                UInteger requestedLifetimeCount,
+                                                                UInteger requestedMaxKeepAliveCount,
+                                                                UInteger maxNotificationsPerPublish,
+                                                                boolean publishingEnabled,
+                                                                UByte priority) {
 
         CompletableFuture<CreateSubscriptionResponse> future = client.createSubscription(
                 requestedPublishingInterval,
@@ -149,18 +138,17 @@ public class OpcUaSubscriptionManager {
         });
     }
 
+    @Override
+    public CompletableFuture<UaSubscription> modifySubscription(UInteger subscriptionId,
+                                                                double requestedPublishingInterval) {
 
-    /**
-     * Request a new publishing interval for a {@link OpcUaSubscription}.
-     * <p>
-     * The requested max keep-alive count and lifetime count will be derived from the requested publishing interval.
-     *
-     * @param subscription                the {@link OpcUaSubscription} to modify.
-     * @param requestedPublishingInterval the requested publishing interval.
-     * @return a {@link CompletableFuture} containing the {@link OpcUaSubscription}.
-     */
-    public CompletableFuture<OpcUaSubscription> modifySubscription(OpcUaSubscription subscription,
-                                                                   double requestedPublishingInterval) {
+        OpcUaSubscription subscription = subscriptions.get(subscriptionId);
+
+        if (subscription == null) {
+            CompletableFuture<UaSubscription> f = new CompletableFuture<>();
+            f.completeExceptionally(new UaException(StatusCodes.Bad_SubscriptionIdInvalid));
+            return f;
+        }
 
         // Keep-alive every ~10-12s or every publishing interval if longer.
         UInteger requestedMaxKeepAliveCount = uint(Math.max(1, (int) Math.ceil(10000.0 / requestedPublishingInterval)));
@@ -168,8 +156,8 @@ public class OpcUaSubscriptionManager {
         // Lifetime must be 3x (or greater) the keep-alive count.
         UInteger requestedLifetimeCount = uint(requestedMaxKeepAliveCount.intValue() * 3);
 
-        CompletableFuture<OpcUaSubscription> future = modifySubscription(
-                subscription,
+        CompletableFuture<UaSubscription> future = modifySubscription(
+                subscriptionId,
                 requestedPublishingInterval,
                 requestedLifetimeCount,
                 requestedMaxKeepAliveCount,
@@ -181,26 +169,24 @@ public class OpcUaSubscriptionManager {
         return future;
     }
 
-    /**
-     * Modify a {@link OpcUaSubscription}.
-     *
-     * @param subscription                the {@link OpcUaSubscription} to modify.
-     * @param requestedPublishingInterval the requested publishing interval.
-     * @param requestedLifetimeCount      the requested lifetime count.
-     * @param requestedMaxKeepAliveCount  the requested max keep-alive count.
-     * @param maxNotificationsPerPublish  the maximum number of notifications allowed in a publish response.
-     * @param priority                    the relative priority to assing to the subscription.
-     * @return a {@link CompletableFuture} containing the {@link OpcUaSubscription}.
-     */
-    public CompletableFuture<OpcUaSubscription> modifySubscription(OpcUaSubscription subscription,
-                                                                   double requestedPublishingInterval,
-                                                                   UInteger requestedLifetimeCount,
-                                                                   UInteger requestedMaxKeepAliveCount,
-                                                                   UInteger maxNotificationsPerPublish,
-                                                                   UByte priority) {
+    @Override
+    public CompletableFuture<UaSubscription> modifySubscription(UInteger subscriptionId,
+                                                                double requestedPublishingInterval,
+                                                                UInteger requestedLifetimeCount,
+                                                                UInteger requestedMaxKeepAliveCount,
+                                                                UInteger maxNotificationsPerPublish,
+                                                                UByte priority) {
+
+        OpcUaSubscription subscription = subscriptions.get(subscriptionId);
+
+        if (subscription == null) {
+            CompletableFuture<UaSubscription> f = new CompletableFuture<>();
+            f.completeExceptionally(new UaException(StatusCodes.Bad_SubscriptionIdInvalid));
+            return f;
+        }
 
         CompletableFuture<ModifySubscriptionResponse> future = client.modifySubscription(
-                subscription.getSubscriptionId(),
+                subscriptionId,
                 requestedPublishingInterval,
                 requestedLifetimeCount,
                 requestedMaxKeepAliveCount,
@@ -220,17 +206,12 @@ public class OpcUaSubscriptionManager {
         });
     }
 
-    /**
-     * Delete a {@link OpcUaSubscription}.
-     *
-     * @param subscription the {@link OpcUaSubscription} to delete.
-     * @return a {@link CompletableFuture} containing the {@link OpcUaSubscription}.
-     */
-    public CompletableFuture<OpcUaSubscription> deleteSubscription(OpcUaSubscription subscription) {
-        List<UInteger> subscriptionIds = newArrayList(subscription.getSubscriptionId());
+    @Override
+    public CompletableFuture<UaSubscription> deleteSubscription(UInteger subscriptionId) {
+        List<UInteger> subscriptionIds = newArrayList(subscriptionId);
 
         return client.deleteSubscriptions(subscriptionIds).thenApply(r -> {
-            subscriptions.remove(subscription.getSubscriptionId());
+            OpcUaSubscription subscription = subscriptions.remove(subscriptionId);
 
             maybeSendPublishRequest();
 
@@ -336,7 +317,7 @@ public class OpcUaSubscriptionManager {
                             subscriptionId, ex.getMessage(), ex);
 
                     List<OpcUaMonitoredItem> items = Optional.ofNullable(subscriptions.get(subscriptionId))
-                            .map(s -> newArrayList(s.getMonitoredItems()))
+                            .map(s -> newArrayList(s.getItemsByServerHandle().values()))
                             .orElse(newArrayList());
 
                     List<ReadValueId> values = items.stream()

@@ -26,6 +26,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import com.digitalpetri.opcua.sdk.client.OpcUaClient;
+import com.digitalpetri.opcua.sdk.client.api.subscriptions.UaMonitoredItem;
+import com.digitalpetri.opcua.sdk.client.api.subscriptions.UaSubscription;
 import com.digitalpetri.opcua.stack.core.types.builtin.StatusCode;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
@@ -43,7 +45,7 @@ import com.google.common.collect.Maps;
 import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 import static com.google.common.collect.Lists.newArrayList;
 
-public class OpcUaSubscription {
+public class OpcUaSubscription implements UaSubscription {
 
     private final Map<UInteger, OpcUaMonitoredItem> itemsByClientHandle = Maps.newConcurrentMap();
     private final Map<UInteger, OpcUaMonitoredItem> itemsByServerHandle = Maps.newConcurrentMap();
@@ -61,7 +63,7 @@ public class OpcUaSubscription {
     private final OpcUaClient client;
     private final UInteger subscriptionId;
 
-    OpcUaSubscription(OpcUaClient client, UInteger subscriptionId,
+    public OpcUaSubscription(OpcUaClient client, UInteger subscriptionId,
                       double revisedPublishingInterval,
                       UInteger revisedLifetimeCount,
                       UInteger revisedMaxKeepAliveCount,
@@ -79,26 +81,16 @@ public class OpcUaSubscription {
         this.priority = priority;
     }
 
-    /**
-     * Create one or more {@link OpcUaMonitoredItem}s.
-     * <p>
-     * Callers must check the quality of each of the returned {@link OpcUaMonitoredItem}s; it is not to be assumed that
-     * all items were created successfully. Any item with a bad quality will not be updated nor will it be part of the
-     * subscription's bookkeeping.
-     *
-     * @param timestampsToReturn the {@link TimestampsToReturn}.
-     * @param itemsToCreate      a list of {@link MonitoredItemCreateRequest}s.
-     * @return a list of {@link OpcUaMonitoredItem}s.
-     */
-    public CompletableFuture<List<OpcUaMonitoredItem>> createMonitoredItems(TimestampsToReturn timestampsToReturn,
-                                                                            List<MonitoredItemCreateRequest> itemsToCreate) {
+    @Override
+    public CompletableFuture<List<UaMonitoredItem>> createMonitoredItems(TimestampsToReturn timestampsToReturn,
+                                                                         List<MonitoredItemCreateRequest> itemsToCreate) {
 
         return client.createMonitoredItems(
                 subscriptionId,
                 timestampsToReturn,
                 itemsToCreate).thenApply(response -> {
 
-            List<OpcUaMonitoredItem> createdItems = newArrayList();
+            List<UaMonitoredItem> createdItems = newArrayList();
 
             MonitoredItemCreateResult[] results = response.getResults();
 
@@ -128,14 +120,7 @@ public class OpcUaSubscription {
         });
     }
 
-    /**
-     * Modify one or more {@link OpcUaMonitoredItem}s.
-     *
-     * @param timestampsToReturn the {@link TimestampsToReturn} to set for each item.
-     * @param itemsToModify      a list of {@link MonitoredItemModifyRequest}s.
-     * @return a {@link CompletableFuture} containing a list of {@link StatusCode}s, the size and order matching that
-     * of {@code itemsToModify}.
-     */
+    @Override
     public CompletableFuture<List<StatusCode>> modifyMonitoredItems(TimestampsToReturn timestampsToReturn,
                                                                     List<MonitoredItemModifyRequest> itemsToModify) {
 
@@ -168,17 +153,11 @@ public class OpcUaSubscription {
         });
     }
 
-    /**
-     * Delete on or more {@link OpcUaMonitoredItem}s.
-     *
-     * @param itemsToDelete the items to delete.
-     * @return a {@link CompletableFuture} containing a list of {@link StatusCode}s, the size and order matching that
-     * of {@code itemsToDelete}.
-     */
-    public CompletableFuture<List<StatusCode>> deleteMonitoredItems(List<OpcUaMonitoredItem> itemsToDelete) {
+    @Override
+    public CompletableFuture<List<StatusCode>> deleteMonitoredItems(List<UaMonitoredItem> itemsToDelete) {
 
         List<UInteger> monitoredItemIds = itemsToDelete.stream()
-                .map(OpcUaMonitoredItem::getMonitoredItemId)
+                .map(UaMonitoredItem::getMonitoredItemId)
                 .collect(Collectors.toList());
 
         return client.deleteMonitoredItems(subscriptionId, monitoredItemIds).thenApply(response -> {
@@ -188,19 +167,13 @@ public class OpcUaSubscription {
         });
     }
 
-    /**
-     * Set the {@link MonitoringMode} for one or more {@link OpcUaMonitoredItem}s.
-     *
-     * @param monitoringMode the {@link MonitoringMode} to set.
-     * @param items          the {@link OpcUaMonitoredItem}s to set the mode on.
-     * @return a {@link CompletableFuture} containing a list of {@link StatusCode}s, the size and order matching that
-     * of {@code items}.
-     */
+
+    @Override
     public CompletableFuture<List<StatusCode>> setMonitoringMode(MonitoringMode monitoringMode,
-                                                                 List<OpcUaMonitoredItem> items) {
+                                                                 List<UaMonitoredItem> items) {
 
         List<UInteger> monitoredItemIds = items.stream()
-                .map(OpcUaMonitoredItem::getMonitoredItemId)
+                .map(UaMonitoredItem::getMonitoredItemId)
                 .collect(Collectors.toList());
 
         CompletableFuture<SetMonitoringModeResponse> future =
@@ -209,10 +182,12 @@ public class OpcUaSubscription {
         return future.thenApply(response -> {
             StatusCode[] results = response.getResults();
 
-            for (int i = 0; i < items.size(); i++) {
-                OpcUaMonitoredItem item = items.get(i);
+            for (int i = 0; i < monitoredItemIds.size(); i++) {
+                UInteger id = monitoredItemIds.get(i);
+                OpcUaMonitoredItem item = itemsByServerHandle.get(id);
+
                 StatusCode result = results[i];
-                if (result.isGood()) {
+                if (result.isGood() && item != null) {
                     item.setMonitoringMode(monitoringMode);
                 }
             }
@@ -221,12 +196,7 @@ public class OpcUaSubscription {
         });
     }
 
-    /**
-     * Set the publishing mode for this subscription.
-     *
-     * @param publishingEnabled {@code true} if publishing should be enabled.
-     * @return a {@link CompletableFuture} containing a {@link StatusCode} representing the result of this operation.
-     */
+    @Override
     public CompletableFuture<StatusCode> setPublishingMode(boolean publishingEnabled) {
         return client.setPublishingMode(publishingEnabled, newArrayList(subscriptionId))
                 .thenApply(response -> {
@@ -240,64 +210,52 @@ public class OpcUaSubscription {
                 });
     }
 
-    /**
-     * @return the server-assigned id for this {@link OpcUaSubscription}.
-     */
+    @Override
     public UInteger getSubscriptionId() {
         return subscriptionId;
     }
 
-    /**
-     * @return the actual/revised publishing interval of this {@link OpcUaSubscription}.
-     */
+    @Override
     public double getRevisedPublishingInterval() {
         return revisedPublishingInterval;
     }
 
-    /**
-     * @return the actual/revised lifetime count of this {@link OpcUaSubscription}.
-     */
+    @Override
     public UInteger getRevisedLifetimeCount() {
         return revisedLifetimeCount;
     }
 
-    /**
-     * @return the actual/revised max keep-alive count of this {@link OpcUaSubscription}.
-     */
+    @Override
     public UInteger getRevisedMaxKeepAliveCount() {
         return revisedMaxKeepAliveCount;
     }
 
-    /**
-     * @return the maximum number of notifications that will be returned in any publish response.
-     */
+    @Override
     public UInteger getMaxNotificationsPerPublish() {
         return maxNotificationsPerPublish;
     }
 
-    /**
-     * @return {@code true} if publishing is enabled.
-     */
+    @Override
     public boolean isPublishingEnabled() {
         return publishingEnabled;
     }
 
-    /**
-     * @return the relative priority assigned to this {@link OpcUaSubscription}.
-     */
+    @Override
     public UByte getPriority() {
         return priority;
     }
 
-    /**
-     * @return an {@link ImmutableList} of this {@link OpcUaSubscription}'s {@link OpcUaMonitoredItem}s.
-     */
-    public ImmutableList<OpcUaMonitoredItem> getMonitoredItems() {
+    @Override
+    public ImmutableList<UaMonitoredItem> getMonitoredItems() {
         return ImmutableList.copyOf(itemsByClientHandle.values());
     }
 
     Map<UInteger, OpcUaMonitoredItem> getItemsByClientHandle() {
         return itemsByClientHandle;
+    }
+
+    Map<UInteger, OpcUaMonitoredItem> getItemsByServerHandle() {
+        return itemsByServerHandle;
     }
 
     long getLastSequenceNumber() {
