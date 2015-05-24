@@ -349,7 +349,10 @@ public class OpcUaSubscriptionManager implements UaSubscriptionManager {
                                 item.onValueArrived(value);
                             }
                         } else {
-                            // TODO re-reading nodes failed, reconnect?
+                            UaException republishEx = UaException.extract(ex).orElse(new UaException(ex));
+                            UaException readEx = UaException.extract(rx).orElse(new UaException(rx));
+
+                            subscriptionListeners.forEach(l -> l.onNotificationDataLost(republishEx, readEx));
                         }
 
                         // We've read the latest values, resume processing.
