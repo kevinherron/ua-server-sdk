@@ -255,7 +255,7 @@ public class OpcUaClient implements UaClient {
         return getSession().thenCompose(session -> {
             HistoryReadRequest request = new HistoryReadRequest(
                     newRequestHeader(session.getAuthenticationToken()),
-                    new ExtensionObject(historyReadDetails),
+                    ExtensionObject.encode(historyReadDetails),
                     timestampsToReturn,
                     releaseContinuationPoints,
                     a(nodesToRead, HistoryReadValueId.class));
@@ -268,7 +268,7 @@ public class OpcUaClient implements UaClient {
     public CompletableFuture<HistoryUpdateResponse> historyUpdate(List<HistoryUpdateDetails> historyUpdateDetails) {
         return getSession().thenCompose(session -> {
             ExtensionObject[] details = historyUpdateDetails.stream()
-                    .map(ExtensionObject::new)
+                    .map(ExtensionObject::encode)
                     .toArray(ExtensionObject[]::new);
 
             HistoryUpdateRequest request = new HistoryUpdateRequest(

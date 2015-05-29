@@ -54,7 +54,7 @@ public class ContentFilterUtil {
 
     private SimpleAttributeOperand[] extract(ExtensionObject[] operandXos) {
         return Arrays.stream(operandXos)
-                .map(xo -> (SimpleAttributeOperand) xo.getObject())
+                .map(xo -> (SimpleAttributeOperand) xo.decode())
                 .toArray(SimpleAttributeOperand[]::new);
     }
 

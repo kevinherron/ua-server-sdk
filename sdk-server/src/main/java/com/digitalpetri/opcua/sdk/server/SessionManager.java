@@ -345,7 +345,7 @@ public class SessionManager implements
                     /*
                      * Identity change
                      */
-                    Object tokenObject = request.getUserIdentityToken().getObject();
+                    Object tokenObject = request.getUserIdentityToken().decode();
                     Object identityObject = validateIdentityToken(secureChannel, session, tokenObject);
                     session.setIdentityObject(identityObject);
 
@@ -370,11 +370,11 @@ public class SessionManager implements
                      */
                     ByteString certificateBytes = secureChannel.getRemoteCertificateBytes();
 
-                    if (request.getUserIdentityToken() == null || request.getUserIdentityToken().getObject() == null) {
+                    if (request.getUserIdentityToken() == null || request.getUserIdentityToken().decode() == null) {
                         throw new UaException(StatusCodes.Bad_IdentityTokenInvalid, "identity token not provided");
                     }
 
-                    Object tokenObject = request.getUserIdentityToken().getObject();
+                    Object tokenObject = request.getUserIdentityToken().decode();
                     Object identityObject = validateIdentityToken(secureChannel, session, tokenObject);
 
                     if (identityObject.equals(session.getIdentityObject()) &&
@@ -410,11 +410,11 @@ public class SessionManager implements
                 throw new UaException(StatusCodes.Bad_SecurityChecksFailed);
             }
 
-            if (request.getUserIdentityToken() == null || request.getUserIdentityToken().getObject() == null) {
+            if (request.getUserIdentityToken() == null || request.getUserIdentityToken().decode() == null) {
                 throw new UaException(StatusCodes.Bad_IdentityTokenInvalid, "identity token not provided");
             }
 
-            Object tokenObject = request.getUserIdentityToken().getObject();
+            Object tokenObject = request.getUserIdentityToken().decode();
             Object identityObject = validateIdentityToken(secureChannel, session, tokenObject);
             session.setIdentityObject(identityObject);
 

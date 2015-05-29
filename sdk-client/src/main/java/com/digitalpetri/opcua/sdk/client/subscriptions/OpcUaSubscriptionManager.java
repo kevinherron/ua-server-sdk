@@ -430,7 +430,7 @@ public class OpcUaSubscriptionManager implements UaSubscriptionManager {
         Map<UInteger, OpcUaMonitoredItem> items = subscription.getItemsByClientHandle();
 
         for (ExtensionObject xo : notificationMessage.getNotificationData()) {
-            Object o = xo.getObject();
+            Object o = xo.decode();
 
             if (o instanceof DataChangeNotification) {
                 DataChangeNotification dcn = (DataChangeNotification) o;

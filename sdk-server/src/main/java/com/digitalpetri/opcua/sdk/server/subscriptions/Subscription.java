@@ -342,7 +342,7 @@ public class Subscription {
         NotificationMessage notificationMessage = new NotificationMessage(
                 sequenceNumber,
                 new DateTime(),
-                new ExtensionObject[]{new ExtensionObject(statusChange)}
+                new ExtensionObject[]{ExtensionObject.encode(statusChange)}
         );
 
         ResponseHeader header = service.createResponseHeader();
@@ -436,14 +436,14 @@ public class Subscription {
                     dataNotifications.toArray(new MonitoredItemNotification[dataNotifications.size()]),
                     new DiagnosticInfo[0]);
 
-            notificationData.add(new ExtensionObject(dataChange));
+            notificationData.add(ExtensionObject.encode(dataChange));
         }
 
         if (eventNotifications.size() > 0) {
             EventNotificationList eventChange = new EventNotificationList(
                     eventNotifications.toArray(new EventFieldList[eventNotifications.size()]));
 
-            notificationData.add(new ExtensionObject(eventChange));
+            notificationData.add(ExtensionObject.encode(eventChange));
         }
 
         UInteger sequenceNumber = uint(nextSequenceNumber());

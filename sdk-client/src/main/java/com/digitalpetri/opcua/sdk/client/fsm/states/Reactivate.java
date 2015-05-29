@@ -159,7 +159,7 @@ public class Reactivate implements SessionState {
                     clientSignature,
                     new SignedSoftwareCertificate[0],
                     new String[0],
-                    new ExtensionObject(userIdentityToken),
+                    ExtensionObject.encode(userIdentityToken),
                     userTokenSignature);
 
             logger.debug("Sending ActivateSessionRequest...");

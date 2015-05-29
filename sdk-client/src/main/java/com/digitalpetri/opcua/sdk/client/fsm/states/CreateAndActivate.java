@@ -210,7 +210,7 @@ public class CreateAndActivate implements SessionState {
                     buildClientSignature(stackClient.getSecureChannel(), response),
                     new SignedSoftwareCertificate[0],
                     new String[0],
-                    new ExtensionObject(userIdentityToken),
+                    ExtensionObject.encode(userIdentityToken),
                     userTokenSignature);
 
             logger.debug("Sending ActivateSessionRequest...");
