@@ -74,7 +74,7 @@ public class Active implements SessionState {
             case CREATE_AND_ACTIVATE_REQUESTED:
                 client.removeFaultHandler(faultHandler);
 
-                return new CreateAndActivate(new CompletableFuture<>());
+                return new CreateAndActivate(new CompletableFuture<>(), true);
 
             case CLOSE_SESSION_REQUESTED:
                 client.removeFaultHandler(faultHandler);

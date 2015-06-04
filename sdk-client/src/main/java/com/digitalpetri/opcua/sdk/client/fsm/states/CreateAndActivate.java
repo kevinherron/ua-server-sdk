@@ -67,9 +67,11 @@ public class CreateAndActivate implements SessionState {
     private volatile ByteString clientNonce = ByteString.NULL_VALUE;
 
     private final CompletableFuture<UaSession> future;
+    private final boolean transferNeeded;
 
-    public CreateAndActivate(CompletableFuture<UaSession> future) {
+    public CreateAndActivate(CompletableFuture<UaSession> future, boolean transferNeeded) {
         this.future = future;
+        this.transferNeeded = transferNeeded;
     }
 
     @Override
@@ -261,10 +263,10 @@ public class CreateAndActivate implements SessionState {
     public SessionState transition(SessionStateEvent event, SessionStateContext context) {
         switch (event) {
             case ERR_CREATE_AND_ACTIVATE_FAILED:
-                return new Inactive();
+                return new Inactive(transferNeeded);
 
             case CREATE_AND_ACTIVATE_SUCCEEDED:
-                return new CreatingSubscriptions(session.get(), future);
+                return new CreatingSubscriptions(session.get(), future, transferNeeded);
         }
 
         return this;

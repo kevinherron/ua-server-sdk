@@ -32,7 +32,11 @@ public class Inactive implements SessionState {
 
     private final CompletableFuture<UaSession> future = new CompletableFuture<>();
 
-    public Inactive() {
+    private final boolean transferNeeded;
+
+    public Inactive(boolean transferNeeded) {
+        this.transferNeeded = transferNeeded;
+
         future.completeExceptionally(new UaException(StatusCodes.Bad_SessionClosed, "session inactive"));
     }
 
@@ -45,7 +49,7 @@ public class Inactive implements SessionState {
     public SessionState transition(SessionStateEvent event, SessionStateContext context) {
         switch (event) {
             case CREATE_AND_ACTIVATE_REQUESTED:
-                return new CreateAndActivate(new CompletableFuture<>());
+                return new CreateAndActivate(new CompletableFuture<>(), false);
         }
 
         return this;

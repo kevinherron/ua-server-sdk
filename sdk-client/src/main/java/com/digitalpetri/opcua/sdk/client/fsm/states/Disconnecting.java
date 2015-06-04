@@ -51,10 +51,10 @@ public class Disconnecting implements SessionState {
         switch (event) {
             case DISCONNECT_SUCCEEDED:
             case ERR_CONNECTION_LOST:
-                return new Inactive();
+                return new Inactive(false);
 
             case CREATE_AND_ACTIVATE_REQUESTED:
-                return new CreateAndActivate(new CompletableFuture<>());
+                return new CreateAndActivate(new CompletableFuture<>(), false);
         }
 
         return this;

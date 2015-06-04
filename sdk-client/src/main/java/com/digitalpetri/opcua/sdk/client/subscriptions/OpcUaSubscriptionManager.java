@@ -55,6 +55,8 @@ import com.digitalpetri.opcua.stack.core.types.structured.RepublishResponse;
 import com.digitalpetri.opcua.stack.core.types.structured.RequestHeader;
 import com.digitalpetri.opcua.stack.core.types.structured.StatusChangeNotification;
 import com.digitalpetri.opcua.stack.core.types.structured.SubscriptionAcknowledgement;
+import com.digitalpetri.opcua.stack.core.types.structured.TransferResult;
+import com.digitalpetri.opcua.stack.core.types.structured.TransferSubscriptionsResponse;
 import com.digitalpetri.opcua.stack.core.util.ExecutionQueue;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -219,6 +221,39 @@ public class OpcUaSubscriptionManager implements UaSubscriptionManager {
             maybeSendPublishRequest();
 
             return subscription;
+        });
+    }
+    
+    public CompletableFuture<TransferSubscriptionsResponse> transferSubscriptions() {
+        List<UInteger> subscriptionIds = newArrayList(subscriptions.keySet());
+
+        return client.transferSubscriptions(subscriptionIds, true).thenApply(response -> {
+            TransferResult[] results = response.getResults();
+
+            for (int i = 0; i < subscriptionIds.size(); i++) {
+                TransferResult result = results[i];
+                StatusCode statusCode = result.getStatusCode();
+
+                UInteger subscriptionId = subscriptionIds.get(i);
+                OpcUaSubscription subscription = subscriptions.get(subscriptionId);
+
+                if (statusCode.isGood()) {
+                    List<UInteger> availableSequenceNumbers =
+                            newArrayList(result.getAvailableSequenceNumbers());
+
+                    // TODO republish for any beyond our current seq
+                    long lastSequenceNumber = subscription.getLastSequenceNumber();
+
+                    long min = Collections.min(availableSequenceNumbers).longValue();
+                    long max = Collections.max(availableSequenceNumbers).longValue();
+                } else {
+                    subscriptions.remove(subscriptionId);
+
+                    subscriptionListeners.forEach(l -> l.onSubscriptionTransferFailed(subscription, statusCode));
+                }
+            }
+
+            return response;
         });
     }
 

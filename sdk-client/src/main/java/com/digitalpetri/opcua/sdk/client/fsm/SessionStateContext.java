@@ -34,7 +34,7 @@ public class SessionStateContext {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final AtomicReference<SessionState> state =
-            new AtomicReference<>(new Inactive());
+            new AtomicReference<>(new Inactive(false));
 
     private final OpcUaClient client;
 

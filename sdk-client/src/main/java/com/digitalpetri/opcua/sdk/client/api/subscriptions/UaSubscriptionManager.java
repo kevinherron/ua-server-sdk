@@ -21,6 +21,7 @@ package com.digitalpetri.opcua.sdk.client.api.subscriptions;
 
 import java.util.concurrent.CompletableFuture;
 
+import com.digitalpetri.opcua.sdk.client.api.UaSession;
 import com.digitalpetri.opcua.stack.core.UaException;
 import com.digitalpetri.opcua.stack.core.types.builtin.DateTime;
 import com.digitalpetri.opcua.stack.core.types.builtin.StatusCode;
@@ -145,6 +146,17 @@ public interface UaSubscriptionManager {
          * @param readException      the cause of the read failure.
          */
         void onNotificationDataLost(UaException republishException, UaException readException);
+
+        /**
+         * A new {@link UaSession} was established, and upon attempting to transfer an existing subscription to this
+         * new session, a failure occurred.
+         * <p>
+         * This subscription will be removed from {@link UaSubscriptionManager}'s bookkeeping. It must be re-created.
+         *
+         * @param subscription the {@link UaSubscription} that could not be transferred.
+         * @param statusCode   the {@link StatusCode} for the transfer failure.
+         */
+        void onSubscriptionTransferFailed(UaSubscription subscription, StatusCode statusCode);
 
     }
 

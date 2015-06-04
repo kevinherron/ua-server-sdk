@@ -63,7 +63,7 @@ public class ClosingSession implements SessionState {
                 return new Disconnecting(sessionFuture);
 
             case CREATE_AND_ACTIVATE_REQUESTED:
-                return new CreateAndActivate(new CompletableFuture<>());
+                return new CreateAndActivate(new CompletableFuture<>(), false);
         }
 
         return this;

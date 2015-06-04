@@ -21,31 +21,60 @@ package com.digitalpetri.opcua.sdk.client.fsm.states;
 
 import java.util.concurrent.CompletableFuture;
 
+import com.digitalpetri.opcua.sdk.client.OpcUaClient;
 import com.digitalpetri.opcua.sdk.client.api.UaSession;
 import com.digitalpetri.opcua.sdk.client.fsm.SessionState;
 import com.digitalpetri.opcua.sdk.client.fsm.SessionStateContext;
 import com.digitalpetri.opcua.sdk.client.fsm.SessionStateEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CreatingSubscriptions implements SessionState {
 
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
     private final UaSession session;
     private final CompletableFuture<UaSession> sessionFuture;
+    private final boolean transferNeeded;
 
-    public CreatingSubscriptions(UaSession session, CompletableFuture<UaSession> sessionFuture) {
+    public CreatingSubscriptions(UaSession session,
+                                 CompletableFuture<UaSession> sessionFuture,
+                                 boolean transferNeeded) {
+
         this.session = session;
         this.sessionFuture = sessionFuture;
+        this.transferNeeded = transferNeeded;
     }
 
     @Override
     public void activate(SessionStateEvent event, SessionStateContext context) {
-        context.handleEvent(SessionStateEvent.CREATE_SUBSCRIPTIONS_SUCCEEDED);
+        logger.info("transferNeeded={}", transferNeeded);
+
+        OpcUaClient client = context.getClient();
+
+        if (transferNeeded) {
+            logger.debug("TransferSubscriptions call needed.");
+
+            client.getSubscriptionManager().transferSubscriptions().whenComplete((r, ex) -> {
+                if (r != null) {
+                    logger.debug("TransferSubscriptions call succeeded");
+                    context.handleEvent(SessionStateEvent.CREATE_SUBSCRIPTIONS_SUCCEEDED);
+                } else {
+                    logger.debug("TransferSubscriptions call failed: {}", ex.getMessage(), ex);
+
+                    context.handleEvent(SessionStateEvent.ERR_CREATE_SUBSCRIPTIONS_FAILED);
+                }
+            });
+        } else {
+            context.handleEvent(SessionStateEvent.CREATE_SUBSCRIPTIONS_SUCCEEDED);
+        }
     }
 
     @Override
     public SessionState transition(SessionStateEvent event, SessionStateContext context) {
         switch (event) {
             case ERR_CREATE_SUBSCRIPTIONS_FAILED:
-                return new Inactive();
+                return new Inactive(transferNeeded);
 
             case CREATE_SUBSCRIPTIONS_SUCCEEDED:
                 return new Active(session, sessionFuture);

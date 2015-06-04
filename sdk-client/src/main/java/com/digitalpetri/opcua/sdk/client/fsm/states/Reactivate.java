@@ -126,7 +126,7 @@ public class Reactivate implements SessionState {
                 return new Active(session, future);
 
             case ERR_REACTIVATE_FAILED:
-                return new CreateAndActivate(new CompletableFuture<>()); // TODO flag to indicate transfer subscriptions needed
+                return new CreateAndActivate(new CompletableFuture<>(), true);
 
             case ERR_CONNECTION_LOST:
                 return new Reactivate(previousSession, nextDelay());
