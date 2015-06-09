@@ -58,6 +58,7 @@ import com.digitalpetri.opcua.stack.core.types.structured.SubscriptionAcknowledg
 import com.digitalpetri.opcua.stack.core.types.structured.TransferResult;
 import com.digitalpetri.opcua.stack.core.types.structured.TransferSubscriptionsResponse;
 import com.digitalpetri.opcua.stack.core.util.ExecutionQueue;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
@@ -255,6 +256,11 @@ public class OpcUaSubscriptionManager implements UaSubscriptionManager {
 
             return response;
         });
+    }
+
+    @Override
+    public ImmutableList<UaSubscription> getSubscriptions() {
+        return ImmutableList.copyOf(subscriptions.values());
     }
 
     @Override

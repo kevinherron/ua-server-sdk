@@ -19,15 +19,24 @@
 
 package com.digitalpetri.opcua.sdk.client.fsm.states;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import com.digitalpetri.opcua.sdk.client.OpcUaClient;
 import com.digitalpetri.opcua.sdk.client.api.UaSession;
+import com.digitalpetri.opcua.sdk.client.api.subscriptions.UaSubscription;
 import com.digitalpetri.opcua.sdk.client.fsm.SessionState;
 import com.digitalpetri.opcua.sdk.client.fsm.SessionStateContext;
 import com.digitalpetri.opcua.sdk.client.fsm.SessionStateEvent;
+import com.digitalpetri.opcua.stack.client.UaTcpStackClient;
+import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
+import com.digitalpetri.opcua.stack.core.types.structured.TransferResult;
+import com.digitalpetri.opcua.stack.core.types.structured.TransferSubscriptionsRequest;
+import com.digitalpetri.opcua.stack.core.types.structured.TransferSubscriptionsResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.google.common.collect.Lists.newArrayList;
 
 public class CreatingSubscriptions implements SessionState {
 
@@ -51,13 +60,15 @@ public class CreatingSubscriptions implements SessionState {
         logger.info("transferNeeded={}", transferNeeded);
 
         OpcUaClient client = context.getClient();
+        List<UaSubscription> subscriptions = client.getSubscriptionManager().getSubscriptions();
 
-        if (transferNeeded) {
+        if (transferNeeded && subscriptions.size() > 0) {
             logger.debug("TransferSubscriptions call needed.");
 
-            client.getSubscriptionManager().transferSubscriptions().whenComplete((r, ex) -> {
-                if (r != null) {
+            transferSubscriptions(client, subscriptions).whenComplete((results, ex) -> {
+                if (results != null) {
                     logger.debug("TransferSubscriptions call succeeded");
+
                     context.handleEvent(SessionStateEvent.CREATE_SUBSCRIPTIONS_SUCCEEDED);
                 } else {
                     logger.debug("TransferSubscriptions call failed: {}", ex.getMessage(), ex);
@@ -68,6 +79,24 @@ public class CreatingSubscriptions implements SessionState {
         } else {
             context.handleEvent(SessionStateEvent.CREATE_SUBSCRIPTIONS_SUCCEEDED);
         }
+    }
+
+    private CompletableFuture<List<TransferResult>> transferSubscriptions(OpcUaClient client,
+                                                                          List<UaSubscription> subscriptions) {
+
+        UaTcpStackClient stackClient = client.getStackClient();
+
+        UInteger[] subscriptionIds = subscriptions.stream()
+                .map(UaSubscription::getSubscriptionId)
+                .toArray(UInteger[]::new);
+
+        TransferSubscriptionsRequest request = new TransferSubscriptionsRequest(
+                client.newRequestHeader(session.getAuthenticationToken()),
+                subscriptionIds,
+                true);
+
+        return stackClient.<TransferSubscriptionsResponse>sendRequest(request)
+                .thenApply(response -> newArrayList(response.getResults()));
     }
 
     @Override

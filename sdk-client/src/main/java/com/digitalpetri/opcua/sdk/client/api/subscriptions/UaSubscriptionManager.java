@@ -27,6 +27,7 @@ import com.digitalpetri.opcua.stack.core.types.builtin.DateTime;
 import com.digitalpetri.opcua.stack.core.types.builtin.StatusCode;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
+import com.google.common.collect.ImmutableList;
 
 public interface UaSubscriptionManager {
 
@@ -92,6 +93,11 @@ public interface UaSubscriptionManager {
      * @return a {@link CompletableFuture} containing the deleted {@link UaSubscription}.
      */
     CompletableFuture<UaSubscription> deleteSubscription(UInteger subscriptionId);
+
+    /**
+     * @return an {@link ImmutableList} of {@link UaSubscription}s managed by this {@link UaSubscriptionManager}.
+     */
+    ImmutableList<UaSubscription> getSubscriptions();
 
     /**
      * Add a {@link SubscriptionListener}.
