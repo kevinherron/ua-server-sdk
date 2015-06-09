@@ -99,7 +99,7 @@ public class UsernameProvider implements IdentityProvider {
             X509Certificate certificate = CertificateUtil.decodeCertificate(bs.bytes());
 
             int plainTextBlockSize = getPlainTextBlockSize(certificate, securityPolicy);
-            int blockCount = buffer.readableBytes() / plainTextBlockSize;
+            int blockCount = (buffer.readableBytes() + plainTextBlockSize - 1) / plainTextBlockSize;
             Cipher cipher = getAndInitializeCipher(certificate, securityPolicy);
 
             ByteBuffer plainTextNioBuffer = buffer.nioBuffer();
