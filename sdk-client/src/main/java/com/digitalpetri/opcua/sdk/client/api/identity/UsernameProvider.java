@@ -90,11 +90,14 @@ public class UsernameProvider implements IdentityProvider {
         byte[] nonceBytes = Optional.ofNullable(serverNonce.bytes()).orElse(new byte[0]);
 
         ByteBuf buffer = Unpooled.buffer().order(ByteOrder.LITTLE_ENDIAN);
-        buffer.writeInt(passwordBytes.length + nonceBytes.length);
-        buffer.writeBytes(passwordBytes);
-        buffer.writeBytes(nonceBytes);
 
-        if (securityPolicy != SecurityPolicy.None) {
+        if (securityPolicy == SecurityPolicy.None) {
+            buffer.writeBytes(passwordBytes);
+        } else {
+            buffer.writeInt(passwordBytes.length + nonceBytes.length);
+            buffer.writeBytes(passwordBytes);
+            buffer.writeBytes(nonceBytes);
+
             ByteString bs = endpoint.getServerCertificate();
             X509Certificate certificate = CertificateUtil.decodeCertificate(bs.bytes());
 
