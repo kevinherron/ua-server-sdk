@@ -439,9 +439,13 @@ public class SubscriptionManager {
                                     item.getFilterResult());
 
                             p.getResultFuture().complete(result);
-                        } catch (UaException e) {
+                        } catch (Throwable t) {
+                            StatusCode statusCode = UaException.extract(t)
+                                    .map(UaException::getStatusCode)
+                                    .orElse(StatusCode.BAD);
+
                             MonitoredItemCreateResult result =
-                                    new MonitoredItemCreateResult(e.getStatusCode(), uint(0), 0d, uint(0), null);
+                                    new MonitoredItemCreateResult(statusCode, uint(0), 0d, uint(0), null);
 
                             p.getResultFuture().complete(result);
                         }
@@ -571,9 +575,13 @@ public class SubscriptionManager {
                                     item.getFilterResult());
 
                             p.getResultFuture().complete(result);
-                        } catch (UaException e) {
+                        } catch (Throwable t) {
+                            StatusCode statusCode = UaException.extract(t)
+                                    .map(UaException::getStatusCode)
+                                    .orElse(StatusCode.BAD);
+
                             MonitoredItemModifyResult result = new MonitoredItemModifyResult(
-                                    e.getStatusCode(),
+                                    statusCode,
                                     item.getSamplingInterval(),
                                     uint(item.getQueueSize()),
                                     item.getFilterResult());
