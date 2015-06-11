@@ -41,6 +41,7 @@
         <module>sdk-client</module>
         <module>sdk-core</module>
         <module>sdk-server</module>
+        <module>sdk-tests</module>
     </modules>
 
     <properties>
@@ -67,6 +68,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
+                <version>2.5</version>
                 <configuration>
                     <archive>
                         <manifest>
