@@ -170,10 +170,10 @@ public class SessionManager implements
         return Lists.newArrayList(inactiveSessions.values());
     }
 
-    public void killSession(NodeId nodeId) {
+    public void killSession(NodeId nodeId, boolean deleteSubscriptions) {
         activeSessions.values().stream()
                 .filter(s -> s.getSessionId().equals(nodeId))
-                .findFirst().ifPresent(s -> s.close(true));
+                .findFirst().ifPresent(s -> s.close(deleteSubscriptions));
     }
 
     private Session session(ServiceRequest<?, ?> service) throws UaException {
