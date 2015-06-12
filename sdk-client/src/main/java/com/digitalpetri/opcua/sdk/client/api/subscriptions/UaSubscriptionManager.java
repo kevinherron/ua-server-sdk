@@ -144,14 +144,11 @@ public interface UaSubscriptionManager {
          * Attempts to recover missed notification data have failed.
          * <p>
          * When a notification is missed a series of Republish requests are initiated to recover the missing data. If
-         * republishing fails, a Read call is issued for all nodes belonging to the subscription.
-         * <p>
-         * This callback indicates that both republishing and reading have failed.
+         * republishing fails, or any of the notifications are no longer available, this callback will be invoked.
          *
-         * @param republishException the cause of the the republish failure.
-         * @param readException      the cause of the read failure.
+         * @param subscription the subscription that missed notification data.
          */
-        void onNotificationDataLost(UaException republishException, UaException readException);
+        void onNotificationDataLost(UaSubscription subscription);
 
         /**
          * A new {@link UaSession} was established, and upon attempting to transfer an existing subscription to this

@@ -27,8 +27,10 @@ import com.digitalpetri.opcua.sdk.client.api.UaSession;
 import com.digitalpetri.opcua.sdk.client.fsm.SessionState;
 import com.digitalpetri.opcua.sdk.client.fsm.SessionStateContext;
 import com.digitalpetri.opcua.sdk.client.fsm.SessionStateEvent;
+import com.digitalpetri.opcua.stack.client.UaTcpStackClient;
 import com.digitalpetri.opcua.stack.core.StatusCodes;
-import com.digitalpetri.opcua.stack.core.types.structured.ServiceFault;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,54 +39,60 @@ public class Active implements SessionState {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private volatile ServiceFaultHandler faultHandler;
+    private volatile ChannelInboundHandlerAdapter channelHandler;
 
     private final UaSession session;
-    private final CompletableFuture<UaSession> sessionFuture;
+    private final CompletableFuture<UaSession> future;
 
-    public Active(UaSession session, CompletableFuture<UaSession> sessionFuture) {
+    public Active(UaSession session, CompletableFuture<UaSession> future) {
         this.session = session;
-        this.sessionFuture = sessionFuture;
+        this.future = future;
     }
 
     @Override
     public void activate(SessionStateEvent event, SessionStateContext context) {
         OpcUaClient client = context.getClient();
+        UaTcpStackClient stackClient = client.getStackClient();
 
-        client.addFaultHandler(faultHandler = new ServiceFaultHandler() {
-            @Override
-            public void handle(ServiceFault serviceFault) {
-                long statusCode = serviceFault.getResponseHeader().getServiceResult().getValue();
+        client.addFaultHandler(faultHandler = serviceFault -> {
+            long statusCode = serviceFault.getResponseHeader().getServiceResult().getValue();
 
-                if (statusCode == StatusCodes.Bad_SessionIdInvalid) {
-                    logger.warn("ServiceFault: {}", serviceFault.getResponseHeader().getServiceResult());
-                    client.removeFaultHandler(this);
-                    context.handleEvent(SessionStateEvent.CREATE_AND_ACTIVATE_REQUESTED);
-                }
+            if (statusCode == StatusCodes.Bad_SessionIdInvalid) {
+                logger.warn("ServiceFault: {}", serviceFault.getResponseHeader().getServiceResult());
+                context.handleEvent(SessionStateEvent.ERR_SESSION_INVALID);
             }
         });
 
-        sessionFuture.complete(session);
+        stackClient.getChannelFuture().thenAccept(ch -> {
+            ch.pipeline().addLast(channelHandler = new ChannelInboundHandlerAdapter() {
+                @Override
+                public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+                    context.handleEvent(SessionStateEvent.ERR_CONNECTION_LOST);
+                }
+            });
+        });
+
+        client.getSubscriptionManager().restartPublishing();
+
+        future.complete(session);
     }
 
     @Override
     public SessionState transition(SessionStateEvent event, SessionStateContext context) {
         OpcUaClient client = context.getClient();
+        UaTcpStackClient stackClient = client.getStackClient();
+
+        client.removeFaultHandler(faultHandler);
 
         switch (event) {
-            case CREATE_AND_ACTIVATE_REQUESTED:
-                client.removeFaultHandler(faultHandler);
-
-                return new CreateAndActivate(new CompletableFuture<>(), true);
-
-            case CLOSE_SESSION_REQUESTED:
-                client.removeFaultHandler(faultHandler);
-
-                return new ClosingSession(sessionFuture);
+            case DISCONNECT_REQUESTED:
+                return new ClosingSession(session);
 
             case ERR_CONNECTION_LOST:
-                client.removeFaultHandler(faultHandler);
+                return new Reactivating(session, 0);
 
-                return new Reactivate(session, 0);
+            case ERR_SESSION_INVALID:
+                return new CreatingSession(new CompletableFuture<>());
         }
 
         return this;
@@ -92,7 +100,7 @@ public class Active implements SessionState {
 
     @Override
     public CompletableFuture<UaSession> getSessionFuture() {
-        return sessionFuture;
+        return future;
     }
 
 

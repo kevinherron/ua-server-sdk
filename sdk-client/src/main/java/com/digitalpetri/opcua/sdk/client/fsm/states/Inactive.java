@@ -30,26 +30,15 @@ import com.digitalpetri.opcua.stack.core.UaException;
 
 public class Inactive implements SessionState {
 
-    private final CompletableFuture<UaSession> future = new CompletableFuture<>();
-
-    private final boolean transferNeeded;
-
-    public Inactive(boolean transferNeeded) {
-        this.transferNeeded = transferNeeded;
-
-        future.completeExceptionally(new UaException(StatusCodes.Bad_SessionClosed, "session inactive"));
-    }
-
     @Override
     public void activate(SessionStateEvent event, SessionStateContext context) {
-
     }
 
     @Override
     public SessionState transition(SessionStateEvent event, SessionStateContext context) {
         switch (event) {
-            case CREATE_AND_ACTIVATE_REQUESTED:
-                return new CreateAndActivate(new CompletableFuture<>(), false);
+            case SESSION_REQUESTED:
+                return new CreatingSession(new CompletableFuture<>());
         }
 
         return this;
@@ -57,7 +46,9 @@ public class Inactive implements SessionState {
 
     @Override
     public CompletableFuture<UaSession> getSessionFuture() {
-        return future;
+        CompletableFuture<UaSession> f = new CompletableFuture<>();
+        f.completeExceptionally(new UaException(StatusCodes.Bad_SessionClosed, "session is closed"));
+        return f;
     }
 
 }

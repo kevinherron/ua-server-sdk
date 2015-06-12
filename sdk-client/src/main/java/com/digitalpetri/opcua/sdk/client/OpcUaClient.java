@@ -34,7 +34,6 @@ import com.digitalpetri.opcua.sdk.client.nodes.DefaultAddressSpace;
 import com.digitalpetri.opcua.sdk.client.nodes.DefaultNodeCache;
 import com.digitalpetri.opcua.sdk.client.subscriptions.OpcUaSubscriptionManager;
 import com.digitalpetri.opcua.stack.client.UaTcpStackClient;
-import com.digitalpetri.opcua.stack.client.fsm.ConnectionStateObserver;
 import com.digitalpetri.opcua.stack.core.UaServiceFaultException;
 import com.digitalpetri.opcua.stack.core.serialization.UaRequestMessage;
 import com.digitalpetri.opcua.stack.core.serialization.UaResponseMessage;
@@ -134,15 +133,6 @@ public class OpcUaClient implements UaClient {
 
         stackClient = new UaTcpStackClient(config);
 
-        final ConnectionStateObserver observer = new ConnectionStateObserver() {
-            @Override
-            public void onConnectionLost() {
-                stateContext.handleEvent(SessionStateEvent.ERR_CONNECTION_LOST);
-            }
-        };
-
-        stackClient.addStateObserver(observer);
-
         faultNotificationQueue = new ExecutionQueue(config.getExecutor());
 
         addressSpace = new DefaultAddressSpace(this);
@@ -209,7 +199,7 @@ public class OpcUaClient implements UaClient {
 
     @Override
     public CompletableFuture<UaClient> disconnect() {
-        stateContext.handleEvent(SessionStateEvent.CLOSE_SESSION_REQUESTED);
+        stateContext.handleEvent(SessionStateEvent.DISCONNECT_REQUESTED);
 
         return CompletableFuture.completedFuture(this);
     }

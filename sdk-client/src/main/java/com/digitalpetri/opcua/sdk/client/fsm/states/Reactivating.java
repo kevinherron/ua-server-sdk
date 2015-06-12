@@ -53,7 +53,7 @@ import org.jooq.lambda.tuple.Tuple2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Reactivate implements SessionState {
+public class Reactivating implements SessionState {
 
     private static final int MAX_REACTIVATE_DELAY_SECONDS = 16;
 
@@ -67,7 +67,7 @@ public class Reactivate implements SessionState {
     private final UaSession previousSession;
     private final long delay;
 
-    public Reactivate(UaSession previousSession, long delay) {
+    public Reactivating(UaSession previousSession, long delay) {
         this.previousSession = previousSession;
         this.delay = delay;
     }
@@ -98,12 +98,13 @@ public class Reactivate implements SessionState {
 
                     if (statusCode.getValue() == StatusCodes.Bad_SessionIdInvalid ||
                             statusCode.getValue() == StatusCodes.Bad_SessionClosed ||
-                            statusCode.getValue() == StatusCodes.Bad_SessionNotActivated) {
+                            statusCode.getValue() == StatusCodes.Bad_SessionNotActivated ||
+                            statusCode.getValue() == StatusCodes.Bad_SecurityChecksFailed) {
 
                         // Treat any session-related errors as re-activate failed.
-                        context.handleEvent(SessionStateEvent.ERR_REACTIVATE_FAILED);
+                        context.handleEvent(SessionStateEvent.ERR_REACTIVATE_INVALID);
                     } else {
-                        context.handleEvent(SessionStateEvent.ERR_CONNECTION_LOST);
+                        context.handleEvent(SessionStateEvent.ERR_REACTIVATE_FAILED);
                     }
 
                     future.completeExceptionally(ex);
@@ -126,10 +127,10 @@ public class Reactivate implements SessionState {
                 return new Active(session, future);
 
             case ERR_REACTIVATE_FAILED:
-                return new CreateAndActivate(new CompletableFuture<>(), true);
+                return new Reactivating(previousSession, nextDelay());
 
-            case ERR_CONNECTION_LOST:
-                return new Reactivate(previousSession, nextDelay());
+            case ERR_REACTIVATE_INVALID:
+                return new CreatingSession(new CompletableFuture<>());
         }
 
         return this;

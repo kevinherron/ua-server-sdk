@@ -34,7 +34,7 @@ public class SessionStateContext {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final AtomicReference<SessionState> state =
-            new AtomicReference<>(new Inactive(false));
+            new AtomicReference<>(new Inactive());
 
     private final OpcUaClient client;
 
@@ -57,7 +57,7 @@ public class SessionStateContext {
 
     public synchronized CompletableFuture<UaSession> getSession() {
         if (!isActive()) {
-            handleEvent(SessionStateEvent.CREATE_AND_ACTIVATE_REQUESTED);
+            handleEvent(SessionStateEvent.SESSION_REQUESTED);
         }
 
         return state.get().getSessionFuture();

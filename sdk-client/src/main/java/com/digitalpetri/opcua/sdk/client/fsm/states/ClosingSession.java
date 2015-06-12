@@ -27,43 +27,38 @@ import com.digitalpetri.opcua.sdk.client.fsm.SessionState;
 import com.digitalpetri.opcua.sdk.client.fsm.SessionStateContext;
 import com.digitalpetri.opcua.sdk.client.fsm.SessionStateEvent;
 import com.digitalpetri.opcua.stack.client.UaTcpStackClient;
+import com.digitalpetri.opcua.stack.core.StatusCodes;
+import com.digitalpetri.opcua.stack.core.UaException;
 import com.digitalpetri.opcua.stack.core.types.structured.CloseSessionRequest;
 
 public class ClosingSession implements SessionState {
 
-    private final CompletableFuture<UaSession> sessionFuture;
+    private final UaSession session;
 
-    public ClosingSession(CompletableFuture<UaSession> sessionFuture) {
-        this.sessionFuture = sessionFuture;
+    public ClosingSession(UaSession session) {
+        this.session = session;
     }
 
     @Override
     public void activate(SessionStateEvent event, SessionStateContext context) {
-        sessionFuture.whenComplete((session, ex) -> {
-            if (session != null) {
-                OpcUaClient client = context.getClient();
-                UaTcpStackClient stackClient = client.getStackClient();
+        OpcUaClient client = context.getClient();
+        UaTcpStackClient stackClient = client.getStackClient();
 
-                CloseSessionRequest request = new CloseSessionRequest(
-                        client.newRequestHeader(session.getAuthenticationToken()), true);
+        CloseSessionRequest request = new CloseSessionRequest(
+                client.newRequestHeader(session.getAuthenticationToken()), true);
 
-                stackClient.sendRequest(request).whenComplete((r, t) ->
-                        context.handleEvent(SessionStateEvent.CLOSE_SESSION_SUCCEEDED));
-            } else {
-                context.handleEvent(SessionStateEvent.ERR_CLOSE_SESSION_FAILED);
-            }
-        });
+        stackClient.sendRequest(request).whenComplete((r, t) ->
+                context.handleEvent(SessionStateEvent.DISCONNECT_SUCCEEDED));
     }
 
     @Override
     public SessionState transition(SessionStateEvent event, SessionStateContext context) {
         switch (event) {
-            case ERR_CLOSE_SESSION_FAILED:
-            case CLOSE_SESSION_SUCCEEDED:
-                return new Disconnecting(sessionFuture);
+            case DISCONNECT_SUCCEEDED:
+                return new Inactive();
 
-            case CREATE_AND_ACTIVATE_REQUESTED:
-                return new CreateAndActivate(new CompletableFuture<>(), false);
+            case SESSION_REQUESTED:
+                return new CreatingSession(new CompletableFuture<>());
         }
 
         return this;
@@ -71,7 +66,9 @@ public class ClosingSession implements SessionState {
 
     @Override
     public CompletableFuture<UaSession> getSessionFuture() {
-        return sessionFuture;
+        CompletableFuture<UaSession> f = new CompletableFuture<>();
+        f.completeExceptionally(new UaException(StatusCodes.Bad_SessionClosed, "session is closed"));
+        return f;
     }
 
 }

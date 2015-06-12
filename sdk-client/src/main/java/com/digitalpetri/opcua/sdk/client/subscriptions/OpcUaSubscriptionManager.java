@@ -24,23 +24,19 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 import com.digitalpetri.opcua.sdk.client.OpcUaClient;
 import com.digitalpetri.opcua.sdk.client.api.subscriptions.UaSubscription;
 import com.digitalpetri.opcua.sdk.client.api.subscriptions.UaSubscriptionManager;
 import com.digitalpetri.opcua.stack.core.StatusCodes;
 import com.digitalpetri.opcua.stack.core.UaException;
-import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.DateTime;
 import com.digitalpetri.opcua.stack.core.types.builtin.ExtensionObject;
 import com.digitalpetri.opcua.stack.core.types.builtin.StatusCode;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
-import com.digitalpetri.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import com.digitalpetri.opcua.stack.core.types.structured.CreateSubscriptionResponse;
 import com.digitalpetri.opcua.stack.core.types.structured.DataChangeNotification;
 import com.digitalpetri.opcua.stack.core.types.structured.EventFieldList;
@@ -50,13 +46,10 @@ import com.digitalpetri.opcua.stack.core.types.structured.MonitoredItemNotificat
 import com.digitalpetri.opcua.stack.core.types.structured.NotificationMessage;
 import com.digitalpetri.opcua.stack.core.types.structured.PublishRequest;
 import com.digitalpetri.opcua.stack.core.types.structured.PublishResponse;
-import com.digitalpetri.opcua.stack.core.types.structured.ReadValueId;
 import com.digitalpetri.opcua.stack.core.types.structured.RepublishResponse;
 import com.digitalpetri.opcua.stack.core.types.structured.RequestHeader;
 import com.digitalpetri.opcua.stack.core.types.structured.StatusChangeNotification;
 import com.digitalpetri.opcua.stack.core.types.structured.SubscriptionAcknowledgement;
-import com.digitalpetri.opcua.stack.core.types.structured.TransferResult;
-import com.digitalpetri.opcua.stack.core.types.structured.TransferSubscriptionsResponse;
 import com.digitalpetri.opcua.stack.core.util.ExecutionQueue;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -93,7 +86,6 @@ public class OpcUaSubscriptionManager implements UaSubscriptionManager {
         deliveryQueue = new ExecutionQueue(client.getConfig().getExecutor());
         processingQueue = new ExecutionQueue(client.getConfig().getExecutor());
     }
-
 
     @Override
     public CompletableFuture<UaSubscription> createSubscription(double requestedPublishingInterval) {
@@ -224,38 +216,13 @@ public class OpcUaSubscriptionManager implements UaSubscriptionManager {
             return subscription;
         });
     }
-    
-    public CompletableFuture<TransferSubscriptionsResponse> transferSubscriptions() {
-        List<UInteger> subscriptionIds = newArrayList(subscriptions.keySet());
 
-        return client.transferSubscriptions(subscriptionIds, true).thenApply(response -> {
-            TransferResult[] results = response.getResults();
+    public void transferFailed(UInteger subscriptionId, StatusCode statusCode) {
+        OpcUaSubscription subscription = subscriptions.remove(subscriptionId);
 
-            for (int i = 0; i < subscriptionIds.size(); i++) {
-                TransferResult result = results[i];
-                StatusCode statusCode = result.getStatusCode();
-
-                UInteger subscriptionId = subscriptionIds.get(i);
-                OpcUaSubscription subscription = subscriptions.get(subscriptionId);
-
-                if (statusCode.isGood()) {
-                    List<UInteger> availableSequenceNumbers =
-                            newArrayList(result.getAvailableSequenceNumbers());
-
-                    // TODO republish for any beyond our current seq
-                    long lastSequenceNumber = subscription.getLastSequenceNumber();
-
-                    long min = Collections.min(availableSequenceNumbers).longValue();
-                    long max = Collections.max(availableSequenceNumbers).longValue();
-                } else {
-                    subscriptions.remove(subscriptionId);
-
-                    subscriptionListeners.forEach(l -> l.onSubscriptionTransferFailed(subscription, statusCode));
-                }
-            }
-
-            return response;
-        });
+        if (subscription != null) {
+            subscriptionListeners.forEach(l -> l.onSubscriptionTransferFailed(subscription, statusCode));
+        }
     }
 
     @Override
@@ -336,6 +303,9 @@ public class OpcUaSubscriptionManager implements UaSubscriptionManager {
                     UaException uax = UaException.extract(ex).orElse(new UaException(ex));
                     subscriptionListeners.forEach(l -> l.onPublishFailure(uax));
                 } else {
+                    logger.debug("Received PublishResponse, sequenceNumber={}",
+                            response.getNotificationMessage().getSequenceNumber());
+
                     processingQueue.submit(() -> onPublishComplete(response));
 
                     maybeSendPublishRequest();
@@ -365,46 +335,20 @@ public class OpcUaSubscriptionManager implements UaSubscriptionManager {
             processingQueue.pause();
             processingQueue.submitToHead(() -> onPublishComplete(response));
 
-            republish(subscriptionId, expectedSequenceNumber, sequenceNumber).whenComplete((v, ex) -> {
+            republish(subscriptionId, expectedSequenceNumber, sequenceNumber).whenComplete((dataLost, ex) -> {
                 if (ex != null) {
-                    logger.warn("Republish service failed; reading values for subscriptionId={}: {}",
-                            subscriptionId, ex.getMessage(), ex);
+                    logger.debug("Republish failed: {}", ex.getMessage(), ex);
 
-                    List<OpcUaMonitoredItem> items = Optional.ofNullable(subscriptions.get(subscriptionId))
-                            .map(s -> newArrayList(s.getItemsByServerHandle().values()))
-                            .orElse(newArrayList());
-
-                    List<ReadValueId> values = items.stream()
-                            .map(OpcUaMonitoredItem::getReadValueId)
-                            .collect(Collectors.toList());
-
-                    // TODO Use Server's time + publishTime in queued responses to figure out what can be ignored?
-                    client.read(0.0d, TimestampsToReturn.Both, values).whenComplete((rr, rx) -> {
-                        if (rr != null) {
-                            DataValue[] results = rr.getResults();
-
-                            for (int i = 0; i < items.size(); i++) {
-                                OpcUaMonitoredItem item = items.get(i);
-                                DataValue value = results[i];
-
-                                item.onValueArrived(value);
-                            }
-                        } else {
-                            UaException republishEx = UaException.extract(ex).orElse(new UaException(ex));
-                            UaException readEx = UaException.extract(rx).orElse(new UaException(rx));
-
-                            subscriptionListeners.forEach(l -> l.onNotificationDataLost(republishEx, readEx));
-                        }
-
-                        // We've read the latest values, resume processing.
-                        subscription.setLastSequenceNumber(sequenceNumber - 1);
-                        processingQueue.resume();
-                    });
+                    subscriptionListeners.forEach(l -> l.onNotificationDataLost(subscription));
                 } else {
-                    // Republish succeeded, resume processing.
-                    subscription.setLastSequenceNumber(sequenceNumber - 1);
-                    processingQueue.resume();
+                    // Republish succeeded, possibly with some data loss, resume processing.
+                    if (dataLost) {
+                        subscriptionListeners.forEach(l -> l.onNotificationDataLost(subscription));
+                    }
                 }
+
+                subscription.setLastSequenceNumber(sequenceNumber - 1);
+                processingQueue.resume();
             });
 
             return;
@@ -423,22 +367,42 @@ public class OpcUaSubscriptionManager implements UaSubscriptionManager {
         deliveryQueue.submit(() -> onNotificationMessage(subscriptionId, notificationMessage));
     }
 
-    private CompletableFuture<Void> republish(UInteger subscriptionId, long fromSequence, long toSequence) {
-        logger.info("republish() subscriptionId={}, fromSequence={}, toSequence={}",
-                subscriptionId, fromSequence, toSequence);
+    private CompletableFuture<Boolean> republish(UInteger subscriptionId, long fromSequence, long toSequence) {
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
+
+        republish(subscriptionId, fromSequence, toSequence, false, future);
+
+        return future;
+    }
+
+    private void republish(UInteger subscriptionId,
+                           long fromSequence,
+                           long toSequence,
+                           boolean dataLost,
+                           CompletableFuture<Boolean> future) {
 
         if (fromSequence == toSequence) {
-            return CompletableFuture.completedFuture(null);
+            future.complete(dataLost);
         } else {
-            return client.republish(subscriptionId, uint(fromSequence)).thenCompose(response -> {
-                try {
-                    onRepublishComplete(subscriptionId, response, uint(fromSequence));
+            client.republish(subscriptionId, uint(fromSequence)).whenComplete((response, ex) -> {
+                if (response != null) {
+                    try {
+                        onRepublishComplete(subscriptionId, response, uint(fromSequence));
 
-                    return republish(subscriptionId, fromSequence + 1, toSequence);
-                } catch (UaException e) {
-                    CompletableFuture<Void> failed = new CompletableFuture<>();
-                    failed.completeExceptionally(e);
-                    return failed;
+                        republish(subscriptionId, fromSequence + 1, toSequence, dataLost, future);
+                    } catch (UaException e) {
+                        republish(subscriptionId, fromSequence + 1, toSequence, true, future);
+                    }
+                } else {
+                    StatusCode statusCode = UaException.extract(ex)
+                            .map(UaException::getStatusCode)
+                            .orElse(StatusCode.BAD);
+
+                    if (statusCode.getValue() == StatusCodes.Bad_MessageNotAvailable) {
+                        republish(subscriptionId, fromSequence + 1, toSequence, true, future);
+                    } else {
+                        future.completeExceptionally(ex);
+                    }
                 }
             });
         }
@@ -509,6 +473,11 @@ public class OpcUaSubscriptionManager implements UaSubscriptionManager {
                 subscriptionListeners.forEach(l -> l.onStatusChanged(subscription, scn.getStatus()));
             }
         }
+    }
+
+    public void restartPublishing() {
+        pendingPublishes.set(0);
+        maybeSendPublishRequest();
     }
 
 }
