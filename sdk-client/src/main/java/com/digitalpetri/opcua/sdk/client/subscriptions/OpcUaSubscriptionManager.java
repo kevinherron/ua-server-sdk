@@ -285,11 +285,11 @@ public class OpcUaSubscriptionManager implements UaSubscriptionManager {
                 pendingPublishes.decrementAndGet();
 
                 if (ex != null) {
-                    logger.warn("Publish service failure: {}", ex.getMessage(), ex);
-
                     StatusCode statusCode = UaException.extract(ex)
                             .map(UaException::getStatusCode)
                             .orElse(StatusCode.BAD);
+
+                    logger.debug("Publish service failure: {}", statusCode, ex);
 
                     if (statusCode.getValue() != StatusCodes.Bad_NoSubscription &&
                             statusCode.getValue() != StatusCodes.Bad_TooManyPublishRequests) {
