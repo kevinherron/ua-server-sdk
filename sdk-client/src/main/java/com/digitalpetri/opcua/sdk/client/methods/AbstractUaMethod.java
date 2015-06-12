@@ -22,8 +22,6 @@ package com.digitalpetri.opcua.sdk.client.methods;
 import java.util.concurrent.CompletableFuture;
 
 import com.digitalpetri.opcua.sdk.client.api.UaClient;
-import com.digitalpetri.opcua.stack.core.UaException;
-import com.digitalpetri.opcua.stack.core.types.builtin.DiagnosticInfo;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.StatusCode;
 import com.digitalpetri.opcua.stack.core.types.builtin.Variant;
@@ -53,22 +51,17 @@ public abstract class AbstractUaMethod {
 
                 return CompletableFuture.completedFuture(outputArguments);
             } else {
-                return createExceptionFuture(
+                UaMethodException ex = new UaMethodException(
                         statusCode,
                         result.getInputArgumentResults(),
-                        result.getInputArgumentDiagnosticInfos());
+                        result.getInputArgumentDiagnosticInfos()
+                );
+
+                CompletableFuture<Variant[]> f = new CompletableFuture<>();
+                f.completeExceptionally(ex);
+                return f;
             }
         });
-    }
-
-    protected <T> CompletableFuture<T> createExceptionFuture(StatusCode statusCode,
-                                                             StatusCode[] inputArgumentResults,
-                                                             DiagnosticInfo[] inputArgumentDiagnosticInfos) {
-
-        // TODO UaMethodException
-        CompletableFuture<T> f = new CompletableFuture<>();
-        f.completeExceptionally(new UaException(statusCode));
-        return f;
     }
 
 }

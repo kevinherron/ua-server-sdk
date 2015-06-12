@@ -22,6 +22,7 @@ package com.digitalpetri.opcua.sdk.client.methods;
 import java.util.concurrent.CompletableFuture;
 
 import com.digitalpetri.opcua.sdk.client.api.UaClient;
+import com.digitalpetri.opcua.stack.core.UaException;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.Variant;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
@@ -50,13 +51,18 @@ public class GetMonitoredItems extends AbstractUaMethod {
                 new Variant(subscriptionId)
         };
 
-        return invoke(inputArguments).thenApply(outputArguments -> {
-            UInteger[] v0 = (UInteger[]) outputArguments[0].getValue();
-            UInteger[] v1 = (UInteger[]) outputArguments[1].getValue();
+        return invoke(inputArguments).thenCompose(outputArguments -> {
+            try {
+                UInteger[] v0 = (UInteger[]) outputArguments[0].getValue();
+                UInteger[] v1 = (UInteger[]) outputArguments[1].getValue();
 
-            return new Tuple2<>(v0, v1);
+                return CompletableFuture.completedFuture(new Tuple2<>(v0, v1));
+            } catch (Throwable t) {
+                CompletableFuture<Tuple2<UInteger[], UInteger[]>> f = new CompletableFuture<>();
+                f.completeExceptionally(new UaException(t));
+                return f;
+            }
         });
     }
-
 
 }
