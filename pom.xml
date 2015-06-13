@@ -6,17 +6,17 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.digitalpetri.opcua</groupId>
-    <artifactId>opc-ua-sdk</artifactId>
-    <version>0.3.0-SNAPSHOT</version>
+    <artifactId>ua-server-sdk</artifactId>
+    <version>0.4.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>OPC-UA SDK</name>
-    <description>High-performance OPC-UA SDK for Java.</description>
-    <url>https://github.com/digitalpetri/opc-ua-sdk</url>
+    <name>OPC-UA Server SDK</name>
+    <description>High-performance OPC-UA Server SDK for Java.</description>
+    <url>https://github.com/digitalpetri/ua-server-sdk</url>
 
     <scm>
-        <url>https://github.com/digitalpetri/opc-ua-sdk</url>
-        <connection>scm:git:git@github.com/digitalpetri/opc-ua-sdk.git</connection>
+        <url>https://github.com/digitalpetri/ua-server-sdk</url>
+        <connection>scm:git:git@github.com/digitalpetri/ua-server-sdk.git</connection>
         <tag>HEAD</tag>
     </scm>
 
@@ -38,9 +38,8 @@
 
     <modules>
         <module>ctt-namespace</module>
-        <module>sdk-client</module>
-        <module>sdk-server</module>
-        <module>sdk-tests</module>
+        <module>ua-server</module>
+        <module>ua-server-tests</module>
     </modules>
 
     <properties>

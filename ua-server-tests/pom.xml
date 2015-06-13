@@ -5,30 +5,30 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <artifactId>opc-ua-sdk</artifactId>
         <groupId>com.digitalpetri.opcua</groupId>
-        <version>0.3.0-SNAPSHOT</version>
+        <artifactId>ua-server-sdk</artifactId>
+        <version>0.4.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>sdk-tests</artifactId>
+    <artifactId>ua-server-tests</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>com.digitalpetri.opcua</groupId>
-            <artifactId>sdk-client</artifactId>
-            <version>0.3.0-SNAPSHOT</version>
+            <artifactId>ua-client</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.digitalpetri.opcua</groupId>
-            <artifactId>sdk-server</artifactId>
-            <version>0.3.0-SNAPSHOT</version>
+            <artifactId>ua-server</artifactId>
+            <version>0.4.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.digitalpetri.opcua</groupId>
             <artifactId>ctt-namespace</artifactId>
-            <version>0.3.0-SNAPSHOT</version>
+            <version>0.4.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
         <dependency>
