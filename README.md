@@ -1,4 +1,6 @@
-# OPC-UA SDK
+# OPC-UA Server SDK
+
+Looking for an OPC-UA Client SDK? Check out the [digitalpetri OPC-UA Client SDK](https://github.com/digitalpetri/ua-client-sdk).
 
 This is currently under active development.
 
@@ -20,21 +22,11 @@ Snapshots are available from the Sonatype repository:
 
 Release versions will be available from Maven Central and won't require an explicit repository definition.
 
-#### Client SDK
-```xml
-<dependency>
-    <groupId>com.digitalpetri.opcua</groupId>
-    <artifactId>sdk-client</artifactId>
-    <version>0.3.0-SNAPSHOT</version>
-</dependency>
-```
-
-#### Server SDK
 ```xml
 <dependency>
     <groupId>com.digitalpetri.opcua</groupId>
     <artifactId>sdk-server</artifactId>
-    <version>0.3.0-SNAPSHOT</version>
+    <version>0.4.0-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -47,6 +39,6 @@ Contact kevinherron@gmail.com for more information.
 License
 --------
 
-The digitalpetri OPC-UA SDK is licensed under the GNU Affero General Public License v3 (AGPL-3.0).
+The digitalpetri OPC-UA Server SDK is licensed under the GNU Affero General Public License v3 (AGPL-3.0).
 
 Commercial-friendly licensing may be purchased.
