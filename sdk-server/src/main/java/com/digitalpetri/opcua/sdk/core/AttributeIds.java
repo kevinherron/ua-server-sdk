@@ -21,6 +21,8 @@ package com.digitalpetri.opcua.sdk.core;
 
 public class AttributeIds {
 
+    // TODO This class is no longer necessary...
+
     public static final int NodeId = 1;
     public static final int NodeClass = 2;
     public static final int BrowseName = 3;
