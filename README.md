@@ -25,7 +25,7 @@ Release versions will be available from Maven Central and won't require an expli
 ```xml
 <dependency>
     <groupId>com.digitalpetri.opcua</groupId>
-    <artifactId>sdk-server</artifactId>
+    <artifactId>ua-server</artifactId>
     <version>0.4.0-SNAPSHOT</version>
 </dependency>
 ```
