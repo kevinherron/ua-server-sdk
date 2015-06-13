@@ -39,7 +39,6 @@
     <modules>
         <module>ctt-namespace</module>
         <module>sdk-client</module>
-        <module>sdk-core</module>
         <module>sdk-server</module>
         <module>sdk-tests</module>
     </modules>
