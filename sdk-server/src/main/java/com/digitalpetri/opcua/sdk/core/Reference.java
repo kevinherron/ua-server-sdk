@@ -22,7 +22,7 @@ package com.digitalpetri.opcua.sdk.core;
 import java.util.Map;
 import java.util.function.Predicate;
 
-import com.digitalpetri.opcua.sdk.core.api.ReferenceType;
+import com.digitalpetri.opcua.stack.core.ReferenceType;
 import com.digitalpetri.opcua.stack.core.Identifiers;
 import com.digitalpetri.opcua.stack.core.types.builtin.ExpandedNodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;

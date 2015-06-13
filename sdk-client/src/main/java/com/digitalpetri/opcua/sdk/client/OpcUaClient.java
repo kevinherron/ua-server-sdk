@@ -106,7 +106,7 @@ import com.digitalpetri.opcua.stack.core.types.structured.WriteValue;
 import com.digitalpetri.opcua.stack.core.util.ExecutionQueue;
 import com.digitalpetri.opcua.stack.core.util.LongSequence;
 
-import static com.digitalpetri.opcua.sdk.core.util.ConversionUtil.a;
+import static com.digitalpetri.opcua.stack.core.util.ConversionUtil.a;
 import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 import static com.google.common.collect.Lists.newCopyOnWriteArrayList;
 

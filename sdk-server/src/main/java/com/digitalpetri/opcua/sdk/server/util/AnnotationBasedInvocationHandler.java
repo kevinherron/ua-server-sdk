@@ -48,7 +48,7 @@ import com.digitalpetri.opcua.stack.core.types.structured.CallMethodResult;
 import com.digitalpetri.opcua.stack.core.util.TypeUtil;
 import com.google.common.collect.Lists;
 
-import static com.digitalpetri.opcua.sdk.core.util.ConversionUtil.a;
+import static com.digitalpetri.opcua.stack.core.util.ConversionUtil.a;
 
 public class AnnotationBasedInvocationHandler implements MethodInvocationHandler {
 

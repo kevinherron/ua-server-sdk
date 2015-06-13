@@ -31,7 +31,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.digitalpetri.opcua.sdk.core.AccessLevel;
-import com.digitalpetri.opcua.sdk.core.AttributeId;
+import com.digitalpetri.opcua.stack.core.AttributeId;
 import com.digitalpetri.opcua.sdk.core.AttributeIds;
 import com.digitalpetri.opcua.sdk.core.NumericRange;
 import com.digitalpetri.opcua.sdk.server.DiagnosticsContext;
@@ -95,7 +95,7 @@ import org.jooq.lambda.tuple.Tuple3;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.digitalpetri.opcua.sdk.core.util.ConversionUtil.a;
+import static com.digitalpetri.opcua.stack.core.util.ConversionUtil.a;
 import static com.digitalpetri.opcua.sdk.server.util.FutureUtils.sequence;
 import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.ubyte;
 import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;

@@ -27,7 +27,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import com.digitalpetri.opcua.sdk.client.api.nodes.NodeCache;
-import com.digitalpetri.opcua.sdk.core.AttributeId;
+import com.digitalpetri.opcua.stack.core.AttributeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.google.common.cache.Cache;

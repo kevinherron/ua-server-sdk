@@ -23,7 +23,7 @@ import java.util.concurrent.CompletableFuture;
 
 import com.digitalpetri.opcua.sdk.client.OpcUaClient;
 import com.digitalpetri.opcua.sdk.client.api.nodes.attached.UaObjectTypeNode;
-import com.digitalpetri.opcua.sdk.core.AttributeId;
+import com.digitalpetri.opcua.stack.core.AttributeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.StatusCode;

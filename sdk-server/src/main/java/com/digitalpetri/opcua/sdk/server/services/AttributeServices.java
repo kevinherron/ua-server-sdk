@@ -46,7 +46,7 @@ import com.digitalpetri.opcua.stack.core.types.structured.WriteRequest;
 import com.digitalpetri.opcua.stack.core.types.structured.WriteResponse;
 import com.digitalpetri.opcua.stack.core.types.structured.WriteValue;
 
-import static com.digitalpetri.opcua.sdk.core.util.ConversionUtil.a;
+import static com.digitalpetri.opcua.stack.core.util.ConversionUtil.a;
 import static com.digitalpetri.opcua.sdk.server.util.FutureUtils.sequence;
 import static com.google.common.collect.Lists.newArrayListWithCapacity;
 import static java.util.stream.Collectors.groupingBy;

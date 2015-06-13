@@ -40,7 +40,7 @@ import com.digitalpetri.opcua.sdk.client.nodes.attached.AttachedReferenceTypeNod
 import com.digitalpetri.opcua.sdk.client.nodes.attached.AttachedVariableNode;
 import com.digitalpetri.opcua.sdk.client.nodes.attached.AttachedVariableTypeNode;
 import com.digitalpetri.opcua.sdk.client.nodes.attached.AttachedViewNode;
-import com.digitalpetri.opcua.sdk.core.AttributeId;
+import com.digitalpetri.opcua.stack.core.AttributeId;
 import com.digitalpetri.opcua.stack.core.UaException;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;

@@ -32,7 +32,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 
 import com.digitalpetri.opcua.sdk.core.ServerTable;
-import com.digitalpetri.opcua.sdk.core.api.ReferenceType;
+import com.digitalpetri.opcua.stack.core.BuiltinReferenceType;
+import com.digitalpetri.opcua.stack.core.ReferenceType;
 import com.digitalpetri.opcua.sdk.server.api.config.OpcUaServerConfig;
 import com.digitalpetri.opcua.sdk.server.namespaces.OpcUaNamespace;
 import com.digitalpetri.opcua.sdk.server.namespaces.VendorNamespace;
@@ -119,7 +120,7 @@ public class OpcUaServer {
 
         serverTable.addUri(stackServer.getApplicationDescription().getApplicationUri());
 
-        for (ReferenceType referenceType : com.digitalpetri.opcua.sdk.core.ReferenceType.values()) {
+        for (ReferenceType referenceType : BuiltinReferenceType.values()) {
             referenceTypes.put(referenceType.getNodeId(), referenceType);
         }
 

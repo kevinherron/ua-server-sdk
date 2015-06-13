@@ -14,7 +14,7 @@ import com.digitalpetri.opcua.sdk.client.api.nodes.attached.UaVariableNode;
 import com.digitalpetri.opcua.sdk.client.api.subscriptions.UaMonitoredItem;
 import com.digitalpetri.opcua.sdk.client.api.subscriptions.UaSubscription;
 import com.digitalpetri.opcua.sdk.client.api.subscriptions.UaSubscriptionManager.SubscriptionListener;
-import com.digitalpetri.opcua.sdk.core.AttributeId;
+import com.digitalpetri.opcua.stack.core.AttributeId;
 import com.digitalpetri.opcua.sdk.server.OpcUaServer;
 import com.digitalpetri.opcua.sdk.server.api.config.OpcUaServerConfig;
 import com.digitalpetri.opcua.server.ctt.CttNamespace;

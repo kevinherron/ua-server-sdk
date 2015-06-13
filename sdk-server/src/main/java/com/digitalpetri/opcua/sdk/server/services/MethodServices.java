@@ -41,7 +41,7 @@ import com.digitalpetri.opcua.stack.core.types.structured.CallRequest;
 import com.digitalpetri.opcua.stack.core.types.structured.CallResponse;
 import com.digitalpetri.opcua.stack.core.types.structured.ResponseHeader;
 
-import static com.digitalpetri.opcua.sdk.core.util.ConversionUtil.a;
+import static com.digitalpetri.opcua.stack.core.util.ConversionUtil.a;
 import static com.digitalpetri.opcua.sdk.server.util.FutureUtils.sequence;
 
 public class MethodServices implements MethodServiceSet {

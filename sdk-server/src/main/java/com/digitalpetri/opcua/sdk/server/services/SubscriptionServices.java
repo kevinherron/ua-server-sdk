@@ -50,7 +50,7 @@ import com.digitalpetri.opcua.stack.core.types.structured.TransferSubscriptionsR
 import com.digitalpetri.opcua.stack.core.types.structured.TransferSubscriptionsResponse;
 import com.google.common.collect.Lists;
 
-import static com.digitalpetri.opcua.sdk.core.util.ConversionUtil.a;
+import static com.digitalpetri.opcua.stack.core.util.ConversionUtil.a;
 
 public class SubscriptionServices implements SubscriptionServiceSet {
 

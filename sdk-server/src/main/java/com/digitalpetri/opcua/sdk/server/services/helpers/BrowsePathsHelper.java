@@ -51,7 +51,7 @@ import com.digitalpetri.opcua.stack.core.types.structured.ResponseHeader;
 import com.digitalpetri.opcua.stack.core.types.structured.TranslateBrowsePathsToNodeIdsRequest;
 import com.digitalpetri.opcua.stack.core.types.structured.TranslateBrowsePathsToNodeIdsResponse;
 
-import static com.digitalpetri.opcua.sdk.core.util.ConversionUtil.a;
+import static com.digitalpetri.opcua.stack.core.util.ConversionUtil.a;
 import static com.digitalpetri.opcua.sdk.server.util.FutureUtils.sequence;
 import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 import static com.google.common.collect.Lists.newArrayList;

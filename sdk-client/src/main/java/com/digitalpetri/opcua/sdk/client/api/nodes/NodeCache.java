@@ -21,7 +21,7 @@ package com.digitalpetri.opcua.sdk.client.api.nodes;
 
 import java.util.Optional;
 
-import com.digitalpetri.opcua.sdk.core.AttributeId;
+import com.digitalpetri.opcua.stack.core.AttributeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 
