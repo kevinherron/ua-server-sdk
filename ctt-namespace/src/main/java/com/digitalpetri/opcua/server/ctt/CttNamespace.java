@@ -434,7 +434,7 @@ public class CttNamespace implements UaNamespace {
             }
         }
 
-        context.getFuture().complete(results);
+        context.complete(results);
     }
 
     @Override
@@ -465,7 +465,7 @@ public class CttNamespace implements UaNamespace {
             }
         }
 
-        context.getFuture().complete(results);
+        context.complete(results);
     }
 
     @Override

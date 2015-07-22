@@ -134,7 +134,7 @@ public class VendorNamespace implements UaNamespace {
             results.add(value);
         }
 
-        context.getFuture().complete(results);
+        context.complete(results);
     }
 
     @Override
@@ -147,7 +147,7 @@ public class VendorNamespace implements UaNamespace {
             }
         }).collect(toList());
 
-        context.getFuture().complete(results);
+        context.complete(results);
     }
 
     @Override

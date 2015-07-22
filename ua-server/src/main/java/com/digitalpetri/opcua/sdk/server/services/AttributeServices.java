@@ -46,8 +46,8 @@ import com.digitalpetri.opcua.stack.core.types.structured.WriteRequest;
 import com.digitalpetri.opcua.stack.core.types.structured.WriteResponse;
 import com.digitalpetri.opcua.stack.core.types.structured.WriteValue;
 
-import static com.digitalpetri.opcua.stack.core.util.ConversionUtil.a;
 import static com.digitalpetri.opcua.sdk.server.util.FutureUtils.sequence;
+import static com.digitalpetri.opcua.stack.core.util.ConversionUtil.a;
 import static com.google.common.collect.Lists.newArrayListWithCapacity;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
@@ -109,7 +109,10 @@ public class AttributeServices implements AttributeServiceSet {
         byNamespace.keySet().forEach(index -> {
             List<PendingRead> pending = byNamespace.get(index);
 
-            ReadContext context = new ReadContext(server, session, diagnosticsContext);
+            CompletableFuture<List<DataValue>> future = new CompletableFuture<>();
+
+            ReadContext context = new ReadContext(
+                    server, session, future, diagnosticsContext);
 
             server.getExecutorService().execute(() -> {
                 Namespace namespace = server.getNamespaceManager().getNamespace(index);
@@ -125,7 +128,7 @@ public class AttributeServices implements AttributeServiceSet {
                         readValueIds);
             });
 
-            context.getFuture().thenAccept(values -> {
+            future.thenAccept(values -> {
                 for (int i = 0; i < values.size(); i++) {
                     pending.get(i).getFuture().complete(values.get(i));
                 }
@@ -187,7 +190,10 @@ public class AttributeServices implements AttributeServiceSet {
         byNamespace.keySet().forEach(index -> {
             List<PendingWrite> pending = byNamespace.get(index);
 
-            WriteContext context = new WriteContext(server, session, diagnosticsContext);
+            CompletableFuture<List<StatusCode>> future = new CompletableFuture<>();
+
+            WriteContext context = new WriteContext(
+                    server, session, future, diagnosticsContext);
 
             server.getExecutorService().execute(() -> {
                 Namespace namespace = server.getNamespaceManager().getNamespace(index);
@@ -199,7 +205,7 @@ public class AttributeServices implements AttributeServiceSet {
                 namespace.write(context, writeValues);
             });
 
-            context.getFuture().thenAccept(statusCodes -> {
+            future.thenAccept(statusCodes -> {
                 for (int i = 0; i < statusCodes.size(); i++) {
                     pending.get(i).getFuture().complete(statusCodes.get(i));
                 }

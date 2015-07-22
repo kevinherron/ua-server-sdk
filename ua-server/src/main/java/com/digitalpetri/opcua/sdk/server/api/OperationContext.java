@@ -19,10 +19,10 @@
 
 package com.digitalpetri.opcua.sdk.server.api;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import javax.annotation.Nullable;
 
 import com.digitalpetri.opcua.sdk.server.DiagnosticsContext;
 import com.digitalpetri.opcua.sdk.server.OpcUaServer;
@@ -30,7 +30,7 @@ import com.digitalpetri.opcua.sdk.server.Session;
 
 public class OperationContext<T, U> {
 
-    private final CompletableFuture<List<U>> future = new CompletableFuture<>();
+    private final CompletableFuture<List<U>> future;
 
     private final OpcUaServer server;
     private final Session session;
@@ -38,15 +38,24 @@ public class OperationContext<T, U> {
 
     public OperationContext(OpcUaServer server,
                             @Nullable Session session,
+                            DiagnosticsContext<T> diagnostics) {
+
+        this(server, session, new CompletableFuture<List<U>>(), diagnostics);
+    }
+
+    public OperationContext(OpcUaServer server,
+                            @Nullable Session session,
+                            CompletableFuture<List<U>> future,
                             DiagnosticsContext<T> diagnosticsContext) {
 
         this.server = server;
         this.session = session;
+        this.future = future;
         this.diagnostics = diagnosticsContext;
     }
 
-    public CompletableFuture<List<U>> getFuture() {
-        return future;
+    public void complete(List<U> value) {
+        future.complete(value);
     }
 
     public DiagnosticsContext<T> getDiagnostics() {

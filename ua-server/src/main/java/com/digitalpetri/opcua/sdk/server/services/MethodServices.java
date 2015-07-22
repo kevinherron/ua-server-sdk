@@ -41,8 +41,8 @@ import com.digitalpetri.opcua.stack.core.types.structured.CallRequest;
 import com.digitalpetri.opcua.stack.core.types.structured.CallResponse;
 import com.digitalpetri.opcua.stack.core.types.structured.ResponseHeader;
 
-import static com.digitalpetri.opcua.stack.core.util.ConversionUtil.a;
 import static com.digitalpetri.opcua.sdk.server.util.FutureUtils.sequence;
+import static com.digitalpetri.opcua.stack.core.util.ConversionUtil.a;
 
 public class MethodServices implements MethodServiceSet {
 
@@ -79,11 +79,14 @@ public class MethodServices implements MethodServiceSet {
 
             Namespace namespace = server.getNamespaceManager().getNamespace(index);
 
-            CallContext context = new CallContext(server, session, diagnosticsContext);
+            CompletableFuture<List<CallMethodResult>> future = new CompletableFuture<>();
+
+            CallContext context = new CallContext(
+                    server, session, future, diagnosticsContext);
 
             server.getExecutorService().execute(() -> namespace.call(context, requests));
 
-            context.getFuture().thenAccept(values -> {
+            future.thenAccept(values -> {
                 for (int i = 0; i < values.size(); i++) {
                     pending.get(i).getFuture().complete(values.get(i));
                 }

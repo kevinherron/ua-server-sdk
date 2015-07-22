@@ -21,6 +21,7 @@ package com.digitalpetri.opcua.sdk.server.api;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import javax.annotation.Nullable;
 
 import com.digitalpetri.opcua.sdk.core.Reference;
 import com.digitalpetri.opcua.sdk.server.DiagnosticsContext;
@@ -49,7 +50,7 @@ public interface ViewManager {
                 .map(browseDescription -> BrowseHelper.browse(server, view, maxReferencesPerNode, browseDescription))
                 .collect(toList());
 
-        sequence(futures).thenApply(results -> context.getFuture().complete(results));
+        sequence(futures).thenAccept(context::complete);
     }
 
     /**
@@ -63,10 +64,19 @@ public interface ViewManager {
 
 
     final class BrowseContext extends OperationContext<BrowseDescription, BrowseResult> {
-        public BrowseContext(OpcUaServer server, Session session,
+        public BrowseContext(OpcUaServer server,
+                             @Nullable Session session,
                              DiagnosticsContext<BrowseDescription> diagnosticsContext) {
 
             super(server, session, diagnosticsContext);
+        }
+
+        public BrowseContext(OpcUaServer server,
+                             @Nullable Session session,
+                             CompletableFuture<List<BrowseResult>> future,
+                             DiagnosticsContext<BrowseDescription> diagnosticsContext) {
+
+            super(server, session, future, diagnosticsContext);
         }
     }
 

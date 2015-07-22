@@ -20,6 +20,8 @@
 package com.digitalpetri.opcua.sdk.server.api;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import javax.annotation.Nullable;
 
 import com.digitalpetri.opcua.sdk.server.DiagnosticsContext;
 import com.digitalpetri.opcua.sdk.server.OpcUaServer;
@@ -35,7 +37,7 @@ public interface AttributeManager {
     /**
      * Read one or more values from nodes belonging to this {@link AttributeManager}.
      * <p>
-     * When the operation is finished, complete {@link ReadContext#getFuture()}.
+     * Complete the operation with {@link ReadContext#complete(List)}.
      *
      * @param context      the {@link ReadContext}.
      * @param maxAge       requested max age.
@@ -50,7 +52,7 @@ public interface AttributeManager {
     /**
      * Write one or more values to nodes belonging to this {@link AttributeManager}.
      * <p>
-     * When the operation is finished, complete {@link WriteContext#getFuture()}.
+     * Complete the operation with {@link WriteContext#complete(List)}.
      *
      * @param context     the {@link WriteContext}.
      * @param writeValues the values to write.
@@ -58,18 +60,36 @@ public interface AttributeManager {
     void write(WriteContext context, List<WriteValue> writeValues);
 
     final class ReadContext extends OperationContext<ReadValueId, DataValue> {
-        public ReadContext(OpcUaServer server, Session session,
+        public ReadContext(OpcUaServer server,
+                           @Nullable Session session,
                            DiagnosticsContext<ReadValueId> diagnosticsContext) {
 
             super(server, session, diagnosticsContext);
         }
+
+        public ReadContext(OpcUaServer server,
+                           @Nullable Session session,
+                           CompletableFuture<List<DataValue>> future,
+                           DiagnosticsContext<ReadValueId> diagnosticsContext) {
+
+            super(server, session, future, diagnosticsContext);
+        }
     }
 
     final class WriteContext extends OperationContext<WriteValue, StatusCode> {
-        public WriteContext(OpcUaServer server, Session session,
+        public WriteContext(OpcUaServer server,
+                            @Nullable Session session,
                             DiagnosticsContext<WriteValue> diagnosticsContext) {
 
             super(server, session, diagnosticsContext);
+        }
+
+        public WriteContext(OpcUaServer server,
+                            @Nullable Session session,
+                            CompletableFuture<List<StatusCode>> future,
+                            DiagnosticsContext<WriteValue> diagnosticsContext) {
+
+            super(server, session, future, diagnosticsContext);
         }
     }
 

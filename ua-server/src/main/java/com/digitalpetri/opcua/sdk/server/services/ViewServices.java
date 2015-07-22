@@ -54,8 +54,8 @@ import com.digitalpetri.opcua.stack.core.types.structured.TranslateBrowsePathsTo
 import com.digitalpetri.opcua.stack.core.types.structured.UnregisterNodesRequest;
 import com.digitalpetri.opcua.stack.core.types.structured.UnregisterNodesResponse;
 
-import static com.digitalpetri.opcua.stack.core.util.ConversionUtil.a;
 import static com.digitalpetri.opcua.sdk.server.util.FutureUtils.sequence;
+import static com.digitalpetri.opcua.stack.core.util.ConversionUtil.a;
 import static com.google.common.collect.Lists.newArrayListWithCapacity;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
@@ -101,7 +101,10 @@ public class ViewServices implements ViewServiceSet {
         byNamespace.keySet().forEach(index -> {
             List<PendingBrowse> pending = byNamespace.get(index);
 
-            BrowseContext context = new BrowseContext(server, session, diagnosticsContext);
+            CompletableFuture<List<BrowseResult>> future = new CompletableFuture<>();
+
+            BrowseContext context = new BrowseContext(
+                    server, session, future, diagnosticsContext);
 
             server.getExecutorService().execute(() -> {
                 Namespace namespace = server.getNamespaceManager().getNamespace(index);
@@ -117,7 +120,7 @@ public class ViewServices implements ViewServiceSet {
                         browseDescriptions);
             });
 
-            context.getFuture().thenAccept(results -> {
+            future.thenAccept(results -> {
                 for (int i = 0; i < results.size(); i++) {
                     pending.get(i).getFuture().complete(results.get(i));
                 }

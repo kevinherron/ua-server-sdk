@@ -51,9 +51,9 @@ import com.digitalpetri.opcua.stack.core.types.structured.ResponseHeader;
 import com.digitalpetri.opcua.stack.core.types.structured.TranslateBrowsePathsToNodeIdsRequest;
 import com.digitalpetri.opcua.stack.core.types.structured.TranslateBrowsePathsToNodeIdsResponse;
 
-import static com.digitalpetri.opcua.stack.core.util.ConversionUtil.a;
 import static com.digitalpetri.opcua.sdk.server.util.FutureUtils.sequence;
 import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
+import static com.digitalpetri.opcua.stack.core.util.ConversionUtil.a;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.newArrayListWithCapacity;
 import static java.util.concurrent.CompletableFuture.completedFuture;
@@ -243,11 +243,14 @@ public class BrowsePathsHelper {
                 ReadValueId readValueId = new ReadValueId(
                         nodeId, uint(AttributeIds.BrowseName), null, QualifiedName.NULL_VALUE);
 
-                ReadContext context = new ReadContext(server, null, new DiagnosticsContext<>());
+                CompletableFuture<List<DataValue>> readFuture = new CompletableFuture<>();
+
+                ReadContext context = new ReadContext(
+                        server, null, readFuture, new DiagnosticsContext<>());
 
                 namespace.read(context, 0.0, TimestampsToReturn.Neither, newArrayList(readValueId));
 
-                return context.getFuture();
+                return readFuture;
             }).orElse(completedFuture(newArrayList(new DataValue(StatusCodes.Bad_NodeIdUnknown))));
 
             futures.add(future);

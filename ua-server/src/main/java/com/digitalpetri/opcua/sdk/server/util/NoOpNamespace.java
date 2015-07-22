@@ -67,7 +67,7 @@ public class NoOpNamespace implements Namespace {
         List<DataValue> values = Collections.nCopies(
                 readValueIds.size(), new DataValue(StatusCodes.Bad_NodeIdUnknown));
 
-        context.getFuture().complete(values);
+        context.complete(values);
     }
 
     @Override
@@ -75,7 +75,7 @@ public class NoOpNamespace implements Namespace {
         List<StatusCode> results = Collections.nCopies(
                 writeValues.size(), new StatusCode(StatusCodes.Bad_NodeIdUnknown));
 
-        context.getFuture().complete(results);
+        context.complete(results);
     }
 
     @Override

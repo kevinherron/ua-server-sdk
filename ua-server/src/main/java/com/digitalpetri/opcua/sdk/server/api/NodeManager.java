@@ -42,26 +42,26 @@ public interface NodeManager {
                 new StatusCode(StatusCodes.Bad_NotSupported),
                 NodeId.NULL_VALUE);
 
-        context.getFuture().complete(Collections.nCopies(nodesToAdd.size(), result));
+        context.complete(Collections.nCopies(nodesToAdd.size(), result));
     }
 
 
     default void deleteNode(DeleteNodesContext context, List<DeleteNodesItem> nodesToDelete) {
         StatusCode statusCode = new StatusCode(StatusCodes.Bad_NotSupported);
 
-        context.getFuture().complete(Collections.nCopies(nodesToDelete.size(), statusCode));
+        context.complete(Collections.nCopies(nodesToDelete.size(), statusCode));
     }
 
     default void addReference(AddReferencesContext context, List<AddReferencesItem> referencesToAdd) {
         StatusCode statusCode = new StatusCode(StatusCodes.Bad_NotSupported);
 
-        context.getFuture().complete(Collections.nCopies(referencesToAdd.size(), statusCode));
+        context.complete(Collections.nCopies(referencesToAdd.size(), statusCode));
     }
 
     default void deleteReference(DeleteReferencesContext context, List<DeleteReferencesItem> referencesToDelete) {
         StatusCode statusCode = new StatusCode(StatusCodes.Bad_NotSupported);
 
-        context.getFuture().complete(Collections.nCopies(referencesToDelete.size(), statusCode));
+        context.complete(Collections.nCopies(referencesToDelete.size(), statusCode));
     }
 
     final class AddNodesContext extends OperationContext<AddNodesItem, AddNodesResult> {

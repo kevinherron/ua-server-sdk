@@ -31,7 +31,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.digitalpetri.opcua.sdk.core.AccessLevel;
-import com.digitalpetri.opcua.stack.core.AttributeId;
 import com.digitalpetri.opcua.sdk.core.AttributeIds;
 import com.digitalpetri.opcua.sdk.core.NumericRange;
 import com.digitalpetri.opcua.sdk.server.DiagnosticsContext;
@@ -46,9 +45,11 @@ import com.digitalpetri.opcua.sdk.server.items.BaseMonitoredItem;
 import com.digitalpetri.opcua.sdk.server.items.MonitoredDataItem;
 import com.digitalpetri.opcua.sdk.server.items.MonitoredEventItem;
 import com.digitalpetri.opcua.sdk.server.subscriptions.Subscription.State;
+import com.digitalpetri.opcua.stack.core.AttributeId;
 import com.digitalpetri.opcua.stack.core.StatusCodes;
 import com.digitalpetri.opcua.stack.core.UaException;
 import com.digitalpetri.opcua.stack.core.application.services.ServiceRequest;
+import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.DiagnosticInfo;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
@@ -95,10 +96,10 @@ import org.jooq.lambda.tuple.Tuple3;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.digitalpetri.opcua.stack.core.util.ConversionUtil.a;
 import static com.digitalpetri.opcua.sdk.server.util.FutureUtils.sequence;
 import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.ubyte;
 import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
+import static com.digitalpetri.opcua.stack.core.util.ConversionUtil.a;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.newArrayListWithCapacity;
 import static java.util.stream.Collectors.toList;
@@ -649,8 +650,10 @@ public class SubscriptionManager {
         Function<AttributeId, ReadValueId> f = id ->
                 new ReadValueId(nodeId, id.uid(), null, QualifiedName.NULL_VALUE);
 
+        CompletableFuture<List<DataValue>> future = new CompletableFuture<>();
+
         ReadContext readContext = new ReadContext(
-                server, null, new DiagnosticsContext<>());
+                server, null, future, new DiagnosticsContext<>());
 
         List<ReadValueId> readValueIds = newArrayList(
                 f.apply(AttributeId.ACCESS_LEVEL),
@@ -659,7 +662,7 @@ public class SubscriptionManager {
 
         namespace.read(readContext, 0.0, TimestampsToReturn.Neither, readValueIds);
 
-        return readContext.getFuture().thenApply(values -> {
+        return future.thenApply(values -> {
             UByte accessLevel = Optional.ofNullable((UByte) values.get(0).getValue().getValue()).orElse(ubyte(1));
             UByte userAccessLevel = Optional.ofNullable((UByte) values.get(1).getValue().getValue()).orElse(ubyte(1));
             Double minimumSamplingInterval = Optional.ofNullable((Double) values.get(2).getValue().getValue()).orElse(0.0);
@@ -675,8 +678,10 @@ public class SubscriptionManager {
         Function<AttributeId, ReadValueId> f = id ->
                 new ReadValueId(nodeId, id.uid(), null, QualifiedName.NULL_VALUE);
 
+        CompletableFuture<List<DataValue>> future = new CompletableFuture<>();
+
         ReadContext readContext = new ReadContext(
-                server, null, new DiagnosticsContext<>());
+                server, null, future, new DiagnosticsContext<>());
 
         List<ReadValueId> readValueIds = newArrayList(
                 f.apply(AttributeId.ACCESS_LEVEL),
@@ -685,7 +690,7 @@ public class SubscriptionManager {
 
         namespace.read(readContext, 0.0, TimestampsToReturn.Neither, readValueIds);
 
-        return readContext.getFuture().thenApply(values -> {
+        return future.thenApply(values -> {
             UByte accessLevel = Optional.ofNullable((UByte) values.get(0).getValue().getValue()).orElse(ubyte(1));
             UByte userAccessLevel = Optional.ofNullable((UByte) values.get(1).getValue().getValue()).orElse(ubyte(1));
             Optional<UByte> eventNotifier = Optional.ofNullable((UByte) values.get(2).getValue().getValue());

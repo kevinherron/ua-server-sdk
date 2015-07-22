@@ -253,12 +253,16 @@ public class BrowseHelper {
             readValueIds.add(new ReadValueId(nodeId, uint(AttributeIds.DisplayName), null, QualifiedName.NULL_VALUE));
             readValueIds.add(new ReadValueId(nodeId, uint(AttributeIds.NodeClass), null, QualifiedName.NULL_VALUE));
 
-            ReadContext context = new ReadContext(server, null, new DiagnosticsContext<>());
+            CompletableFuture<List<DataValue>> future = new CompletableFuture<>();
+
+            ReadContext context = new ReadContext(
+                    server, null, future,
+                    new DiagnosticsContext<>());
 
             server.getNamespaceManager().getNamespace(nodeId.getNamespaceIndex()).read(
                     context, 0.0, TimestampsToReturn.Neither, readValueIds);
 
-            return context.getFuture().thenApply(values -> {
+            return future.thenApply(values -> {
                 QualifiedName browseName = QualifiedName.NULL_VALUE;
                 LocalizedText displayName = LocalizedText.NULL_VALUE;
                 NodeClass nodeClass = NodeClass.Unspecified;

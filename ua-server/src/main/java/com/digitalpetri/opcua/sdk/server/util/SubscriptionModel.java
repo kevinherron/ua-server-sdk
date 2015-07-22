@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -134,10 +135,12 @@ public class SubscriptionModel {
                     .map(PendingRead::getInput)
                     .collect(Collectors.toList());
 
-            ReadContext context = new ReadContext(
-                    server, null, new DiagnosticsContext<>());
+            CompletableFuture<List<DataValue>> future = new CompletableFuture<>();
 
-            context.getFuture().thenAcceptAsync(values -> {
+            ReadContext context = new ReadContext(
+                    server, null, future, new DiagnosticsContext<>());
+
+            future.thenAcceptAsync(values -> {
                 Iterator<DataItem> ii = items.iterator();
                 Iterator<DataValue> vi = values.iterator();
 

@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import javax.annotation.Nullable;
+
 import com.digitalpetri.opcua.sdk.server.DiagnosticsContext;
 import com.digitalpetri.opcua.sdk.server.OpcUaServer;
 import com.digitalpetri.opcua.sdk.server.Session;
@@ -71,7 +73,7 @@ public interface MethodServices {
             results.add(resultFuture);
         }
 
-        sequence(results).thenAccept(rs -> context.getFuture().complete(rs));
+        sequence(results).thenAccept(rs -> context.complete(rs));
     }
 
     /**
@@ -85,10 +87,19 @@ public interface MethodServices {
     }
 
     final class CallContext extends OperationContext<CallMethodRequest, CallMethodResult> {
-        public CallContext(OpcUaServer server, Session session,
+        public CallContext(OpcUaServer server,
+                           @Nullable Session session,
                            DiagnosticsContext<CallMethodRequest> diagnosticsContext) {
 
             super(server, session, diagnosticsContext);
+        }
+
+        public CallContext(OpcUaServer server,
+                           @Nullable Session session,
+                           CompletableFuture<List<CallMethodResult>> future,
+                           DiagnosticsContext<CallMethodRequest> diagnosticsContext) {
+
+            super(server, session, future, diagnosticsContext);
         }
     }
 
