@@ -366,6 +366,7 @@ public class SubscriptionManager {
 
                             MonitoredEventItem item = new MonitoredEventItem(
                                     uint(subscription.nextItemId()),
+                                    subscriptionId,
                                     r.getItemToMonitor(),
                                     r.getMonitoringMode(),
                                     timestamps,
@@ -421,6 +422,7 @@ public class SubscriptionManager {
 
                             MonitoredDataItem item = new MonitoredDataItem(
                                     uint(subscription.nextItemId()),
+                                    subscriptionId,
                                     r.getItemToMonitor(),
                                     r.getMonitoringMode(),
                                     timestamps,
@@ -646,21 +648,22 @@ public class SubscriptionManager {
         }
     }
 
-    private CompletableFuture<DataAttributes> readDataAttributes(Namespace namespace, NodeId nodeId) {
+    private CompletableFuture<DataAttributes> readDataAttributes(Namespace namespace, NodeId itemId) {
+
         Function<AttributeId, ReadValueId> f = id ->
-                new ReadValueId(nodeId, id.uid(), null, QualifiedName.NULL_VALUE);
+                new ReadValueId(itemId, id.uid(), null, QualifiedName.NULL_VALUE);
 
         CompletableFuture<List<DataValue>> future = new CompletableFuture<>();
 
         ReadContext readContext = new ReadContext(
                 server, null, future, new DiagnosticsContext<>());
 
-        List<ReadValueId> readValueIds = newArrayList(
+        List<ReadValueId> attributes = newArrayList(
                 f.apply(AttributeId.ACCESS_LEVEL),
                 f.apply(AttributeId.USER_ACCESS_LEVEL),
                 f.apply(AttributeId.MINIMUM_SAMPLING_INTERVAL));
 
-        namespace.read(readContext, 0.0, TimestampsToReturn.Neither, readValueIds);
+        namespace.read(readContext, 0.0, TimestampsToReturn.Neither, attributes);
 
         return future.thenApply(values -> {
             UByte accessLevel = Optional.ofNullable((UByte) values.get(0).getValue().getValue()).orElse(ubyte(1));

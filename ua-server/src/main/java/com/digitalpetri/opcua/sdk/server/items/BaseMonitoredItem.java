@@ -54,6 +54,7 @@ public abstract class BaseMonitoredItem<ValueType> implements MonitoredItem {
     protected volatile TimestampsToReturn timestamps;
 
     protected BaseMonitoredItem(UInteger id,
+                                UInteger subscriptionId,
                                 ReadValueId readValueId,
                                 MonitoringMode monitoringMode,
                                 TimestampsToReturn timestamps,

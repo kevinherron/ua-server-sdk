@@ -56,6 +56,7 @@ public class MonitoredDataItem extends BaseMonitoredItem<DataValue> implements D
     private volatile ExtensionObject filterResult = null;
 
     public MonitoredDataItem(UInteger id,
+                             UInteger subscriptionId,
                              ReadValueId readValueId,
                              MonitoringMode monitoringMode,
                              TimestampsToReturn timestamps,
@@ -65,7 +66,7 @@ public class MonitoredDataItem extends BaseMonitoredItem<DataValue> implements D
                              UInteger queueSize,
                              boolean discardOldest) throws UaException {
 
-        super(id, readValueId, monitoringMode, timestamps, clientHandle, samplingInterval, queueSize, discardOldest);
+        super(id, subscriptionId, readValueId, monitoringMode, timestamps, clientHandle, samplingInterval, queueSize, discardOldest);
 
         installFilter(filter);
     }

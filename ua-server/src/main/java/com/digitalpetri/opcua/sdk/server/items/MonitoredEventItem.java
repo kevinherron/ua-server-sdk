@@ -38,6 +38,7 @@ public class MonitoredEventItem extends BaseMonitoredItem<Variant[]> implements 
     private volatile EventFilter filter;
 
     public MonitoredEventItem(UInteger id,
+                              UInteger subscriptionId,
                               ReadValueId readValueId,
                               MonitoringMode monitoringMode,
                               TimestampsToReturn timestamps,
@@ -47,7 +48,7 @@ public class MonitoredEventItem extends BaseMonitoredItem<Variant[]> implements 
                               boolean discardOldest,
                               ExtensionObject filter) throws UaException {
 
-        super(id, readValueId, monitoringMode, timestamps, clientHandle, samplingInterval, queueSize, discardOldest);
+        super(id, subscriptionId, readValueId, monitoringMode, timestamps, clientHandle, samplingInterval, queueSize, discardOldest);
 
         installFilter(filter);
     }

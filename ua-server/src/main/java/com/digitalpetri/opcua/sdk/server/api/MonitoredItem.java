@@ -19,6 +19,7 @@
 
 package com.digitalpetri.opcua.sdk.server.api;
 
+import com.digitalpetri.opcua.sdk.server.subscriptions.Subscription;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.digitalpetri.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import com.digitalpetri.opcua.stack.core.types.structured.ReadValueId;
@@ -29,6 +30,11 @@ public interface MonitoredItem {
      * @return the server-side id of this item.
      */
     UInteger getId();
+
+    /**
+     * @return the id of the {@link Subscription} this item belongs to.
+     */
+    UInteger getSubscriptionId();
 
     /**
      * @return the {@link ReadValueId} being monitored.
