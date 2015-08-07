@@ -49,6 +49,7 @@ public abstract class BaseMonitoredItem<ValueType> implements MonitoredItem {
     protected volatile boolean discardOldest;
 
     protected final UInteger id;
+    protected final UInteger subscriptionId;
     protected final ReadValueId readValueId;
     protected volatile MonitoringMode monitoringMode;
     protected volatile TimestampsToReturn timestamps;
@@ -64,6 +65,7 @@ public abstract class BaseMonitoredItem<ValueType> implements MonitoredItem {
                                 boolean discardOldest) {
 
         this.id = id;
+        this.subscriptionId = subscriptionId;
         this.readValueId = readValueId;
         this.monitoringMode = monitoringMode;
         this.timestamps = timestamps;
@@ -143,6 +145,11 @@ public abstract class BaseMonitoredItem<ValueType> implements MonitoredItem {
     @Override
     public UInteger getId() {
         return id;
+    }
+
+    @Override
+    public UInteger getSubscriptionId() {
+        return subscriptionId;
     }
 
     @Override
