@@ -21,6 +21,7 @@ package com.digitalpetri.opcua.sdk.server.subscriptions;
 
 import java.math.RoundingMode;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -75,7 +76,7 @@ public class Subscription {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private volatile Iterator<BaseMonitoredItem<?>> lastIterator = Iterators.emptyIterator();
+    private volatile Iterator<BaseMonitoredItem<?>> lastIterator = Collections.emptyIterator();
 
     private final AtomicLong itemIds = new AtomicLong(1L);
     private final Map<UInteger, BaseMonitoredItem<?>> itemsById = Maps.newConcurrentMap();
@@ -370,7 +371,7 @@ public class Subscription {
 
         gatherAndSend(iterator, Optional.of(service));
 
-        lastIterator = iterator.hasNext() ? iterator : Iterators.emptyIterator();
+        lastIterator = iterator.hasNext() ? iterator : Collections.emptyIterator();
     }
 
     /**
