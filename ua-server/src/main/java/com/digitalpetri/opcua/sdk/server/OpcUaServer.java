@@ -32,13 +32,13 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 
 import com.digitalpetri.opcua.sdk.core.ServerTable;
-import com.digitalpetri.opcua.stack.core.BuiltinReferenceType;
-import com.digitalpetri.opcua.stack.core.ReferenceType;
 import com.digitalpetri.opcua.sdk.server.api.config.OpcUaServerConfig;
 import com.digitalpetri.opcua.sdk.server.namespaces.OpcUaNamespace;
 import com.digitalpetri.opcua.sdk.server.namespaces.VendorNamespace;
 import com.digitalpetri.opcua.sdk.server.services.helpers.BrowseHelper.BrowseContinuationPoint;
 import com.digitalpetri.opcua.sdk.server.subscriptions.Subscription;
+import com.digitalpetri.opcua.stack.core.BuiltinReferenceType;
+import com.digitalpetri.opcua.stack.core.ReferenceType;
 import com.digitalpetri.opcua.stack.core.Stack;
 import com.digitalpetri.opcua.stack.core.application.UaStackServer;
 import com.digitalpetri.opcua.stack.core.application.services.AttributeServiceSet;
@@ -60,7 +60,9 @@ import com.digitalpetri.opcua.stack.core.types.structured.EndpointDescription;
 import com.digitalpetri.opcua.stack.core.types.structured.SignedSoftwareCertificate;
 import com.digitalpetri.opcua.stack.core.types.structured.UserTokenPolicy;
 import com.digitalpetri.opcua.stack.core.util.ManifestUtil;
-import com.digitalpetri.opcua.stack.server.tcp.UaTcpServerBuilder;
+import com.digitalpetri.opcua.stack.server.config.UaTcpStackServerConfig;
+import com.digitalpetri.opcua.stack.server.config.UaTcpStackServerConfigBuilder;
+import com.digitalpetri.opcua.stack.server.tcp.UaTcpStackServer;
 import com.google.common.collect.Maps;
 import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
@@ -169,17 +171,15 @@ public class OpcUaServer {
     }
 
     private UaStackServer buildStackServer() {
-        UaTcpServerBuilder bootstrap = new UaTcpServerBuilder();
+        UaTcpStackServerConfigBuilder builder = UaTcpStackServerConfig.builder()
+                .setServerName(config.getServerName())
+                .setApplicationName(config.getApplicationName())
+                .setApplicationUri(config.getApplicationUri())
+                .setProductUri(config.getProductUri())
+                .setCertificateManager(config.getCertificateManager())
+                .setUserTokenPolicies(config.getUserTokenPolicies());
 
-        bootstrap.setServerName(config.getServerName());
-        bootstrap.setApplicationName(config.getApplicationName());
-        bootstrap.setApplicationUri(config.getApplicationUri());
-        bootstrap.setProductUri(config.getProductUri());
-        bootstrap.setCertificateManager(config.getCertificateManager());
-
-        config.getUserTokenPolicies().stream().forEach(bootstrap::addUserTokenPolicy);
-
-        return bootstrap.build();
+        return new UaTcpStackServer(builder.build());
     }
 
     private String endpointUrl(String hostname, String address, int port) {

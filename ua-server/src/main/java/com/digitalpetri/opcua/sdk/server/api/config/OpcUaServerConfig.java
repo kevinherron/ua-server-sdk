@@ -25,15 +25,13 @@ import java.util.List;
 import com.digitalpetri.opcua.sdk.server.identity.AnonymousIdentityValidator;
 import com.digitalpetri.opcua.sdk.server.identity.IdentityValidator;
 import com.digitalpetri.opcua.sdk.server.identity.UsernameIdentityValidator;
-import com.digitalpetri.opcua.stack.core.application.CertificateManager;
 import com.digitalpetri.opcua.stack.core.security.SecurityPolicy;
-import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.enumerated.UserTokenType;
-import com.digitalpetri.opcua.stack.core.types.structured.ApplicationDescription;
 import com.digitalpetri.opcua.stack.core.types.structured.BuildInfo;
 import com.digitalpetri.opcua.stack.core.types.structured.UserTokenPolicy;
+import com.digitalpetri.opcua.stack.server.config.UaTcpStackServerConfig;
 
-public interface OpcUaServerConfig {
+public interface OpcUaServerConfig extends UaTcpStackServerConfig {
 
     /**
      * A {@link UserTokenPolicy} for anonymous access.
@@ -50,11 +48,6 @@ public interface OpcUaServerConfig {
             "username",
             UserTokenType.UserName,
             null, null, null);
-
-    /**
-     * @return the {@link CertificateManager} for the server.
-     */
-    CertificateManager getCertificateManager();
 
     /**
      * The set of {@link SecurityPolicy}s supported by this server.
@@ -85,24 +78,6 @@ public interface OpcUaServerConfig {
     int getBindPort();
 
     /**
-     * The server name to use when building endpoint URLs: "opc.tcp://{hostname}:{port}/{serverName}.".
-     * <p>
-     * If empty, endpoint URLs will be of the format "opc.tcp://{hostname}:{port}".
-     *
-     * @return The server name to use when building endpoint URLs.
-     */
-    String getServerName();
-
-    /**
-     * Get the list of {@link UserTokenPolicy}s supported by the server.
-     *
-     * @return the list of {@link UserTokenPolicy}s supported by the server.
-     * @see #USER_TOKEN_POLICY_ANONYMOUS
-     * @see #USER_TOKEN_POLICY_USERNAME
-     */
-    List<UserTokenPolicy> getUserTokenPolicies();
-
-    /**
      * Get the {@link IdentityValidator} for the server.
      *
      * @return the {@link IdentityValidator} for the server.
@@ -110,35 +85,6 @@ public interface OpcUaServerConfig {
      * @see UsernameIdentityValidator
      */
     IdentityValidator getIdentityValidator();
-
-    /**
-     * Get the application name for the server.
-     * <p>
-     * This will be used in the {@link ApplicationDescription} returned to clients.
-     *
-     * @return the application name for the server.
-     */
-    LocalizedText getApplicationName();
-
-    /**
-     * Get the application uri for the server.
-     * <p>
-     * This will be used in the {@link ApplicationDescription} returned to clients.
-     * <p>
-     * <b>The application uri must match the application uri used on the server's application instance certificate.</b>
-     *
-     * @return the application uri for the server.
-     */
-    String getApplicationUri();
-
-    /**
-     * Get the product uri for the server.
-     * <p>
-     * This will be used in the {@link ApplicationDescription} returned to clients.
-     *
-     * @return the product uri for the server.
-     */
-    String getProductUri();
 
     /**
      * @return the server {@link BuildInfo}.

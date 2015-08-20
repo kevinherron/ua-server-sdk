@@ -19,45 +19,42 @@
 
 package com.digitalpetri.opcua.sdk.server.api.config;
 
-import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 import com.digitalpetri.opcua.sdk.server.identity.AnonymousIdentityValidator;
 import com.digitalpetri.opcua.sdk.server.identity.IdentityValidator;
 import com.digitalpetri.opcua.stack.core.Stack;
 import com.digitalpetri.opcua.stack.core.application.CertificateManager;
-import com.digitalpetri.opcua.stack.core.application.DirectoryCertificateManager;
+import com.digitalpetri.opcua.stack.core.channel.ChannelConfig;
 import com.digitalpetri.opcua.stack.core.security.SecurityPolicy;
 import com.digitalpetri.opcua.stack.core.types.builtin.DateTime;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.structured.BuildInfo;
+import com.digitalpetri.opcua.stack.core.types.structured.SignedSoftwareCertificate;
 import com.digitalpetri.opcua.stack.core.types.structured.UserTokenPolicy;
+import com.digitalpetri.opcua.stack.server.config.UaTcpStackServerConfig;
+import com.digitalpetri.opcua.stack.server.config.UaTcpStackServerConfigBuilder;
 
 import static com.google.common.collect.Lists.newArrayList;
 
-public class OpcUaServerConfigBuilder {
+public class OpcUaServerConfigBuilder extends UaTcpStackServerConfigBuilder {
 
     private String hostname = getHostname();
     private List<String> bindAddresses = newArrayList("0.0.0.0");
     private int bindPort = Stack.DEFAULT_PORT;
-    private String serverName = "";
     private EnumSet<SecurityPolicy> securityPolicies = EnumSet.of(SecurityPolicy.None);
-    private List<UserTokenPolicy> userTokenPolicies = newArrayList(OpcUaServerConfig.USER_TOKEN_POLICY_ANONYMOUS);
     private IdentityValidator identityValidator = new AnonymousIdentityValidator();
-    private CertificateManager certificateManager;
-
-    private LocalizedText applicationName = LocalizedText.english("un-configured application name");
-    private String applicationUri = "urn:digitalpetri:opcua:sdk:un-configured";
-    private String productUri = "urn:digitalpetri:opcua:sdk:un-configured";
 
     private BuildInfo buildInfo = new BuildInfo(
             "", "", "", "", "", DateTime.MIN_VALUE);
 
     private OpcUaServerConfigLimits limits =
-            new OpcUaServerConfigLimits() {};
+            new OpcUaServerConfigLimits() {
+            };
 
     public OpcUaServerConfigBuilder setHostname(String hostname) {
         this.hostname = hostname;
@@ -74,43 +71,13 @@ public class OpcUaServerConfigBuilder {
         return this;
     }
 
-    public OpcUaServerConfigBuilder setServerName(String serverName) {
-        this.serverName = serverName;
-        return this;
-    }
-
     public OpcUaServerConfigBuilder setSecurityPolicies(EnumSet<SecurityPolicy> securityPolicies) {
         this.securityPolicies = securityPolicies;
         return this;
     }
 
-    public OpcUaServerConfigBuilder setUserTokenPolicies(List<UserTokenPolicy> userTokenPolicies) {
-        this.userTokenPolicies = userTokenPolicies;
-        return this;
-    }
-
     public OpcUaServerConfigBuilder setIdentityValidator(IdentityValidator identityValidator) {
         this.identityValidator = identityValidator;
-        return this;
-    }
-
-    public OpcUaServerConfigBuilder setCertificateManager(CertificateManager certificateManager) {
-        this.certificateManager = certificateManager;
-        return this;
-    }
-
-    public OpcUaServerConfigBuilder setApplicationName(LocalizedText applicationName) {
-        this.applicationName = applicationName;
-        return this;
-    }
-
-    public OpcUaServerConfigBuilder setApplicationUri(String applicationUri) {
-        this.applicationUri = applicationUri;
-        return this;
-    }
-
-    public OpcUaServerConfigBuilder setProductUri(String productUri) {
-        this.productUri = productUri;
         return this;
     }
 
@@ -124,25 +91,73 @@ public class OpcUaServerConfigBuilder {
         return this;
     }
 
+    @Override
+    public OpcUaServerConfigBuilder setServerName(String serverName) {
+        super.setServerName(serverName);
+        return this;
+    }
+
+    @Override
+    public OpcUaServerConfigBuilder setApplicationName(LocalizedText applicationName) {
+        super.setApplicationName(applicationName);
+        return this;
+    }
+
+    @Override
+    public OpcUaServerConfigBuilder setApplicationUri(String applicationUri) {
+        super.setApplicationUri(applicationUri);
+        return this;
+    }
+
+    @Override
+    public OpcUaServerConfigBuilder setProductUri(String productUri) {
+        super.setProductUri(productUri);
+        return this;
+    }
+
+    @Override
+    public OpcUaServerConfigBuilder setCertificateManager(CertificateManager certificateManager) {
+        super.setCertificateManager(certificateManager);
+        return this;
+    }
+
+    @Override
+    public OpcUaServerConfigBuilder setUserTokenPolicies(List<UserTokenPolicy> userTokenPolicies) {
+        super.setUserTokenPolicies(userTokenPolicies);
+        return this;
+    }
+
+    @Override
+    public OpcUaServerConfigBuilder setSoftwareCertificates(List<SignedSoftwareCertificate> softwareCertificates) {
+        super.setSoftwareCertificates(softwareCertificates);
+        return this;
+    }
+
+    @Override
+    public OpcUaServerConfigBuilder setExecutor(ExecutorService executor) {
+        super.setExecutor(executor);
+        return this;
+    }
+
+    @Override
+    public OpcUaServerConfigBuilder setChannelConfig(ChannelConfig channelConfig) {
+        super.setChannelConfig(channelConfig);
+        return this;
+    }
+
     public OpcUaServerConfig build() {
-        if (certificateManager == null) {
-            certificateManager = new DirectoryCertificateManager(new File("./security"));
-        }
+        UaTcpStackServerConfig stackServerConfig = super.build();
 
         return new OpcUaServerConfigImpl(
+                stackServerConfig,
                 hostname,
                 bindAddresses,
                 bindPort,
-                serverName,
                 securityPolicies,
-                userTokenPolicies,
                 identityValidator,
-                certificateManager,
-                applicationName,
-                applicationUri,
-                productUri,
                 buildInfo,
-                limits);
+                limits
+        );
     }
 
     private String getHostname() {
@@ -156,48 +171,32 @@ public class OpcUaServerConfigBuilder {
 
     public static final class OpcUaServerConfigImpl implements OpcUaServerConfig {
 
+        private final UaTcpStackServerConfig stackServerConfig;
+
         private final String hostname;
         private final List<String> bindAddresses;
         private final int bindPort;
-        private final String serverName;
         private final EnumSet<SecurityPolicy> securityPolicies;
-        private final List<UserTokenPolicy> userTokenPolicies;
         private final IdentityValidator identityValidator;
-        private final CertificateManager certificateManager;
-
-        private final LocalizedText applicationName;
-        private final String applicationUri;
-        private final String productUri;
-
         private final BuildInfo buildInfo;
-
         private final OpcUaServerConfigLimits limits;
 
-        public OpcUaServerConfigImpl(String hostname,
+        public OpcUaServerConfigImpl(UaTcpStackServerConfig stackServerConfig,
+                                     String hostname,
                                      List<String> bindAddresses,
                                      int bindPort,
-                                     String serverName,
                                      EnumSet<SecurityPolicy> securityPolicies,
-                                     List<UserTokenPolicy> userTokenPolicies,
                                      IdentityValidator identityValidator,
-                                     CertificateManager certificateManager,
-                                     LocalizedText applicationName,
-                                     String applicationUri,
-                                     String productUri,
                                      BuildInfo buildInfo,
                                      OpcUaServerConfigLimits limits) {
+
+            this.stackServerConfig = stackServerConfig;
 
             this.hostname = hostname;
             this.bindAddresses = bindAddresses;
             this.bindPort = bindPort;
-            this.serverName = serverName;
             this.securityPolicies = securityPolicies;
-            this.userTokenPolicies = userTokenPolicies;
             this.identityValidator = identityValidator;
-            this.certificateManager = certificateManager;
-            this.applicationName = applicationName;
-            this.applicationUri = applicationUri;
-            this.productUri = productUri;
             this.buildInfo = buildInfo;
             this.limits = limits;
         }
@@ -218,43 +217,8 @@ public class OpcUaServerConfigBuilder {
         }
 
         @Override
-        public String getServerName() {
-            return serverName;
-        }
-
-        @Override
-        public EnumSet<SecurityPolicy> getSecurityPolicies() {
-            return securityPolicies;
-        }
-
-        @Override
-        public List<UserTokenPolicy> getUserTokenPolicies() {
-            return userTokenPolicies;
-        }
-
-        @Override
         public IdentityValidator getIdentityValidator() {
             return identityValidator;
-        }
-
-        @Override
-        public CertificateManager getCertificateManager() {
-            return certificateManager;
-        }
-
-        @Override
-        public LocalizedText getApplicationName() {
-            return applicationName;
-        }
-
-        @Override
-        public String getApplicationUri() {
-            return applicationUri;
-        }
-
-        @Override
-        public String getProductUri() {
-            return productUri;
         }
 
         @Override
@@ -265,6 +229,56 @@ public class OpcUaServerConfigBuilder {
         @Override
         public OpcUaServerConfigLimits getLimits() {
             return limits;
+        }
+
+        @Override
+        public EnumSet<SecurityPolicy> getSecurityPolicies() {
+            return securityPolicies;
+        }
+
+        @Override
+        public String getServerName() {
+            return stackServerConfig.getServerName();
+        }
+
+        @Override
+        public LocalizedText getApplicationName() {
+            return stackServerConfig.getApplicationName();
+        }
+
+        @Override
+        public String getApplicationUri() {
+            return stackServerConfig.getApplicationUri();
+        }
+
+        @Override
+        public String getProductUri() {
+            return stackServerConfig.getProductUri();
+        }
+
+        @Override
+        public CertificateManager getCertificateManager() {
+            return stackServerConfig.getCertificateManager();
+        }
+
+        @Override
+        public ExecutorService getExecutor() {
+            return stackServerConfig.getExecutor();
+        }
+
+        @Override
+        public List<UserTokenPolicy> getUserTokenPolicies() {
+            return stackServerConfig.getUserTokenPolicies();
+        }
+
+        @Override
+        public List<SignedSoftwareCertificate> getSoftwareCertificates() {
+            return stackServerConfig.getSoftwareCertificates();
+        }
+
+        @Override
+        public ChannelConfig getChannelConfig() {
+            return stackServerConfig.getChannelConfig();
         }
 
     }
