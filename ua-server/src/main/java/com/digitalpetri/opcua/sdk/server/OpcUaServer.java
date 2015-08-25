@@ -19,13 +19,19 @@
 
 package com.digitalpetri.opcua.sdk.server;
 
+import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.security.KeyPair;
 import java.security.cert.X509Certificate;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -64,11 +70,14 @@ import com.digitalpetri.opcua.stack.server.config.UaTcpStackServerConfig;
 import com.digitalpetri.opcua.stack.server.config.UaTcpStackServerConfigBuilder;
 import com.digitalpetri.opcua.stack.server.tcp.UaTcpStackServer;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.google.common.collect.Sets.newHashSet;
 
 public class OpcUaServer {
 
@@ -126,31 +135,32 @@ public class OpcUaServer {
             referenceTypes.put(referenceType.getNodeId(), referenceType);
         }
 
-        String hostname = config.getHostname();
+        String configuredHostname = config.getHostname();
 
-        for (String address : config.getBindAddresses()) {
-            String bindUrl = String.format("opc.tcp://%s:%d/%s", address, config.getBindPort(), config.getServerName());
+        for (String bindAddress : config.getBindAddresses()) {
+            Set<String> hostnames = Sets.union(
+                    newHashSet(configuredHostname),
+                    getHostnames(bindAddress));
 
-            for (SecurityPolicy securityPolicy : config.getSecurityPolicies()) {
-                MessageSecurityMode messageSecurity = securityPolicy == SecurityPolicy.None ?
-                        MessageSecurityMode.None : MessageSecurityMode.SignAndEncrypt;
+            for (String hostname : hostnames) {
+                for (SecurityPolicy securityPolicy : config.getSecurityPolicies()) {
+                    MessageSecurityMode messageSecurity = securityPolicy == SecurityPolicy.None ?
+                            MessageSecurityMode.None : MessageSecurityMode.SignAndEncrypt;
 
-                String endpointUrl = endpointUrl(
-                        hostname,
-                        address,
-                        config.getBindPort());
+                    String endpointUrl = endpointUrl(hostname, config.getBindPort(), config.getServerName());
 
-                if (securityPolicy == SecurityPolicy.None) {
-                    logger.info("Binding endpoint {} to {} [{}/{}]",
-                            endpointUrl, bindUrl, securityPolicy, messageSecurity);
-
-                    stackServer.addEndpoint(endpointUrl, address, null, securityPolicy, messageSecurity);
-                } else {
-                    for (X509Certificate certificate : config.getCertificateManager().getCertificates()) {
+                    if (securityPolicy == SecurityPolicy.None) {
                         logger.info("Binding endpoint {} to {} [{}/{}]",
-                                endpointUrl, bindUrl, securityPolicy, messageSecurity);
+                                endpointUrl, bindAddress, securityPolicy, messageSecurity);
 
-                        stackServer.addEndpoint(endpointUrl, address, certificate, securityPolicy, messageSecurity);
+                        stackServer.addEndpoint(endpointUrl, bindAddress, null, securityPolicy, messageSecurity);
+                    } else {
+                        for (X509Certificate certificate : config.getCertificateManager().getCertificates()) {
+                            logger.info("Binding endpoint {} to {} [{}/{}]",
+                                    endpointUrl, bindAddress, securityPolicy, messageSecurity);
+
+                            stackServer.addEndpoint(endpointUrl, bindAddress, certificate, securityPolicy, messageSecurity);
+                        }
                     }
                 }
             }
@@ -160,6 +170,40 @@ public class OpcUaServer {
 
         logger.info("digitalpetri opc-ua stack version: {}", Stack.VERSION);
         logger.info("digitalpetri opc-ua sdk version: {}", SDK_VERSION);
+    }
+
+    private Set<String> getHostnames(String bindAddress) {
+        Set<String> hostnames = newHashSet();
+
+        try {
+            InetAddress inetAddress = InetAddress.getByName(bindAddress);
+
+            if (inetAddress.isAnyLocalAddress()) {
+                try {
+                    Enumeration<NetworkInterface> nis = NetworkInterface.getNetworkInterfaces();
+
+                    for (NetworkInterface ni : Collections.list(nis)) {
+                        Collections.list(ni.getInetAddresses()).stream()
+                                .filter(ia -> ia instanceof Inet4Address)
+                                .forEach(ia -> {
+                                    hostnames.add(ia.getHostName());
+                                    hostnames.add(ia.getHostAddress());
+                                    hostnames.add(ia.getCanonicalHostName());
+                                });
+                    }
+                } catch (SocketException e) {
+                    logger.warn("Failed to NetworkInterfaces for bind address: {}", bindAddress, e);
+                }
+            } else {
+                hostnames.add(inetAddress.getHostName());
+                hostnames.add(inetAddress.getHostAddress());
+                hostnames.add(inetAddress.getCanonicalHostName());
+            }
+        } catch (UnknownHostException e) {
+            logger.warn("Failed to get InetAddress for bind address: {}", bindAddress, e);
+        }
+
+        return hostnames;
     }
 
     public void startup() {
@@ -182,26 +226,12 @@ public class OpcUaServer {
         return new UaTcpStackServer(builder.build());
     }
 
-    private String endpointUrl(String hostname, String address, int port) {
-
+    private static String endpointUrl(String hostname, int port, String serverName) {
         StringBuilder sb = new StringBuilder();
 
-        try {
-            InetAddress byName = InetAddress.getByName(address);
-
-            if (byName.isLinkLocalAddress() || byName.isLoopbackAddress()) {
-                sb.append(String.format("opc.tcp://%s:%d", byName.getHostName(), port));
-                if (!config.getServerName().isEmpty()) {
-                    sb.append("/").append(config.getServerName());
-                }
-                return sb.toString();
-            }
-        } catch (UnknownHostException ignored) {
-        }
-
         sb.append(String.format("opc.tcp://%s:%d", hostname, port));
-        if (!config.getServerName().isEmpty()) {
-            sb.append("/").append(config.getServerName());
+        if (!serverName.isEmpty()) {
+            sb.append("/").append(serverName);
         }
         return sb.toString();
     }

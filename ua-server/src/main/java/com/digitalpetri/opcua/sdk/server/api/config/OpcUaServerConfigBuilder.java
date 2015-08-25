@@ -43,7 +43,7 @@ import static com.google.common.collect.Lists.newArrayList;
 
 public class OpcUaServerConfigBuilder extends UaTcpStackServerConfigBuilder {
 
-    private String hostname = getHostname();
+    private String hostname = getDefaultHostname();
     private List<String> bindAddresses = newArrayList("0.0.0.0");
     private int bindPort = Stack.DEFAULT_PORT;
     private EnumSet<SecurityPolicy> securityPolicies = EnumSet.of(SecurityPolicy.None);
@@ -160,10 +160,10 @@ public class OpcUaServerConfigBuilder extends UaTcpStackServerConfigBuilder {
         );
     }
 
-    private String getHostname() {
+    private static String getDefaultHostname() {
         try {
             return System.getProperty("hostname",
-                    InetAddress.getLocalHost().getCanonicalHostName());
+                    InetAddress.getLocalHost().getHostName());
         } catch (UnknownHostException e) {
             return "localhost";
         }
