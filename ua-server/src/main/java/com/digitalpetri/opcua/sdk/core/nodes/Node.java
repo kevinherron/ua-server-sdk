@@ -197,6 +197,19 @@ public interface Node {
     }
 
     /**
+     * Read the specified attribute.
+     * <p>
+     * If the attribute is not specified on this node, a value with status {@link StatusCodes#Bad_AttributeIdInvalid}
+     * will be returned.
+     *
+     * @param attributeId the id of the attribute to read.
+     * @return the value of the specified attribute.
+     */
+    default DataValue readAttribute(AttributeId attributeId) {
+        return readAttribute(attributeId, null, null);
+    }
+
+    /**
      * Read the specified attribute, applying {@code timestamps} and {@code indexRange} if specified.
      * <p>
      * If the attribute is not specified on this node, a value with status {@link StatusCodes#Bad_AttributeIdInvalid}
@@ -234,7 +247,26 @@ public interface Node {
      * @throws UaException
      */
     default void writeAttribute(NamespaceManager ns, int attribute, DataValue value, String indexRange) throws UaException {
-        AttributeWriter.writeAttribute(ns, this, attribute, value, indexRange);
+        Optional<AttributeId> attributeId = AttributeId.from(attribute);
+
+        if (attributeId.isPresent()) {
+            writeAttribute(ns, attributeId.get(), value, indexRange);
+        } else {
+            throw new UaException(StatusCodes.Bad_AttributeIdInvalid);
+        }
+    }
+
+    /**
+     * Write to the specified attribute.
+     *
+     * @param ns          the {@link NamespaceManager}.
+     * @param attributeId the {@link AttributeId} of the attribute to write.
+     * @param value       the {@link DataValue} write.
+     * @param indexRange  the index range to write. Must be a parseable by {@link NumericRange}.
+     * @throws UaException
+     */
+    default void writeAttribute(NamespaceManager ns, AttributeId attributeId, DataValue value, String indexRange) throws UaException {
+        AttributeWriter.writeAttribute(ns, this, attributeId, value, indexRange);
     }
 
 }
