@@ -19,10 +19,9 @@
 
 package com.digitalpetri.opcua.sdk.server.util;
 
-import javax.annotation.Nullable;
 import java.util.function.Supplier;
+import javax.annotation.Nullable;
 
-import com.digitalpetri.opcua.sdk.core.AttributeIds;
 import com.digitalpetri.opcua.sdk.core.NumericRange;
 import com.digitalpetri.opcua.sdk.core.nodes.DataTypeNode;
 import com.digitalpetri.opcua.sdk.core.nodes.MethodNode;
@@ -32,6 +31,7 @@ import com.digitalpetri.opcua.sdk.core.nodes.ObjectTypeNode;
 import com.digitalpetri.opcua.sdk.core.nodes.ReferenceTypeNode;
 import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
 import com.digitalpetri.opcua.sdk.core.nodes.VariableTypeNode;
+import com.digitalpetri.opcua.stack.core.AttributeId;
 import com.digitalpetri.opcua.stack.core.StatusCodes;
 import com.digitalpetri.opcua.stack.core.UaException;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
@@ -45,11 +45,12 @@ public class AttributeReader {
     private static final Supplier<UaException> ATTRIBUTE_ID_INVALID_EXCEPTION =
             () -> new UaException(StatusCodes.Bad_AttributeIdInvalid);
 
-    public static DataValue readAttribute(Node node, int attribute,
+    public static DataValue readAttribute(Node node,
+                                          AttributeId attributeId,
                                           @Nullable TimestampsToReturn timestamps,
                                           @Nullable String indexRange) {
         try {
-            DataValue value = readAttribute(node, attribute);
+            DataValue value = readAttribute(node, attributeId);
 
             if (indexRange != null) {
                 NumericRange range = NumericRange.parse(indexRange);
@@ -64,7 +65,7 @@ public class AttributeReader {
             }
 
             if (timestamps != null) {
-                value = (attribute == AttributeIds.Value) ?
+                value = (attributeId == AttributeId.VALUE) ?
                         DataValue.derivedValue(value, timestamps) :
                         DataValue.derivedNonValue(value, timestamps);
             }
@@ -75,28 +76,28 @@ public class AttributeReader {
         }
     }
 
-    private static DataValue readAttribute(Node node, int attribute) throws UaException {
+    private static DataValue readAttribute(Node node, AttributeId attributeId) throws UaException {
         switch (node.getNodeClass()) {
             case DataType:
-                return readDataTypeAttribute((DataTypeNode) node, attribute);
+                return readDataTypeAttribute((DataTypeNode) node, attributeId);
 
             case Method:
-                return readMethodAttribute((MethodNode) node, attribute);
+                return readMethodAttribute((MethodNode) node, attributeId);
 
             case Object:
-                return readObjectAttribute((ObjectNode) node, attribute);
+                return readObjectAttribute((ObjectNode) node, attributeId);
 
             case ObjectType:
-                return readObjectTypeAttribute((ObjectTypeNode) node, attribute);
+                return readObjectTypeAttribute((ObjectTypeNode) node, attributeId);
 
             case ReferenceType:
-                return readReferenceTypeAttribute((ReferenceTypeNode) node, attribute);
+                return readReferenceTypeAttribute((ReferenceTypeNode) node, attributeId);
 
             case Variable:
-                return readVariableAttribute((VariableNode) node, attribute);
+                return readVariableAttribute((VariableNode) node, attributeId);
 
             case VariableType:
-                return readVariableTypeAttribute((VariableTypeNode) node, attribute);
+                return readVariableTypeAttribute((VariableTypeNode) node, attributeId);
 
             default:
                 throw new UaException(StatusCodes.Bad_NodeClassInvalid);
@@ -104,29 +105,29 @@ public class AttributeReader {
 
     }
 
-    private static DataValue readNodeAttribute(Node node, int attribute) throws UaException {
-        switch (attribute) {
-            case AttributeIds.NodeId:
+    private static DataValue readNodeAttribute(Node node, AttributeId attributeId) throws UaException {
+        switch (attributeId) {
+            case NODE_ID:
                 return dv(node.getNodeId());
 
-            case AttributeIds.NodeClass:
+            case NODE_CLASS:
                 return dv(node.getNodeClass());
 
-            case AttributeIds.BrowseName:
+            case BROWSE_NAME:
                 return dv(node.getBrowseName());
 
-            case AttributeIds.DisplayName:
+            case DISPLAY_NAME:
                 return dv(node.getDisplayName());
 
-            case AttributeIds.Description:
+            case DESCRIPTION:
                 return node.getDescription().map(AttributeReader::dv)
                         .orElseThrow(ATTRIBUTE_ID_INVALID_EXCEPTION);
 
-            case AttributeIds.WriteMask:
+            case WRITE_MASK:
                 return node.getWriteMask().map(AttributeReader::dv)
                         .orElseThrow(ATTRIBUTE_ID_INVALID_EXCEPTION);
 
-            case AttributeIds.UserWriteMask:
+            case USER_WRITE_MASK:
                 return node.getUserWriteMask().map(AttributeReader::dv)
                         .orElseThrow(ATTRIBUTE_ID_INVALID_EXCEPTION);
 
@@ -135,119 +136,119 @@ public class AttributeReader {
         }
     }
 
-    private static DataValue readDataTypeAttribute(DataTypeNode node, int attribute) throws UaException {
-        switch (attribute) {
-            case AttributeIds.IsAbstract:
+    private static DataValue readDataTypeAttribute(DataTypeNode node, AttributeId attributeId) throws UaException {
+        switch (attributeId) {
+            case IS_ABSTRACT:
                 return dv(node.getIsAbstract());
 
             default:
-                return readNodeAttribute(node, attribute);
+                return readNodeAttribute(node, attributeId);
         }
     }
 
-    private static DataValue readMethodAttribute(MethodNode node, int attribute) throws UaException {
-        switch (attribute) {
-            case AttributeIds.Executable:
+    private static DataValue readMethodAttribute(MethodNode node, AttributeId attributeId) throws UaException {
+        switch (attributeId) {
+            case EXECUTABLE:
                 return dv(node.isExecutable());
 
-            case AttributeIds.UserExecutable:
+            case USER_EXECUTABLE:
                 return dv(node.isUserExecutable());
 
             default:
-                return readNodeAttribute(node, attribute);
+                return readNodeAttribute(node, attributeId);
         }
     }
 
-    private static DataValue readObjectAttribute(ObjectNode node, int attribute) throws UaException {
-        switch (attribute) {
-            case AttributeIds.EventNotifier:
+    private static DataValue readObjectAttribute(ObjectNode node, AttributeId attributeId) throws UaException {
+        switch (attributeId) {
+            case EVENT_NOTIFIER:
                 return dv(node.getEventNotifier());
 
             default:
-                return readNodeAttribute(node, attribute);
+                return readNodeAttribute(node, attributeId);
         }
     }
 
-    private static DataValue readObjectTypeAttribute(ObjectTypeNode node, int attribute) throws UaException {
-        switch (attribute) {
-            case AttributeIds.IsAbstract:
+    private static DataValue readObjectTypeAttribute(ObjectTypeNode node, AttributeId attributeId) throws UaException {
+        switch (attributeId) {
+            case IS_ABSTRACT:
                 return dv(node.getIsAbstract());
 
             default:
-                return readNodeAttribute(node, attribute);
+                return readNodeAttribute(node, attributeId);
         }
     }
 
-    private static DataValue readReferenceTypeAttribute(ReferenceTypeNode node, int attribute) throws UaException {
-        switch (attribute) {
-            case AttributeIds.IsAbstract:
+    private static DataValue readReferenceTypeAttribute(ReferenceTypeNode node, AttributeId attributeId) throws UaException {
+        switch (attributeId) {
+            case IS_ABSTRACT:
                 return dv(node.getIsAbstract());
 
-            case AttributeIds.Symmetric:
+            case SYMMETRIC:
                 return dv(node.getSymmetric());
 
-            case AttributeIds.InverseName:
+            case INVERSE_NAME:
                 return node.getInverseName().map(AttributeReader::dv)
                         .orElseThrow(ATTRIBUTE_ID_INVALID_EXCEPTION);
 
             default:
-                return readNodeAttribute(node, attribute);
+                return readNodeAttribute(node, attributeId);
         }
     }
 
-    private static DataValue readVariableAttribute(VariableNode node, int attribute) throws UaException {
-        switch (attribute) {
-            case AttributeIds.Value:
+    private static DataValue readVariableAttribute(VariableNode node, AttributeId attributeId) throws UaException {
+        switch (attributeId) {
+            case VALUE:
                 return node.getValue();
 
-            case AttributeIds.DataType:
+            case DATA_TYPE:
                 return dv(node.getDataType());
 
-            case AttributeIds.ValueRank:
+            case VALUE_RANK:
                 return dv(node.getValueRank());
 
-            case AttributeIds.ArrayDimensions:
+            case ARRAY_DIMENSIONS:
                 return node.getArrayDimensions().map(AttributeReader::dv)
                         .orElseThrow(ATTRIBUTE_ID_INVALID_EXCEPTION);
 
-            case AttributeIds.AccessLevel:
+            case ACCESS_LEVEL:
                 return dv(node.getAccessLevel());
 
-            case AttributeIds.UserAccessLevel:
+            case USER_ACCESS_LEVEL:
                 return dv(node.getUserAccessLevel());
 
-            case AttributeIds.MinimumSamplingInterval:
+            case MINIMUM_SAMPLING_INTERVAL:
                 return node.getMinimumSamplingInterval().map(AttributeReader::dv)
                         .orElseThrow(ATTRIBUTE_ID_INVALID_EXCEPTION);
 
-            case AttributeIds.Historizing:
+            case HISTORIZING:
                 return dv(node.getHistorizing());
 
             default:
-                return readNodeAttribute(node, attribute);
+                return readNodeAttribute(node, attributeId);
         }
     }
 
-    private static DataValue readVariableTypeAttribute(VariableTypeNode node, int attribute) throws UaException {
-        switch (attribute) {
-            case AttributeIds.Value:
+    private static DataValue readVariableTypeAttribute(VariableTypeNode node, AttributeId attributeId) throws UaException {
+        switch (attributeId) {
+            case VALUE:
                 return node.getValue().orElseThrow(ATTRIBUTE_ID_INVALID_EXCEPTION);
 
-            case AttributeIds.DataType:
+            case DATA_TYPE:
                 return dv(node.getDataType());
 
-            case AttributeIds.ValueRank:
+            case VALUE_RANK:
                 return dv(node.getValueRank());
 
-            case AttributeIds.ArrayDimensions:
+            case ARRAY_DIMENSIONS:
                 return node.getArrayDimensions().map(AttributeReader::dv)
                         .orElseThrow(ATTRIBUTE_ID_INVALID_EXCEPTION);
 
-            case AttributeIds.IsAbstract:
+            case IS_ABSTRACT:
                 return dv(node.getIsAbstract());
 
             default:
-                return readNodeAttribute(node, attribute);
+                return readNodeAttribute(node, attributeId);
         }
     }
 

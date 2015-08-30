@@ -19,13 +19,14 @@
 
 package com.digitalpetri.opcua.sdk.core.nodes;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
+import javax.annotation.Nullable;
 
 import com.digitalpetri.opcua.sdk.core.NumericRange;
 import com.digitalpetri.opcua.sdk.server.NamespaceManager;
 import com.digitalpetri.opcua.sdk.server.util.AttributeReader;
 import com.digitalpetri.opcua.sdk.server.util.AttributeWriter;
+import com.digitalpetri.opcua.stack.core.AttributeId;
 import com.digitalpetri.opcua.stack.core.StatusCodes;
 import com.digitalpetri.opcua.stack.core.UaException;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
@@ -179,7 +180,7 @@ public interface Node {
     }
 
     /**
-     * Read the specified attribute, applying {@code timestamps} and {@code indexRange} if specified.
+     * Read the specified attribute.
      * <p>
      * If the attribute is not specified on this node, a value with status {@link StatusCodes#Bad_AttributeIdInvalid}
      * will be returned.
@@ -190,7 +191,24 @@ public interface Node {
      * @return the value of the specified attribute.
      */
     default DataValue readAttribute(int attribute, @Nullable TimestampsToReturn timestamps, @Nullable String indexRange) {
-        return AttributeReader.readAttribute(this, attribute, timestamps, indexRange);
+        return AttributeId.from(attribute)
+                .map(attributeId -> readAttribute(attributeId, timestamps, indexRange))
+                .orElse(new DataValue(StatusCodes.Bad_AttributeIdInvalid));
+    }
+
+    /**
+     * Read the specified attribute, applying {@code timestamps} and {@code indexRange} if specified.
+     * <p>
+     * If the attribute is not specified on this node, a value with status {@link StatusCodes#Bad_AttributeIdInvalid}
+     * will be returned.
+     *
+     * @param attributeId the id of the attribute to read.
+     * @param timestamps  the {@link TimestampsToReturn}.
+     * @param indexRange  the index range to read. Must be a parseable by {@link NumericRange}.
+     * @return the value of the specified attribute.
+     */
+    default DataValue readAttribute(AttributeId attributeId, @Nullable TimestampsToReturn timestamps, @Nullable String indexRange) {
+        return AttributeReader.readAttribute(this, attributeId, timestamps, indexRange);
     }
 
     /**
