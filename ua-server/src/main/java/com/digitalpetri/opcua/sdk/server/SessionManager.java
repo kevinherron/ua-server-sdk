@@ -137,6 +137,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
+import static com.google.common.collect.Lists.newCopyOnWriteArrayList;
 
 public class SessionManager implements
         AttributeServiceSet,
@@ -155,6 +156,13 @@ public class SessionManager implements
     private final Map<NodeId, Session> createdSessions = Maps.newConcurrentMap();
     private final Map<NodeId, Session> activeSessions = Maps.newConcurrentMap();
     private final Map<NodeId, Session> inactiveSessions = Maps.newConcurrentMap();
+
+    /**
+     * Store the last N client nonces and to make sure they aren't re-used.
+     *
+     * This number is arbitrary; trying to prevent clients from re-using nonces is merely to satisfy the CTT.
+     */
+    private final List<ByteString> clientNonces = newCopyOnWriteArrayList();
 
     private final OpcUaServer server;
 
@@ -232,8 +240,15 @@ public class SessionManager implements
         EndpointDescription[] serverEndpoints = server.getEndpointDescriptions();
 
         ByteString clientNonce = request.getClientNonce();
-        if (clientNonce.isNotNull() && clientNonce.length() < 32) {
+        if (clientNonce.isNotNull() && (clientNonce.length() < 32 || clientNonces.contains(clientNonce))) {
             throw new UaException(StatusCodes.Bad_NonceInvalid);
+        }
+
+        if (clientNonce.isNotNull()) {
+            clientNonces.add(clientNonce);
+            while (clientNonces.size() > 64) {
+                clientNonces.remove(0);
+            }
         }
 
         ByteString clientCertificate = request.getClientCertificate();
