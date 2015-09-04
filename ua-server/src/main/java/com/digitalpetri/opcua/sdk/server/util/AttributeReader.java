@@ -199,7 +199,11 @@ public class AttributeReader {
     private static DataValue readVariableAttribute(VariableNode node, AttributeId attributeId) throws UaException {
         switch (attributeId) {
             case VALUE:
-                return node.getValue();
+                return new DataValue(
+                        node.getValue().getValue(),
+                        node.getValue().getStatusCode(),
+                        node.getValue().getSourceTime(),
+                        DateTime.now());
 
             case DATA_TYPE:
                 return dv(node.getDataType());
