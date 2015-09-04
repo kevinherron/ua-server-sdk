@@ -430,7 +430,7 @@ public class CttNamespace implements UaNamespace {
 
                 results.add(value);
             } else {
-                results.add(new DataValue(new StatusCode(StatusCodes.Bad_NodeIdInvalid)));
+                results.add(new DataValue(new StatusCode(StatusCodes.Bad_NodeIdUnknown)));
             }
         }
 
