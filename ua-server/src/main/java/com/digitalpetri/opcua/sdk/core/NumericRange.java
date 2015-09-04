@@ -105,7 +105,16 @@ public final class NumericRange {
 
     public static Object readFromValueAtRange(Variant value, NumericRange range) throws UaException {
         Object array = value.getValue();
-        if (array == null) throw new UaException(StatusCodes.Bad_IndexRangeNoData);
+
+        if (array == null) {
+            throw new UaException(StatusCodes.Bad_IndexRangeNoData);
+        }
+
+        if (!array.getClass().isArray()) {
+            if (!(array instanceof String) && !(array instanceof ByteString)) {
+                throw new UaException(StatusCodes.Bad_IndexRangeInvalid);
+            }
+        }
 
         try {
             return readFromValueAtRange(array, range, 1);
