@@ -149,18 +149,11 @@ public class OpcUaServer {
 
                     String endpointUrl = endpointUrl(hostname, config.getBindPort(), config.getServerName());
 
-                    if (securityPolicy == SecurityPolicy.None) {
+                    for (X509Certificate certificate : config.getCertificateManager().getCertificates()) {
                         logger.info("Binding endpoint {} to {} [{}/{}]",
                                 endpointUrl, bindAddress, securityPolicy, messageSecurity);
 
-                        stackServer.addEndpoint(endpointUrl, bindAddress, null, securityPolicy, messageSecurity);
-                    } else {
-                        for (X509Certificate certificate : config.getCertificateManager().getCertificates()) {
-                            logger.info("Binding endpoint {} to {} [{}/{}]",
-                                    endpointUrl, bindAddress, securityPolicy, messageSecurity);
-
-                            stackServer.addEndpoint(endpointUrl, bindAddress, certificate, securityPolicy, messageSecurity);
-                        }
+                        stackServer.addEndpoint(endpointUrl, bindAddress, certificate, securityPolicy, messageSecurity);
                     }
                 }
             }
