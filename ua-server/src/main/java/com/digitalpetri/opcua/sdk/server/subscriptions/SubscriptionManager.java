@@ -394,21 +394,38 @@ public class SubscriptionManager {
                         }
                     });
                 } else {
-                    readDataAttributes(namespace, nodeId).thenAccept(as -> {
-                        EnumSet<AccessLevel> accessLevels = as.v1();
-                        EnumSet<AccessLevel> userAccessLevels = as.v2();
-                        double minimumSamplingInterval = as.v3();
-
-                        double samplingInterval = r.getRequestedParameters().getSamplingInterval();
-                        double minSupportedSampleRate = server.getConfig().getLimits().getMinSupportedSampleRate();
-                        double maxSupportedSampleRate = server.getConfig().getLimits().getMaxSupportedSampleRate();
-
-                        if (samplingInterval < 0) samplingInterval = subscription.getPublishingInterval();
-                        if (samplingInterval < minimumSamplingInterval) samplingInterval = minimumSamplingInterval;
-                        if (samplingInterval < minSupportedSampleRate) samplingInterval = minSupportedSampleRate;
-                        if (samplingInterval > maxSupportedSampleRate) samplingInterval = maxSupportedSampleRate;
-
+                    readDataAttributes(namespace, nodeId).thenAccept(vs -> {
                         try {
+                            for (DataValue value : vs) {
+                                StatusCode statusCode = value.getStatusCode();
+
+                                if (statusCode.getValue() == StatusCodes.Bad_NodeIdInvalid ||
+                                        statusCode.getValue() == StatusCodes.Bad_NodeIdUnknown ) {
+                                    throw new UaException(statusCode);
+                                }
+                            }
+
+                            UByte accessLevel = Optional.ofNullable(
+                                    (UByte) vs.get(0).getValue().getValue()).orElse(ubyte(1));
+
+                            UByte userAccessLevel = Optional.ofNullable(
+                                    (UByte) vs.get(1).getValue().getValue()).orElse(ubyte(1));
+
+                            Double minimumSamplingInterval = Optional.ofNullable(
+                                    (Double) vs.get(2).getValue().getValue()).orElse(0.0);
+
+                            EnumSet<AccessLevel> accessLevels = AccessLevel.fromMask(accessLevel);
+                            EnumSet<AccessLevel> userAccessLevels = AccessLevel.fromMask(userAccessLevel);
+
+                            double samplingInterval = r.getRequestedParameters().getSamplingInterval();
+                            double minSupportedSampleRate = server.getConfig().getLimits().getMinSupportedSampleRate();
+                            double maxSupportedSampleRate = server.getConfig().getLimits().getMaxSupportedSampleRate();
+
+                            if (samplingInterval < 0) samplingInterval = subscription.getPublishingInterval();
+                            if (samplingInterval < minimumSamplingInterval) samplingInterval = minimumSamplingInterval;
+                            if (samplingInterval < minSupportedSampleRate) samplingInterval = minSupportedSampleRate;
+                            if (samplingInterval > maxSupportedSampleRate) samplingInterval = maxSupportedSampleRate;
+
                             if (!accessLevels.contains(AccessLevel.CurrentRead)) {
                                 throw new UaException(StatusCodes.Bad_NotReadable);
                             }
@@ -548,19 +565,38 @@ public class SubscriptionManager {
                     NodeId nodeId = item.getReadValueId().getNodeId();
                     Namespace namespace = server.getNamespaceManager().getNamespace(nodeId.getNamespaceIndex());
 
-                    readDataAttributes(namespace, nodeId).thenAccept(as -> {
-                        double minimumSamplingInterval = as.v3();
-
-                        double samplingInterval = parameters.getSamplingInterval();
-                        double minSupportedSampleRate = server.getConfig().getLimits().getMinSupportedSampleRate();
-                        double maxSupportedSampleRate = server.getConfig().getLimits().getMaxSupportedSampleRate();
-
-                        if (samplingInterval < 0) samplingInterval = subscription.getPublishingInterval();
-                        if (samplingInterval < minimumSamplingInterval) samplingInterval = minimumSamplingInterval;
-                        if (samplingInterval < minSupportedSampleRate) samplingInterval = minSupportedSampleRate;
-                        if (samplingInterval > maxSupportedSampleRate) samplingInterval = maxSupportedSampleRate;
-
+                    readDataAttributes(namespace, nodeId).thenAccept(vs -> {
                         try {
+                            for (DataValue value : vs) {
+                                StatusCode statusCode = value.getStatusCode();
+
+                                if (statusCode.getValue() == StatusCodes.Bad_NodeIdInvalid ||
+                                        statusCode.getValue() == StatusCodes.Bad_NodeIdUnknown ) {
+                                    throw new UaException(statusCode);
+                                }
+                            }
+
+                            UByte accessLevel = Optional.ofNullable(
+                                    (UByte) vs.get(0).getValue().getValue()).orElse(ubyte(1));
+
+                            UByte userAccessLevel = Optional.ofNullable(
+                                    (UByte) vs.get(1).getValue().getValue()).orElse(ubyte(1));
+
+                            Double minimumSamplingInterval = Optional.ofNullable(
+                                    (Double) vs.get(2).getValue().getValue()).orElse(0.0);
+
+                            EnumSet<AccessLevel> accessLevels = AccessLevel.fromMask(accessLevel);
+                            EnumSet<AccessLevel> userAccessLevels = AccessLevel.fromMask(userAccessLevel);
+
+                            double samplingInterval = parameters.getSamplingInterval();
+                            double minSupportedSampleRate = server.getConfig().getLimits().getMinSupportedSampleRate();
+                            double maxSupportedSampleRate = server.getConfig().getLimits().getMaxSupportedSampleRate();
+
+                            if (samplingInterval < 0) samplingInterval = subscription.getPublishingInterval();
+                            if (samplingInterval < minimumSamplingInterval) samplingInterval = minimumSamplingInterval;
+                            if (samplingInterval < minSupportedSampleRate) samplingInterval = minSupportedSampleRate;
+                            if (samplingInterval > maxSupportedSampleRate) samplingInterval = maxSupportedSampleRate;
+
                             item.modify(
                                     timestamps,
                                     parameters.getClientHandle(),
@@ -648,7 +684,7 @@ public class SubscriptionManager {
         }
     }
 
-    private CompletableFuture<DataAttributes> readDataAttributes(Namespace namespace, NodeId itemId) {
+    private CompletableFuture<List<DataValue>> readDataAttributes(Namespace namespace, NodeId itemId) {
 
         Function<AttributeId, ReadValueId> f = id ->
                 new ReadValueId(itemId, id.uid(), null, QualifiedName.NULL_VALUE);
@@ -665,16 +701,7 @@ public class SubscriptionManager {
 
         namespace.read(readContext, 0.0, TimestampsToReturn.Neither, attributes);
 
-        return future.thenApply(values -> {
-            UByte accessLevel = Optional.ofNullable((UByte) values.get(0).getValue().getValue()).orElse(ubyte(1));
-            UByte userAccessLevel = Optional.ofNullable((UByte) values.get(1).getValue().getValue()).orElse(ubyte(1));
-            Double minimumSamplingInterval = Optional.ofNullable((Double) values.get(2).getValue().getValue()).orElse(0.0);
-
-            return new DataAttributes(
-                    AccessLevel.fromMask(accessLevel),
-                    AccessLevel.fromMask(userAccessLevel),
-                    minimumSamplingInterval);
-        });
+        return future;
     }
 
     private CompletableFuture<EventAttributes> readEventAttributes(Namespace namespace, NodeId nodeId) {
@@ -703,12 +730,6 @@ public class SubscriptionManager {
                     AccessLevel.fromMask(userAccessLevel),
                     eventNotifier);
         });
-    }
-
-    private static class DataAttributes extends Tuple3<EnumSet<AccessLevel>, EnumSet<AccessLevel>, Double> {
-        public DataAttributes(EnumSet<AccessLevel> v1, EnumSet<AccessLevel> v2, Double v3) {
-            super(v1, v2, v3);
-        }
     }
 
     private static class EventAttributes extends Tuple3<EnumSet<AccessLevel>, EnumSet<AccessLevel>, Optional<UByte>> {
