@@ -144,7 +144,7 @@ public class OpcUaServer {
 
             for (String hostname : hostnames) {
                 for (SecurityPolicy securityPolicy : config.getSecurityPolicies()) {
-                    MessageSecurityMode messageSecurity = securityPolicy == SecurityPolicy.None ?
+                    MessageSecurityMode messageSecurity = securityPolicy == SecurityPolicy.NONE ?
                             MessageSecurityMode.None : MessageSecurityMode.SignAndEncrypt;
 
                     String endpointUrl = endpointUrl(hostname, config.getBindPort(), config.getServerName());

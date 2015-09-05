@@ -89,7 +89,7 @@ public class UsernameIdentityValidator extends IdentityValidator {
                 throw new UaException(StatusCodes.Bad_IdentityTokenInvalid);
             }
 
-            if (algorithm != SecurityAlgorithm.Rsa15 && algorithm != SecurityAlgorithm.RsaOaep) {
+            if (algorithm != SecurityAlgorithm.RSA_15 && algorithm != SecurityAlgorithm.RSA_OAEP) {
                 throw new UaException(StatusCodes.Bad_IdentityTokenInvalid);
             }
         }
@@ -97,7 +97,7 @@ public class UsernameIdentityValidator extends IdentityValidator {
         byte[] tokenBytes = token.getPassword().bytes();
         if (tokenBytes == null) tokenBytes = new byte[0];
 
-        if (securityPolicy != SecurityPolicy.None) {
+        if (securityPolicy != SecurityPolicy.NONE) {
             byte[] plainTextBytes = decryptTokenData(channel, algorithm, tokenBytes);
 
             int length = ((plainTextBytes[3] & 0xFF) << 24) |

@@ -253,7 +253,7 @@ public class SessionManager implements
 
         ByteString clientCertificate = request.getClientCertificate();
         if (clientCertificate.isNotNull()) {
-            if (secureChannel.getSecurityPolicy() != SecurityPolicy.None) {
+            if (secureChannel.getSecurityPolicy() != SecurityPolicy.NONE) {
                 String applicationUri = request.getClientDescription().getApplicationUri();
                 X509Certificate certificate = CertificateUtil.decodeCertificate(clientCertificate.bytes());
 
