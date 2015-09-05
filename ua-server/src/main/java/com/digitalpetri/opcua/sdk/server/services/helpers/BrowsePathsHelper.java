@@ -171,7 +171,8 @@ public class BrowsePathsHelper {
         return future.thenCompose(references -> {
             List<ExpandedNodeId> targetNodeIds = references.stream()
                     /* Filter for references of the requested type or its subtype, if allowed... */
-                    .filter(r -> r.getReferenceTypeId().equals(referenceTypeId) ||
+                    .filter(r -> referenceTypeId.isNull() ||
+                            r.getReferenceTypeId().equals(referenceTypeId) ||
                             (includeSubtypes && r.subtypeOf(referenceTypeId, server.getReferenceTypes())))
 
                     /* Filter for reference direction... */
@@ -207,7 +208,8 @@ public class BrowsePathsHelper {
         return future.thenCompose(references -> {
             List<ExpandedNodeId> targetNodeIds = references.stream()
                     /* Filter for references of the requested type or its subtype, if allowed... */
-                    .filter(r -> r.getReferenceTypeId().equals(referenceTypeId) ||
+                    .filter(r -> referenceTypeId.isNull() ||
+                            r.getReferenceTypeId().equals(referenceTypeId) ||
                             (includeSubtypes && r.subtypeOf(referenceTypeId, server.getReferenceTypes())))
 
                     /* Filter for reference direction... */
