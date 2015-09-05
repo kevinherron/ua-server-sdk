@@ -333,6 +333,15 @@ public class SubscriptionManager {
                 UInteger attributeId = r.getItemToMonitor().getAttributeId();
                 QualifiedName dataEncoding = r.getItemToMonitor().getDataEncoding();
 
+                if (!AttributeId.isValid(attributeId)) {
+                    MonitoredItemCreateResult result = new MonitoredItemCreateResult(
+                            new StatusCode(StatusCodes.Bad_AttributeIdInvalid),
+                            uint(0), 0d, uint(0), null);
+
+                    p.getResultFuture().complete(result);
+                    continue;
+                }
+
                 if (dataEncoding.isNotNull()) {
                     if (attributeId.intValue() != AttributeIds.Value) {
                         MonitoredItemCreateResult result = new MonitoredItemCreateResult(
