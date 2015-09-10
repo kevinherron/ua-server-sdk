@@ -22,7 +22,6 @@ package com.digitalpetri.opcua.sdk.server.api;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-
 import javax.annotation.Nullable;
 
 import com.digitalpetri.opcua.sdk.server.DiagnosticsContext;

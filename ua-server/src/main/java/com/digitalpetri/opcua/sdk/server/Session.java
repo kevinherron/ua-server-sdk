@@ -19,11 +19,11 @@
 
 package com.digitalpetri.opcua.sdk.server;
 
-import javax.annotation.Nullable;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
 
 import com.digitalpetri.opcua.sdk.server.services.AttributeServices;
 import com.digitalpetri.opcua.sdk.server.services.MethodServices;

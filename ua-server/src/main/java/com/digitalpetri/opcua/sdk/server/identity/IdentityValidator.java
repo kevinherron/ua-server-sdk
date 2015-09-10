@@ -19,9 +19,9 @@
 
 package com.digitalpetri.opcua.sdk.server.identity;
 
-import javax.crypto.Cipher;
 import java.nio.ByteBuffer;
 import java.security.GeneralSecurityException;
+import javax.crypto.Cipher;
 
 import com.digitalpetri.opcua.sdk.server.Session;
 import com.digitalpetri.opcua.stack.core.StatusCodes;
