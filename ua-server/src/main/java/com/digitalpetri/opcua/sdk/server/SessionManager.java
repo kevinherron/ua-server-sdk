@@ -234,17 +234,22 @@ public class SessionManager implements
         double revisedSessionTimeout = Math.max(5000, Math.min(MAX_SESSION_TIMEOUT_MS, request.getRequestedSessionTimeout()));
 
         ServerSecureChannel secureChannel = serviceRequest.getSecureChannel();
+        SecurityPolicy securityPolicy = secureChannel.getSecurityPolicy();
 
         ByteString serverCertificate = serviceRequest.getSecureChannel().getEndpointDescription().getServerCertificate();
         SignedSoftwareCertificate[] serverSoftwareCertificates = server.getSoftwareCertificates();
         EndpointDescription[] serverEndpoints = server.getEndpointDescriptions();
 
         ByteString clientNonce = request.getClientNonce();
-        if (clientNonce.isNotNull() && (clientNonce.length() < 32 || clientNonces.contains(clientNonce))) {
+        if (clientNonce.isNotNull() && (clientNonce.length() < 32)) {
             throw new UaException(StatusCodes.Bad_NonceInvalid);
         }
 
-        if (clientNonce.isNotNull()) {
+        if (securityPolicy != SecurityPolicy.None && clientNonces.contains(clientNonce)) {
+            throw new UaException(StatusCodes.Bad_NonceInvalid);
+        }
+
+        if (securityPolicy != SecurityPolicy.None && clientNonce.isNotNull()) {
             clientNonces.add(clientNonce);
             while (clientNonces.size() > 64) {
                 clientNonces.remove(0);
@@ -261,7 +266,6 @@ public class SessionManager implements
             }
         }
 
-        SecurityPolicy securityPolicy = secureChannel.getSecurityPolicy();
         SignatureData serverSignature = getServerSignature(
                 clientNonce,
                 clientCertificate,
