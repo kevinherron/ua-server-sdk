@@ -59,10 +59,10 @@ public class DiagnosticsContext<T> {
     }
 
     public enum OperationDiagnostic {
-        SYMBOLIC_ID,
-        LOCALIZED_TEXT,
-        INNER_STATUS_CODE,
-        INNER_DIAGNOSTICS
+        SymbolicId,
+        LocalizedText,
+        InnerStatusCode,
+        InnerDiagnostics
     }
 
 }

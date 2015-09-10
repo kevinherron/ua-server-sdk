@@ -46,7 +46,7 @@ public class OpcUaServerConfigBuilder extends UaTcpStackServerConfigBuilder {
     private String hostname = getDefaultHostname();
     private List<String> bindAddresses = newArrayList("0.0.0.0");
     private int bindPort = Stack.DEFAULT_PORT;
-    private EnumSet<SecurityPolicy> securityPolicies = EnumSet.of(SecurityPolicy.NONE);
+    private EnumSet<SecurityPolicy> securityPolicies = EnumSet.of(SecurityPolicy.None);
     private IdentityValidator identityValidator = new AnonymousIdentityValidator();
 
     private BuildInfo buildInfo = new BuildInfo(

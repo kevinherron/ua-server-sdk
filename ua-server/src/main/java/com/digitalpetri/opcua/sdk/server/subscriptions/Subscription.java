@@ -789,7 +789,7 @@ public class Subscription {
         }
     }
 
-    public static enum State {
+    public enum State {
         Closing,
         Closed,
         Normal,
@@ -797,7 +797,7 @@ public class Subscription {
         Late
     }
 
-    public static interface StateListener {
+    public interface StateListener {
         void onStateChange(Subscription subscription, State previousState, State currentState);
     }
 

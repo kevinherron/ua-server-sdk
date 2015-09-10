@@ -127,7 +127,7 @@ public class AttributeWriter {
         EnumSet<WriteMask> writeMasks = WriteMask.fromMask(writeMask);
 
         switch (attributeId) {
-            case NODE_ID:
+            case NodeId:
                 if (writeMasks.contains(WriteMask.NodeId)) {
                     node.setNodeId(extract(value));
                 } else {
@@ -135,7 +135,7 @@ public class AttributeWriter {
                 }
                 break;
 
-            case NODE_CLASS:
+            case NodeClass:
                 if (writeMasks.contains(WriteMask.NodeClass)) {
                     node.setNodeClass(extract(value));
                 } else {
@@ -143,7 +143,7 @@ public class AttributeWriter {
                 }
                 break;
 
-            case BROWSE_NAME:
+            case BrowseName:
                 if (writeMasks.contains(WriteMask.BrowseName)) {
                     node.setBrowseName(extract(value));
                 } else {
@@ -151,7 +151,7 @@ public class AttributeWriter {
                 }
                 break;
 
-            case DISPLAY_NAME:
+            case DisplayName:
                 if (writeMasks.contains(WriteMask.DisplayName)) {
                     node.setDisplayName(extract(value));
                 } else {
@@ -159,7 +159,7 @@ public class AttributeWriter {
                 }
                 break;
 
-            case DESCRIPTION:
+            case Description:
                 if (writeMasks.contains(WriteMask.Description)) {
                     node.setDescription(extract(value));
                 } else {
@@ -167,7 +167,7 @@ public class AttributeWriter {
                 }
                 break;
 
-            case WRITE_MASK:
+            case WriteMask:
                 if (writeMasks.contains(WriteMask.WriteMask)) {
                     node.setWriteMask(Optional.ofNullable(extract(value)));
                 } else {
@@ -175,7 +175,7 @@ public class AttributeWriter {
                 }
                 break;
 
-            case USER_WRITE_MASK:
+            case UserWriteMask:
                 if (writeMasks.contains(WriteMask.UserWriteMask)) {
                     node.setUserWriteMask(Optional.ofNullable(extract(value)));
                 } else {
@@ -193,7 +193,7 @@ public class AttributeWriter {
         EnumSet<WriteMask> writeMasks = WriteMask.fromMask(writeMask);
 
         switch (attributeId) {
-            case IS_ABSTRACT:
+            case IsAbstract:
                 if (writeMasks.contains(WriteMask.IsAbstract)) {
                     node.setIsAbstract(extract(value));
                 } else {
@@ -211,7 +211,7 @@ public class AttributeWriter {
         EnumSet<WriteMask> writeMasks = WriteMask.fromMask(writeMask);
 
         switch (attributeId) {
-            case EXECUTABLE:
+            case Executable:
                 if (writeMasks.contains(WriteMask.Executable)) {
                     node.setExecutable(extract(value));
                 } else {
@@ -219,7 +219,7 @@ public class AttributeWriter {
                 }
                 break;
 
-            case USER_EXECUTABLE:
+            case UserExecutable:
                 if (writeMasks.contains(WriteMask.UserExecutable)) {
                     node.setUserExecutable(extract(value));
                 } else {
@@ -237,7 +237,7 @@ public class AttributeWriter {
         EnumSet<WriteMask> writeMasks = WriteMask.fromMask(writeMask);
 
         switch (attributeId) {
-            case EVENT_NOTIFIER:
+            case EventNotifier:
                 if (writeMasks.contains(WriteMask.EventNotifier)) {
                     node.setWriteMask(Optional.ofNullable(extract(value)));
                 } else {
@@ -255,7 +255,7 @@ public class AttributeWriter {
         EnumSet<WriteMask> writeMasks = WriteMask.fromMask(writeMask);
 
         switch (attributeId) {
-            case IS_ABSTRACT:
+            case IsAbstract:
                 if (writeMasks.contains(WriteMask.IsAbstract)) {
                     node.setIsAbstract(extract(value));
                 } else {
@@ -273,7 +273,7 @@ public class AttributeWriter {
         EnumSet<WriteMask> writeMasks = WriteMask.fromMask(writeMask);
 
         switch (attributeId) {
-            case IS_ABSTRACT:
+            case IsAbstract:
                 if (writeMasks.contains(WriteMask.IsAbstract)) {
                     node.setIsAbstract(extract(value));
                 } else {
@@ -281,7 +281,7 @@ public class AttributeWriter {
                 }
                 break;
 
-            case SYMMETRIC:
+            case Symmetric:
                 if (writeMasks.contains(WriteMask.Symmetric)) {
                     node.setSymmetric(extract(value));
                 } else {
@@ -289,7 +289,7 @@ public class AttributeWriter {
                 }
                 break;
 
-            case INVERSE_NAME:
+            case InverseName:
                 if (writeMasks.contains(WriteMask.InverseName)) {
                     node.setInverseName(Optional.ofNullable(extract(value)));
                 } else {
@@ -309,7 +309,7 @@ public class AttributeWriter {
         EnumSet<WriteMask> writeMasks = WriteMask.fromMask(writeMask);
 
         switch (attributeId) {
-            case VALUE:
+            case Value:
                 if (accessLevels.contains(AccessLevel.CurrentWrite)) {
                     value = validateDataType(ns, node.getDataType().expanded(), value);
                     validateArrayType(node.getValueRank(), node.getArrayDimensions(), value);
@@ -320,7 +320,7 @@ public class AttributeWriter {
                 }
                 break;
 
-            case DATA_TYPE:
+            case DataType:
                 if (writeMasks.contains(WriteMask.DataType)) {
                     node.setDataType(extract(value));
                 } else {
@@ -328,7 +328,7 @@ public class AttributeWriter {
                 }
                 break;
 
-            case VALUE_RANK:
+            case ValueRank:
                 if (writeMasks.contains(WriteMask.ValueRank)) {
                     node.setValueRank(extract(value));
                 } else {
@@ -336,7 +336,7 @@ public class AttributeWriter {
                 }
                 break;
 
-            case ARRAY_DIMENSIONS:
+            case ArrayDimensions:
                 if (writeMasks.contains(WriteMask.ArrayDimensions)) {
                     node.setArrayDimensions(Optional.of(extract(value)));
                 } else {
@@ -344,7 +344,7 @@ public class AttributeWriter {
                 }
                 break;
 
-            case ACCESS_LEVEL:
+            case AccessLevel:
                 if (writeMasks.contains(WriteMask.AccessLevel)) {
                     node.setAccessLevel(extract(value));
                 } else {
@@ -352,7 +352,7 @@ public class AttributeWriter {
                 }
                 break;
 
-            case USER_ACCESS_LEVEL:
+            case UserAccessLevel:
                 if (writeMasks.contains(WriteMask.UserAccessLevel)) {
                     node.setUserAccessLevel(extract(value));
                 } else {
@@ -360,7 +360,7 @@ public class AttributeWriter {
                 }
                 break;
 
-            case MINIMUM_SAMPLING_INTERVAL:
+            case MinimumSamplingInterval:
                 if (writeMasks.contains(WriteMask.MinimumSamplingInterval)) {
                     node.setMinimumSamplingInterval(Optional.of(extract(value)));
                 } else {
@@ -368,7 +368,7 @@ public class AttributeWriter {
                 }
                 break;
 
-            case HISTORIZING:
+            case Historizing:
                 if (writeMasks.contains(WriteMask.Historizing)) {
                     node.setHistorizing(extract(value));
                 } else {
@@ -386,7 +386,7 @@ public class AttributeWriter {
         EnumSet<WriteMask> writeMasks = WriteMask.fromMask(writeMask);
 
         switch (attributeId) {
-            case VALUE:
+            case Value:
                 if (writeMasks.contains(WriteMask.ValueForVariableType)) {
                     value = validateDataType(ns, node.getDataType().expanded(), value);
                     validateArrayType(node.getValueRank(), node.getArrayDimensions(), value);
@@ -397,7 +397,7 @@ public class AttributeWriter {
                 }
                 break;
 
-            case DATA_TYPE:
+            case DataType:
                 if (writeMasks.contains(WriteMask.DataType)) {
                     node.setDataType(extract(value));
                 } else {
@@ -405,7 +405,7 @@ public class AttributeWriter {
                 }
                 break;
 
-            case VALUE_RANK:
+            case ValueRank:
                 if (writeMasks.contains(WriteMask.ValueRank)) {
                     node.setValueRank(extract(value));
                 } else {
@@ -413,7 +413,7 @@ public class AttributeWriter {
                 }
                 break;
 
-            case IS_ABSTRACT:
+            case IsAbstract:
                 if (writeMasks.contains(WriteMask.IsAbstract)) {
                     node.setIsAbstract(extract(value));
                 } else {

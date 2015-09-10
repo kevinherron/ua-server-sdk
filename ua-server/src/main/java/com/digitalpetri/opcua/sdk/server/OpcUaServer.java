@@ -144,14 +144,14 @@ public class OpcUaServer {
 
             for (String hostname : hostnames) {
                 for (SecurityPolicy securityPolicy : config.getSecurityPolicies()) {
-                    MessageSecurityMode messageSecurity = securityPolicy == SecurityPolicy.NONE ?
+                    MessageSecurityMode messageSecurity = securityPolicy == SecurityPolicy.None ?
                             MessageSecurityMode.None : MessageSecurityMode.SignAndEncrypt;
 
                     String endpointUrl = endpointUrl(hostname, config.getBindPort(), config.getServerName());
 
                     Set<X509Certificate> certificates = config.getCertificateManager().getCertificates();
 
-                    if (certificates.isEmpty() && securityPolicy == SecurityPolicy.NONE) {
+                    if (certificates.isEmpty() && securityPolicy == SecurityPolicy.None) {
                         logger.info("Binding endpoint {} to {} [{}/{}]",
                                 endpointUrl, bindAddress, securityPolicy, messageSecurity);
 

@@ -65,7 +65,7 @@ public class AttributeReader {
             }
 
             if (timestamps != null) {
-                value = (attributeId == AttributeId.VALUE) ?
+                value = (attributeId == AttributeId.Value) ?
                         DataValue.derivedValue(value, timestamps) :
                         DataValue.derivedNonValue(value, timestamps);
             }
@@ -107,27 +107,27 @@ public class AttributeReader {
 
     private static DataValue readNodeAttribute(Node node, AttributeId attributeId) throws UaException {
         switch (attributeId) {
-            case NODE_ID:
+            case NodeId:
                 return dv(node.getNodeId());
 
-            case NODE_CLASS:
+            case NodeClass:
                 return dv(node.getNodeClass());
 
-            case BROWSE_NAME:
+            case BrowseName:
                 return dv(node.getBrowseName());
 
-            case DISPLAY_NAME:
+            case DisplayName:
                 return dv(node.getDisplayName());
 
-            case DESCRIPTION:
+            case Description:
                 return node.getDescription().map(AttributeReader::dv)
                         .orElseThrow(ATTRIBUTE_ID_INVALID_EXCEPTION);
 
-            case WRITE_MASK:
+            case WriteMask:
                 return node.getWriteMask().map(AttributeReader::dv)
                         .orElseThrow(ATTRIBUTE_ID_INVALID_EXCEPTION);
 
-            case USER_WRITE_MASK:
+            case UserWriteMask:
                 return node.getUserWriteMask().map(AttributeReader::dv)
                         .orElseThrow(ATTRIBUTE_ID_INVALID_EXCEPTION);
 
@@ -138,7 +138,7 @@ public class AttributeReader {
 
     private static DataValue readDataTypeAttribute(DataTypeNode node, AttributeId attributeId) throws UaException {
         switch (attributeId) {
-            case IS_ABSTRACT:
+            case IsAbstract:
                 return dv(node.getIsAbstract());
 
             default:
@@ -148,10 +148,10 @@ public class AttributeReader {
 
     private static DataValue readMethodAttribute(MethodNode node, AttributeId attributeId) throws UaException {
         switch (attributeId) {
-            case EXECUTABLE:
+            case Executable:
                 return dv(node.isExecutable());
 
-            case USER_EXECUTABLE:
+            case UserExecutable:
                 return dv(node.isUserExecutable());
 
             default:
@@ -161,7 +161,7 @@ public class AttributeReader {
 
     private static DataValue readObjectAttribute(ObjectNode node, AttributeId attributeId) throws UaException {
         switch (attributeId) {
-            case EVENT_NOTIFIER:
+            case EventNotifier:
                 return dv(node.getEventNotifier());
 
             default:
@@ -171,7 +171,7 @@ public class AttributeReader {
 
     private static DataValue readObjectTypeAttribute(ObjectTypeNode node, AttributeId attributeId) throws UaException {
         switch (attributeId) {
-            case IS_ABSTRACT:
+            case IsAbstract:
                 return dv(node.getIsAbstract());
 
             default:
@@ -181,13 +181,13 @@ public class AttributeReader {
 
     private static DataValue readReferenceTypeAttribute(ReferenceTypeNode node, AttributeId attributeId) throws UaException {
         switch (attributeId) {
-            case IS_ABSTRACT:
+            case IsAbstract:
                 return dv(node.getIsAbstract());
 
-            case SYMMETRIC:
+            case Symmetric:
                 return dv(node.getSymmetric());
 
-            case INVERSE_NAME:
+            case InverseName:
                 return node.getInverseName().map(AttributeReader::dv)
                         .orElseThrow(ATTRIBUTE_ID_INVALID_EXCEPTION);
 
@@ -198,34 +198,34 @@ public class AttributeReader {
 
     private static DataValue readVariableAttribute(VariableNode node, AttributeId attributeId) throws UaException {
         switch (attributeId) {
-            case VALUE:
+            case Value:
                 return new DataValue(
                         node.getValue().getValue(),
                         node.getValue().getStatusCode(),
                         node.getValue().getSourceTime(),
                         DateTime.now());
 
-            case DATA_TYPE:
+            case DataType:
                 return dv(node.getDataType());
 
-            case VALUE_RANK:
+            case ValueRank:
                 return dv(node.getValueRank());
 
-            case ARRAY_DIMENSIONS:
+            case ArrayDimensions:
                 return node.getArrayDimensions().map(AttributeReader::dv)
                         .orElseThrow(ATTRIBUTE_ID_INVALID_EXCEPTION);
 
-            case ACCESS_LEVEL:
+            case AccessLevel:
                 return dv(node.getAccessLevel());
 
-            case USER_ACCESS_LEVEL:
+            case UserAccessLevel:
                 return dv(node.getUserAccessLevel());
 
-            case MINIMUM_SAMPLING_INTERVAL:
+            case MinimumSamplingInterval:
                 return node.getMinimumSamplingInterval().map(AttributeReader::dv)
                         .orElseThrow(ATTRIBUTE_ID_INVALID_EXCEPTION);
 
-            case HISTORIZING:
+            case Historizing:
                 return dv(node.getHistorizing());
 
             default:
@@ -235,20 +235,20 @@ public class AttributeReader {
 
     private static DataValue readVariableTypeAttribute(VariableTypeNode node, AttributeId attributeId) throws UaException {
         switch (attributeId) {
-            case VALUE:
+            case Value:
                 return node.getValue().orElseThrow(ATTRIBUTE_ID_INVALID_EXCEPTION);
 
-            case DATA_TYPE:
+            case DataType:
                 return dv(node.getDataType());
 
-            case VALUE_RANK:
+            case ValueRank:
                 return dv(node.getValueRank());
 
-            case ARRAY_DIMENSIONS:
+            case ArrayDimensions:
                 return node.getArrayDimensions().map(AttributeReader::dv)
                         .orElseThrow(ATTRIBUTE_ID_INVALID_EXCEPTION);
 
-            case IS_ABSTRACT:
+            case IsAbstract:
                 return dv(node.getIsAbstract());
 
             default:

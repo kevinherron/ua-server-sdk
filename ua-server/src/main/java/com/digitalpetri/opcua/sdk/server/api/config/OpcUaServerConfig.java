@@ -52,7 +52,7 @@ public interface OpcUaServerConfig extends UaTcpStackServerConfig {
     /**
      * The set of {@link SecurityPolicy}s supported by this server.
      * <p>
-     * Any policies other than {@link SecurityPolicy#NONE} require the server to have a certificate configured.
+     * Any policies other than {@link SecurityPolicy#None} require the server to have a certificate configured.
      *
      * @return the set of {@link SecurityPolicy}s supported by this server.
      */

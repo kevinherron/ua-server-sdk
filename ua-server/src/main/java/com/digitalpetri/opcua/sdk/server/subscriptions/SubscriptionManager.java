@@ -364,7 +364,7 @@ public class SubscriptionManager {
 
                 Namespace namespace = server.getNamespaceManager().getNamespace(nodeId.getNamespaceIndex());
 
-                if (attributeId.equals(AttributeId.EVENT_NOTIFIER.uid())) {
+                if (attributeId.equals(AttributeId.EventNotifier.uid())) {
                     readEventAttributes(namespace, nodeId).thenAccept(as -> {
                         Optional<UByte> eventNotifier = as.v3();
 
@@ -704,9 +704,9 @@ public class SubscriptionManager {
                 server, null, future, new DiagnosticsContext<>());
 
         List<ReadValueId> attributes = newArrayList(
-                f.apply(AttributeId.ACCESS_LEVEL),
-                f.apply(AttributeId.USER_ACCESS_LEVEL),
-                f.apply(AttributeId.MINIMUM_SAMPLING_INTERVAL));
+                f.apply(AttributeId.AccessLevel),
+                f.apply(AttributeId.UserAccessLevel),
+                f.apply(AttributeId.MinimumSamplingInterval));
 
         namespace.read(readContext, 0.0, TimestampsToReturn.Neither, attributes);
 
@@ -723,9 +723,9 @@ public class SubscriptionManager {
                 server, null, future, new DiagnosticsContext<>());
 
         List<ReadValueId> readValueIds = newArrayList(
-                f.apply(AttributeId.ACCESS_LEVEL),
-                f.apply(AttributeId.USER_ACCESS_LEVEL),
-                f.apply(AttributeId.EVENT_NOTIFIER));
+                f.apply(AttributeId.AccessLevel),
+                f.apply(AttributeId.UserAccessLevel),
+                f.apply(AttributeId.EventNotifier));
 
         namespace.read(readContext, 0.0, TimestampsToReturn.Neither, readValueIds);
 
