@@ -66,8 +66,6 @@ import com.digitalpetri.opcua.stack.core.types.structured.EndpointDescription;
 import com.digitalpetri.opcua.stack.core.types.structured.SignedSoftwareCertificate;
 import com.digitalpetri.opcua.stack.core.types.structured.UserTokenPolicy;
 import com.digitalpetri.opcua.stack.core.util.ManifestUtil;
-import com.digitalpetri.opcua.stack.server.config.UaTcpStackServerConfig;
-import com.digitalpetri.opcua.stack.server.config.UaTcpStackServerConfigBuilder;
 import com.digitalpetri.opcua.stack.server.tcp.UaTcpStackServer;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -113,7 +111,7 @@ public class OpcUaServer {
     public OpcUaServer(OpcUaServerConfig config) {
         this.config = config;
 
-        stackServer = buildStackServer();
+        stackServer = new UaTcpStackServer(config);
 
         stackServer.addServiceSet((AttributeServiceSet) sessionManager);
         stackServer.addServiceSet((MethodServiceSet) sessionManager);
@@ -214,18 +212,6 @@ public class OpcUaServer {
 
     public void shutdown() {
         stackServer.shutdown();
-    }
-
-    private UaStackServer buildStackServer() {
-        UaTcpStackServerConfigBuilder builder = UaTcpStackServerConfig.builder()
-                .setServerName(config.getServerName())
-                .setApplicationName(config.getApplicationName())
-                .setApplicationUri(config.getApplicationUri())
-                .setProductUri(config.getProductUri())
-                .setCertificateManager(config.getCertificateManager())
-                .setUserTokenPolicies(config.getUserTokenPolicies());
-
-        return new UaTcpStackServer(builder.build());
     }
 
     private static String endpointUrl(String hostname, int port, String serverName) {

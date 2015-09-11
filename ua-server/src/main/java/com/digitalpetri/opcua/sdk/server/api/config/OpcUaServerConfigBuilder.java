@@ -29,6 +29,7 @@ import com.digitalpetri.opcua.sdk.server.identity.AnonymousIdentityValidator;
 import com.digitalpetri.opcua.sdk.server.identity.IdentityValidator;
 import com.digitalpetri.opcua.stack.core.Stack;
 import com.digitalpetri.opcua.stack.core.application.CertificateManager;
+import com.digitalpetri.opcua.stack.core.application.CertificateValidator;
 import com.digitalpetri.opcua.stack.core.channel.ChannelConfig;
 import com.digitalpetri.opcua.stack.core.security.SecurityPolicy;
 import com.digitalpetri.opcua.stack.core.types.builtin.DateTime;
@@ -118,6 +119,12 @@ public class OpcUaServerConfigBuilder extends UaTcpStackServerConfigBuilder {
     @Override
     public OpcUaServerConfigBuilder setCertificateManager(CertificateManager certificateManager) {
         super.setCertificateManager(certificateManager);
+        return this;
+    }
+
+    @Override
+    public OpcUaServerConfigBuilder setCertificateValidator(CertificateValidator certificateValidator) {
+        super.setCertificateValidator(certificateValidator);
         return this;
     }
 
@@ -259,6 +266,11 @@ public class OpcUaServerConfigBuilder extends UaTcpStackServerConfigBuilder {
         @Override
         public CertificateManager getCertificateManager() {
             return stackServerConfig.getCertificateManager();
+        }
+
+        @Override
+        public CertificateValidator getCertificateValidator() {
+            return stackServerConfig.getCertificateValidator();
         }
 
         @Override
