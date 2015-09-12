@@ -25,8 +25,10 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-public class FutureUtils {
+import com.digitalpetri.opcua.stack.core.UaException;
+import com.digitalpetri.opcua.stack.core.types.builtin.StatusCode;
 
+public class FutureUtils {
 
     public static <T> CompletableFuture<List<T>> sequence(List<CompletableFuture<T>> futures) {
         if (futures.isEmpty()) {
@@ -46,6 +48,42 @@ public class FutureUtils {
 
         return CompletableFuture.allOf(futures).thenApply(
                 v -> Arrays.stream(futures).map(CompletableFuture::join).collect(Collectors.toList()));
+    }
+
+    /**
+     * Return a {@link CompletableFuture} that has been completed exceptionally using the provided {@link Throwable}.
+     *
+     * @param ex the {@link Throwable} to complete with.
+     * @return a {@link CompletableFuture} that has been completed exceptionally using the provided {@link Throwable}.
+     */
+    public static <T> CompletableFuture<T> failedFuture(Throwable ex) {
+        CompletableFuture<T> f = new CompletableFuture<>();
+        f.completeExceptionally(ex);
+        return f;
+    }
+
+    /**
+     * Return a {@link CompletableFuture} that has been completed exceptionally with a {@link UaException} built from
+     * {@code statusCode}.
+     *
+     * @param statusCode the status code to build the {@link UaException} with.
+     * @return a {@link CompletableFuture} that has been completed exceptionally with a {@link UaException} built from
+     * {@code statusCode}.
+     */
+    public static <T> CompletableFuture<T> failedUaFuture(long statusCode) {
+        return failedUaFuture(new StatusCode(statusCode));
+    }
+
+    /**
+     * Return a {@link CompletableFuture} that has been completed exceptionally with a {@link UaException} built from
+     * {@code statusCode}.
+     *
+     * @param statusCode the {@link StatusCode} to build the {@link UaException} with.
+     * @return a {@link CompletableFuture} that has been completed exceptionally with a {@link UaException} built from
+     * {@code statusCode}.
+     */
+    public static <T> CompletableFuture<T> failedUaFuture(StatusCode statusCode) {
+        return failedFuture(new UaException(statusCode));
     }
 
 }
