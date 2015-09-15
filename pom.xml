@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.digitalpetri.opcua</groupId>
     <artifactId>ua-server-sdk</artifactId>
-    <version>0.4.0-SNAPSHOT</version>
+    <version>0.4.0</version>
     <packaging>pom</packaging>
 
     <name>OPC-UA Server SDK</name>
@@ -18,7 +16,7 @@
         <url>https://github.com/digitalpetri/ua-server-sdk</url>
         <connection>scm:git:git://github.com/digitalpetri/ua-server-sdk.git</connection>
         <developerConnection>scm:git:git@github.com:digitalpetri/ua-server-sdk.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>v0.4.0</tag>
     </scm>
 
     <developers>
