@@ -44,7 +44,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <opc-ua-stack.version>1.0.0</opc-ua-stack.version>
+        <opc-ua-stack.version>1.0.1-SNAPSHOT</opc-ua-stack.version>
     </properties>
 
     <build>
