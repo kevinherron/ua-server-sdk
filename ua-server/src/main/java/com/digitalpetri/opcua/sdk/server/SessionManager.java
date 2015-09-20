@@ -206,7 +206,7 @@ public class SessionManager implements
         }
 
         if (session.getSecureChannelId() != secureChannelId) {
-            throw new UaException(StatusCodes.Bad_SecurityChecksFailed);
+            throw new UaException(StatusCodes.Bad_SecureChannelIdInvalid);
         }
 
         session.updateLastActivity();
