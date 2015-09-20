@@ -33,9 +33,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
 
 import com.digitalpetri.opcua.sdk.core.ServerTable;
 import com.digitalpetri.opcua.sdk.server.api.config.OpcUaServerConfig;
@@ -71,7 +69,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,13 +78,6 @@ public class OpcUaServer {
 
     public static final String SDK_VERSION =
             ManifestUtil.read("X-SDK-Version").orElse("dev");
-
-    private static final ThreadFactory THREAD_FACTORY = new ThreadFactoryBuilder()
-            .setNameFormat("ua-shared-scheduler-%d")
-            .setDaemon(true).build();
-
-    private static final ScheduledExecutorService SHARED_SCHEDULED_EXECUTOR =
-            Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors(), THREAD_FACTORY);
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -265,7 +255,7 @@ public class OpcUaServer {
     }
 
     public ScheduledExecutorService getScheduledExecutorService() {
-        return SHARED_SCHEDULED_EXECUTOR;
+        return Stack.sharedScheduledExecutor();
     }
 
     public ChannelConfig getChannelConfig() {
