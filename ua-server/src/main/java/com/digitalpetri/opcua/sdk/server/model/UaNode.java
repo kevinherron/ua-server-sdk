@@ -205,7 +205,7 @@ public abstract class UaNode implements Node {
 
         if (reference.isInverse()) {
             int count = refCount.incrementAndGet();
-            LOGGER.debug("{} refCount={}", getNodeId(), count);
+            LOGGER.trace("{} refCount={}", getNodeId(), count);
 
             if (count == 1) {
                 namespace.addNode(this);
@@ -222,7 +222,7 @@ public abstract class UaNode implements Node {
 
         if (reference.isInverse()) {
             int count = refCount.decrementAndGet();
-            LOGGER.debug("{} refCount={}", getNodeId(), count);
+            LOGGER.trace("{} refCount={}", getNodeId(), count);
 
             if (count == 0) {
                 deallocate();
@@ -235,7 +235,7 @@ public abstract class UaNode implements Node {
     }
 
     protected synchronized void deallocate() {
-        LOGGER.debug("{} deallocate()", getNodeId());
+        LOGGER.trace("{} deallocate()", getNodeId());
 
         ExpandedNodeId expanded = getNodeId().expanded();
 
