@@ -5,7 +5,7 @@
 
     <groupId>com.digitalpetri.opcua</groupId>
     <artifactId>ua-server-sdk</artifactId>
-    <version>0.4.2</version>
+    <version>0.4.3-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>OPC-UA Server SDK</name>
@@ -16,7 +16,7 @@
         <url>https://github.com/digitalpetri/ua-server-sdk</url>
         <connection>scm:git:git://github.com/digitalpetri/ua-server-sdk.git</connection>
         <developerConnection>scm:git:git@github.com:digitalpetri/ua-server-sdk.git</developerConnection>
-        <tag>v0.4.2</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <developers>
