@@ -76,6 +76,22 @@ public class UaVariableNode extends UaNode implements VariableNode {
     private volatile Optional<Double> minimumSamplingInterval = Optional.empty();
     private volatile boolean historizing = false;
 
+    public UaVariableNode(
+            UaNamespace namespace,
+            NodeId nodeId,
+            VariableTypeNode variableTypeNode) {
+
+        this(namespace, nodeId, variableTypeNode.getBrowseName(), variableTypeNode.getDisplayName());
+
+        setDescription(variableTypeNode.getDescription());
+        setWriteMask(variableTypeNode.getWriteMask());
+        setUserWriteMask(variableTypeNode.getUserWriteMask());
+        setValue(variableTypeNode.getValue().orElse(INITIAL_VALUE));
+        setDataType(variableTypeNode.getDataType());
+        setValueRank(variableTypeNode.getValueRank());
+        setArrayDimensions(variableTypeNode.getArrayDimensions());
+    }
+
     public UaVariableNode(UaNamespace namespace,
                           NodeId nodeId,
                           QualifiedName browseName,
