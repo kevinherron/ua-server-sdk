@@ -244,6 +244,54 @@ public class UaVariableNode extends UaNode implements VariableNode {
         return (node instanceof VariableTypeNode) ? (VariableTypeNode) node : null;
     }
 
+    /**
+     * Add a 'HasComponent' reference from this Object to {@code node} and an inverse 'ComponentOf' reference from
+     * {@code node} back to this Object.
+     *
+     * @param node the node to add as a component of this Object.
+     */
+    public void addComponent(UaNode node) {
+        addReference(new Reference(
+                getNodeId(),
+                Identifiers.HasComponent,
+                node.getNodeId().expanded(),
+                node.getNodeClass(),
+                true
+        ));
+
+        node.addReference(new Reference(
+                node.getNodeId(),
+                Identifiers.HasComponent,
+                getNodeId().expanded(),
+                getNodeClass(),
+                false
+        ));
+    }
+
+    /**
+     * Remove the 'HasComponent' reference from this Object to {@code node} and the inverse 'ComponentOf' reference
+     * from {@code node} back to this Object.
+     *
+     * @param node the node to remove as a component of this Object.
+     */
+    public void removeComponent(UaNode node) {
+        removeReference(new Reference(
+                getNodeId(),
+                Identifiers.HasComponent,
+                node.getNodeId().expanded(),
+                node.getNodeClass(),
+                true
+        ));
+
+        node.removeReference(new Reference(
+                node.getNodeId(),
+                Identifiers.HasComponent,
+                getNodeId().expanded(),
+                getNodeClass(),
+                false
+        ));
+    }
+
     @UaOptional("NodeVersion")
     public String getNodeVersion() {
         return getProperty(NodeVersion).orElse(null);
