@@ -41,6 +41,8 @@ import com.digitalpetri.opcua.sdk.server.model.UaNode;
 import com.digitalpetri.opcua.sdk.server.model.UaObjectNode;
 import com.digitalpetri.opcua.sdk.server.model.UaVariableNode;
 import com.digitalpetri.opcua.sdk.server.model.UaVariableNode.UaVariableNodeBuilder;
+import com.digitalpetri.opcua.sdk.server.model.VariableNodeFactory;
+import com.digitalpetri.opcua.sdk.server.model.variables.AnalogItemNode;
 import com.digitalpetri.opcua.sdk.server.util.AnnotationBasedInvocationHandler;
 import com.digitalpetri.opcua.sdk.server.util.SubscriptionModel;
 import com.digitalpetri.opcua.server.ctt.methods.SqrtMethod;
@@ -57,10 +59,13 @@ import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 import com.digitalpetri.opcua.stack.core.types.builtin.StatusCode;
 import com.digitalpetri.opcua.stack.core.types.builtin.Variant;
 import com.digitalpetri.opcua.stack.core.types.builtin.XmlElement;
+import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
+import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.ULong;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UShort;
 import com.digitalpetri.opcua.stack.core.types.enumerated.NodeClass;
 import com.digitalpetri.opcua.stack.core.types.enumerated.TimestampsToReturn;
+import com.digitalpetri.opcua.stack.core.types.structured.Range;
 import com.digitalpetri.opcua.stack.core.types.structured.ReadValueId;
 import com.digitalpetri.opcua.stack.core.types.structured.WriteValue;
 import com.google.common.collect.Iterators;
@@ -116,11 +121,58 @@ public class CttNamespace implements UaNamespace {
 
         subscriptionModel = new SubscriptionModel(server, this);
 
+    }
+
+    public void initializeNodes() {
         addStaticScalarNodes();
         addStaticArrayNodes();
         addMethodNodes();
+
+        addAnalogItemTypes();
     }
 
+    private void addAnalogItemTypes() {
+        Object[][] analogItemTypes = new Object[][]{
+                {"Byte", Identifiers.Byte, new Variant(ubyte(0x0)), UByte.MIN_VALUE, UByte.MAX_VALUE},
+                {"Double", Identifiers.Double, new Variant(6.28d), Double.MIN_VALUE, Double.MAX_VALUE},
+                {"Float", Identifiers.Float, new Variant(3.14f), Float.MIN_VALUE, Float.MAX_VALUE},
+                {"Int16", Identifiers.Int16, new Variant((short) 16), Short.MIN_VALUE, Short.MAX_VALUE},
+                {"Int32", Identifiers.Int32, new Variant(32), Integer.MIN_VALUE, Integer.MAX_VALUE},
+                {"Int64", Identifiers.Int64, new Variant(64L), Long.MIN_VALUE, Long.MAX_VALUE},
+                {"SByte", Identifiers.SByte, new Variant((byte) 0), Byte.MIN_VALUE, Byte.MAX_VALUE},
+                {"UInt16", Identifiers.UInt16, new Variant(ushort(16)), UShort.MIN_VALUE, UShort.MAX_VALUE},
+                {"UInt32", Identifiers.UInt32, new Variant(uint(32)), UInteger.MIN_VALUE, UInteger.MAX_VALUE},
+                {"UInt64", Identifiers.UInt64, new Variant(ulong(64)), ULong.MIN_VALUE, ULong.MAX_VALUE},
+                {"NodeWithEngineeringUnits", Identifiers.Float, new Variant(32f), Float.MIN_VALUE, Float.MAX_VALUE},
+                {"NodeWithInstrumentRange", Identifiers.Float, new Variant(32f), Float.MIN_VALUE, Float.MAX_VALUE}
+        };
+
+        UaObjectNode analogTypes = addFoldersToRoot(cttFolder, "/Static/DAProfile/AnalogType");
+        VariableNodeFactory factory = new VariableNodeFactory(server.getNamespaceManager());
+
+        for (Object[] os : analogItemTypes) {
+            String name = (String) os[0];
+            NodeId dataTypeId = (NodeId) os[1];
+            Variant value = (Variant) os[2];
+            double min = ((Number) os[3]).doubleValue();
+            double max = ((Number) os[4]).doubleValue();
+
+            AnalogItemNode analogItem = factory.create(
+                    new NodeId(namespaceIndex, name),
+                    new QualifiedName(namespaceIndex, name),
+                    LocalizedText.english(name),
+                    Identifiers.AnalogItemType,
+                    AnalogItemNode.class
+            );
+
+            analogItem.setDataType(dataTypeId);
+            analogItem.setValue(new DataValue(value));
+            analogItem.setEURange(new Range(min, max));
+            analogItem.setInstrumentRange(new Range(min, max));
+
+            analogTypes.addComponent(analogItem);
+        }
+    }
 
     private static final Object[][] STATIC_SCALAR_NODES = new Object[][]{
             {"Bool", Identifiers.Boolean, new Variant(false)},
