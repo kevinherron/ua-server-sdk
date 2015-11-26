@@ -21,11 +21,10 @@ package com.digitalpetri.opcua.sdk.server.model.variables;
 
 import java.util.Optional;
 
-import com.digitalpetri.opcua.sdk.core.AttributeIds;
-import com.digitalpetri.opcua.sdk.core.model.UaMandatory;
 import com.digitalpetri.opcua.sdk.core.model.variables.ProgramDiagnosticType;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.util.UaVariableType;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableTypeNode;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.DateTime;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
@@ -38,214 +37,234 @@ import com.digitalpetri.opcua.stack.core.types.structured.Argument;
 import com.digitalpetri.opcua.stack.core.types.structured.ProgramDiagnosticDataType;
 import com.digitalpetri.opcua.stack.core.types.structured.StatusResult;
 
-@UaVariableType(name = "ProgramDiagnosticType")
+@com.digitalpetri.opcua.sdk.server.util.UaVariableNode(typeName = "0:ProgramDiagnosticType")
 public class ProgramDiagnosticNode extends BaseDataVariableNode implements ProgramDiagnosticType {
 
-    public ProgramDiagnosticNode(UaNamespace namespace,
-                                 NodeId nodeId,
-                                 QualifiedName browseName,
-                                 LocalizedText displayName,
-                                 Optional<LocalizedText> description,
-                                 Optional<UInteger> writeMask,
-                                 Optional<UInteger> userWriteMask,
-                                 DataValue value,
-                                 NodeId dataType,
-                                 Integer valueRank,
-                                 Optional<UInteger[]> arrayDimensions,
-                                 UByte accessLevel,
-                                 UByte userAccessLevel,
-                                 Optional<Double> minimumSamplingInterval,
-                                 boolean historizing) {
+    public ProgramDiagnosticNode(
+            UaNodeManager nodeManager,
+            NodeId nodeId,
+            VariableTypeNode variableTypeNode) {
 
-        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(nodeManager, nodeId, variableTypeNode);
+    }
+
+    public ProgramDiagnosticNode(
+            UaNodeManager nodeManager,
+            NodeId nodeId,
+            QualifiedName browseName,
+            LocalizedText displayName,
+            Optional<LocalizedText> description,
+            Optional<UInteger> writeMask,
+            Optional<UInteger> userWriteMask,
+            DataValue value,
+            NodeId dataType,
+            Integer valueRank,
+            Optional<UInteger[]> arrayDimensions,
+            UByte accessLevel,
+            UByte userAccessLevel,
+            Optional<Double> minimumSamplingInterval,
+            boolean historizing) {
+
+        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
-
     }
 
     @Override
     public DataValue getValue() {
         ProgramDiagnosticDataType value = new ProgramDiagnosticDataType(
-                getCreateSessionId(),
-                getCreateClientName(),
-                getInvocationCreationTime(),
-                getLastTransitionTime(),
-                getLastMethodCall(),
-                getLastMethodSessionId(),
-                getLastMethodInputArguments(),
-                getLastMethodOutputArguments(),
-                getLastMethodCallTime(),
-                getLastMethodReturnStatus()
         );
 
         return new DataValue(new Variant(value));
     }
 
     @Override
-    public synchronized void setValue(DataValue value) {
-        ProgramDiagnosticDataType v = (ProgramDiagnosticDataType) value.getValue().getValue();
-
-        setCreateSessionId(v.getCreateSessionId());
-        setCreateClientName(v.getCreateClientName());
-        setInvocationCreationTime(v.getInvocationCreationTime());
-        setLastTransitionTime(v.getLastTransitionTime());
-        setLastMethodCall(v.getLastMethodCall());
-        setLastMethodSessionId(v.getLastMethodSessionId());
-        setLastMethodInputArguments(v.getLastMethodInputArguments());
-        setLastMethodOutputArguments(v.getLastMethodOutputArguments());
-        setLastMethodCallTime(v.getLastMethodCallTime());
-        setLastMethodReturnStatus(v.getLastMethodReturnStatus());
-
-        fireAttributeChanged(AttributeIds.Value, value);
-    }
-
-    @Override
-    @UaMandatory("CreateSessionId")
     public NodeId getCreateSessionId() {
-        Optional<NodeId> createSessionId = getProperty("CreateSessionId");
+        Optional<NodeId> property = getProperty(ProgramDiagnosticType.CREATE_SESSION_ID);
 
-        return createSessionId.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    @UaMandatory("CreateClientName")
+    public PropertyNode getCreateSessionIdNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(ProgramDiagnosticType.CREATE_SESSION_ID.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setCreateSessionId(NodeId value) {
+        setProperty(ProgramDiagnosticType.CREATE_SESSION_ID, value);
+    }
+
+    @Override
     public String getCreateClientName() {
-        Optional<String> createClientName = getProperty("CreateClientName");
+        Optional<String> property = getProperty(ProgramDiagnosticType.CREATE_CLIENT_NAME);
 
-        return createClientName.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    @UaMandatory("InvocationCreationTime")
+    public PropertyNode getCreateClientNameNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(ProgramDiagnosticType.CREATE_CLIENT_NAME.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setCreateClientName(String value) {
+        setProperty(ProgramDiagnosticType.CREATE_CLIENT_NAME, value);
+    }
+
+    @Override
     public DateTime getInvocationCreationTime() {
-        Optional<DateTime> invocationCreationTime = getProperty("InvocationCreationTime");
+        Optional<DateTime> property = getProperty(ProgramDiagnosticType.INVOCATION_CREATION_TIME);
 
-        return invocationCreationTime.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    @UaMandatory("LastTransitionTime")
+    public PropertyNode getInvocationCreationTimeNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(ProgramDiagnosticType.INVOCATION_CREATION_TIME.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setInvocationCreationTime(DateTime value) {
+        setProperty(ProgramDiagnosticType.INVOCATION_CREATION_TIME, value);
+    }
+
+    @Override
     public DateTime getLastTransitionTime() {
-        Optional<DateTime> lastTransitionTime = getProperty("LastTransitionTime");
+        Optional<DateTime> property = getProperty(ProgramDiagnosticType.LAST_TRANSITION_TIME);
 
-        return lastTransitionTime.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    @UaMandatory("LastMethodCall")
+    public PropertyNode getLastTransitionTimeNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(ProgramDiagnosticType.LAST_TRANSITION_TIME.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setLastTransitionTime(DateTime value) {
+        setProperty(ProgramDiagnosticType.LAST_TRANSITION_TIME, value);
+    }
+
+    @Override
     public String getLastMethodCall() {
-        Optional<String> lastMethodCall = getProperty("LastMethodCall");
+        Optional<String> property = getProperty(ProgramDiagnosticType.LAST_METHOD_CALL);
 
-        return lastMethodCall.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    @UaMandatory("LastMethodSessionId")
+    public PropertyNode getLastMethodCallNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(ProgramDiagnosticType.LAST_METHOD_CALL.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setLastMethodCall(String value) {
+        setProperty(ProgramDiagnosticType.LAST_METHOD_CALL, value);
+    }
+
+    @Override
     public NodeId getLastMethodSessionId() {
-        Optional<NodeId> lastMethodSessionId = getProperty("LastMethodSessionId");
+        Optional<NodeId> property = getProperty(ProgramDiagnosticType.LAST_METHOD_SESSION_ID);
 
-        return lastMethodSessionId.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    @UaMandatory("LastMethodInputArguments")
+    public PropertyNode getLastMethodSessionIdNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(ProgramDiagnosticType.LAST_METHOD_SESSION_ID.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setLastMethodSessionId(NodeId value) {
+        setProperty(ProgramDiagnosticType.LAST_METHOD_SESSION_ID, value);
+    }
+
+    @Override
     public Argument[] getLastMethodInputArguments() {
-        Optional<Argument[]> lastMethodInputArguments = getProperty("LastMethodInputArguments");
+        Optional<Argument[]> property = getProperty(ProgramDiagnosticType.LAST_METHOD_INPUT_ARGUMENTS);
 
-        return lastMethodInputArguments.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    @UaMandatory("LastMethodOutputArguments")
+    public PropertyNode getLastMethodInputArgumentsNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(ProgramDiagnosticType.LAST_METHOD_INPUT_ARGUMENTS.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setLastMethodInputArguments(Argument[] value) {
+        setProperty(ProgramDiagnosticType.LAST_METHOD_INPUT_ARGUMENTS, value);
+    }
+
+    @Override
     public Argument[] getLastMethodOutputArguments() {
-        Optional<Argument[]> lastMethodOutputArguments = getProperty("LastMethodOutputArguments");
+        Optional<Argument[]> property = getProperty(ProgramDiagnosticType.LAST_METHOD_OUTPUT_ARGUMENTS);
 
-        return lastMethodOutputArguments.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    @UaMandatory("LastMethodCallTime")
+    public PropertyNode getLastMethodOutputArgumentsNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(ProgramDiagnosticType.LAST_METHOD_OUTPUT_ARGUMENTS.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setLastMethodOutputArguments(Argument[] value) {
+        setProperty(ProgramDiagnosticType.LAST_METHOD_OUTPUT_ARGUMENTS, value);
+    }
+
+    @Override
     public DateTime getLastMethodCallTime() {
-        Optional<DateTime> lastMethodCallTime = getProperty("LastMethodCallTime");
+        Optional<DateTime> property = getProperty(ProgramDiagnosticType.LAST_METHOD_CALL_TIME);
 
-        return lastMethodCallTime.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    @UaMandatory("LastMethodReturnStatus")
+    public PropertyNode getLastMethodCallTimeNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(ProgramDiagnosticType.LAST_METHOD_CALL_TIME.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setLastMethodCallTime(DateTime value) {
+        setProperty(ProgramDiagnosticType.LAST_METHOD_CALL_TIME, value);
+    }
+
+    @Override
     public StatusResult getLastMethodReturnStatus() {
-        Optional<StatusResult> lastMethodReturnStatus = getProperty("LastMethodReturnStatus");
+        Optional<StatusResult> property = getProperty(ProgramDiagnosticType.LAST_METHOD_RETURN_STATUS);
 
-        return lastMethodReturnStatus.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    public synchronized void setCreateSessionId(NodeId createSessionId) {
-        getPropertyNode("CreateSessionId").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(createSessionId)));
-        });
+    public PropertyNode getLastMethodReturnStatusNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(ProgramDiagnosticType.LAST_METHOD_RETURN_STATUS.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
     }
 
     @Override
-    public synchronized void setCreateClientName(String createClientName) {
-        getPropertyNode("CreateClientName").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(createClientName)));
-        });
-    }
-
-    @Override
-    public synchronized void setInvocationCreationTime(DateTime invocationCreationTime) {
-        getPropertyNode("InvocationCreationTime").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(invocationCreationTime)));
-        });
-    }
-
-    @Override
-    public synchronized void setLastTransitionTime(DateTime lastTransitionTime) {
-        getPropertyNode("LastTransitionTime").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(lastTransitionTime)));
-        });
-    }
-
-    @Override
-    public synchronized void setLastMethodCall(String lastMethodCall) {
-        getPropertyNode("LastMethodCall").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(lastMethodCall)));
-        });
-    }
-
-    @Override
-    public synchronized void setLastMethodSessionId(NodeId lastMethodSessionId) {
-        getPropertyNode("LastMethodSessionId").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(lastMethodSessionId)));
-        });
-    }
-
-    @Override
-    public synchronized void setLastMethodInputArguments(Argument[] lastMethodInputArguments) {
-        getPropertyNode("LastMethodInputArguments").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(lastMethodInputArguments)));
-        });
-    }
-
-    @Override
-    public synchronized void setLastMethodOutputArguments(Argument[] lastMethodOutputArguments) {
-        getPropertyNode("LastMethodOutputArguments").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(lastMethodOutputArguments)));
-        });
-    }
-
-    @Override
-    public synchronized void setLastMethodCallTime(DateTime lastMethodCallTime) {
-        getPropertyNode("LastMethodCallTime").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(lastMethodCallTime)));
-        });
-    }
-
-    @Override
-    public synchronized void setLastMethodReturnStatus(StatusResult lastMethodReturnStatus) {
-        getPropertyNode("LastMethodReturnStatus").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(lastMethodReturnStatus)));
-        });
+    public void setLastMethodReturnStatus(StatusResult value) {
+        setProperty(ProgramDiagnosticType.LAST_METHOD_RETURN_STATUS, value);
     }
 
 }

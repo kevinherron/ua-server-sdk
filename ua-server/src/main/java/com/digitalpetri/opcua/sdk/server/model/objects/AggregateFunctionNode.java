@@ -22,20 +22,18 @@ package com.digitalpetri.opcua.sdk.server.model.objects;
 import java.util.Optional;
 
 import com.digitalpetri.opcua.sdk.core.model.objects.AggregateFunctionType;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.util.UaObjectType;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 
-
-@UaObjectType(name = "AggregateFunctionType")
+@com.digitalpetri.opcua.sdk.server.util.UaObjectNode(typeName = "0:AggregateFunctionType")
 public class AggregateFunctionNode extends BaseObjectNode implements AggregateFunctionType {
 
     public AggregateFunctionNode(
-            UaNamespace namespace,
+            UaNodeManager nodeManager,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -44,8 +42,7 @@ public class AggregateFunctionNode extends BaseObjectNode implements AggregateFu
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
-
 
 }

@@ -19,43 +19,49 @@
 
 package com.digitalpetri.opcua.sdk.core.model.variables;
 
-import com.digitalpetri.opcua.sdk.core.model.UaMandatory;
 import com.digitalpetri.opcua.stack.core.types.builtin.DateTime;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.digitalpetri.opcua.stack.core.types.enumerated.ServerState;
 import com.digitalpetri.opcua.stack.core.types.structured.BuildInfo;
 
+
 public interface ServerStatusType extends BaseDataVariableType {
 
-    @UaMandatory("StartTime")
+
     DateTime getStartTime();
 
-    @UaMandatory("CurrentTime")
+    BaseDataVariableType getStartTimeNode();
+
+    void setStartTime(DateTime value);
+
     DateTime getCurrentTime();
 
-    @UaMandatory("State")
+    BaseDataVariableType getCurrentTimeNode();
+
+    void setCurrentTime(DateTime value);
+
     ServerState getState();
 
-    @UaMandatory("BuildInfo")
+    BaseDataVariableType getStateNode();
+
+    void setState(ServerState value);
+
     BuildInfo getBuildInfo();
 
-    @UaMandatory("SecondsTillShutdown")
+    BuildInfoType getBuildInfoNode();
+
+    void setBuildInfo(BuildInfo value);
+
     UInteger getSecondsTillShutdown();
 
-    @UaMandatory("ShutdownReason")
+    BaseDataVariableType getSecondsTillShutdownNode();
+
+    void setSecondsTillShutdown(UInteger value);
+
     LocalizedText getShutdownReason();
 
-    void setStartTime(DateTime startTime);
+    BaseDataVariableType getShutdownReasonNode();
 
-    void setCurrentTime(DateTime currentTime);
-
-    void setState(ServerState state);
-
-    void setBuildInfo(BuildInfo buildInfo);
-
-    void setSecondsTillShutdown(UInteger secondsTillShutdown);
-
-    void setShutdownReason(LocalizedText shutdownReason);
-
+    void setShutdownReason(LocalizedText value);
 }

@@ -20,14 +20,25 @@
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
 import com.digitalpetri.opcua.sdk.core.model.variables.TwoStateVariableType;
+import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 
 public interface AcknowledgeableConditionType extends ConditionType {
 
-    TwoStateVariableType getEnabledState();
+    LocalizedText getEnabledState();
 
-    TwoStateVariableType getAckedState();
+    TwoStateVariableType getEnabledStateNode();
 
-    TwoStateVariableType getConfirmedState();
+    void setEnabledState(LocalizedText value);
 
+    LocalizedText getAckedState();
 
+    TwoStateVariableType getAckedStateNode();
+
+    void setAckedState(LocalizedText value);
+
+    LocalizedText getConfirmedState();
+
+    TwoStateVariableType getConfirmedStateNode();
+
+    void setConfirmedState(LocalizedText value);
 }

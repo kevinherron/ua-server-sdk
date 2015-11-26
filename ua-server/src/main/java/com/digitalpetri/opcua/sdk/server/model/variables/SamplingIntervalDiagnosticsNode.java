@@ -21,12 +21,10 @@ package com.digitalpetri.opcua.sdk.server.model.variables;
 
 import java.util.Optional;
 
-import com.digitalpetri.opcua.sdk.core.AttributeIds;
-import com.digitalpetri.opcua.sdk.core.model.UaMandatory;
 import com.digitalpetri.opcua.sdk.core.model.variables.SamplingIntervalDiagnosticsType;
 import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.util.UaVariableType;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableTypeNode;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
@@ -36,28 +34,36 @@ import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.digitalpetri.opcua.stack.core.types.structured.SamplingIntervalDiagnosticsDataType;
 
-@UaVariableType(name = "SamplingIntervalDiagnosticsType")
+@com.digitalpetri.opcua.sdk.server.util.UaVariableNode(typeName = "0:SamplingIntervalDiagnosticsType")
 public class SamplingIntervalDiagnosticsNode extends BaseDataVariableNode implements SamplingIntervalDiagnosticsType {
 
-    public SamplingIntervalDiagnosticsNode(UaNamespace namespace,
-                                           NodeId nodeId,
-                                           QualifiedName browseName,
-                                           LocalizedText displayName,
-                                           Optional<LocalizedText> description,
-                                           Optional<UInteger> writeMask,
-                                           Optional<UInteger> userWriteMask,
-                                           DataValue value,
-                                           NodeId dataType,
-                                           Integer valueRank,
-                                           Optional<UInteger[]> arrayDimensions,
-                                           UByte accessLevel,
-                                           UByte userAccessLevel,
-                                           Optional<Double> minimumSamplingInterval,
-                                           boolean historizing) {
+    public SamplingIntervalDiagnosticsNode(
+            UaNodeManager nodeManager,
+            NodeId nodeId,
+            VariableTypeNode variableTypeNode) {
 
-        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(nodeManager, nodeId, variableTypeNode);
+    }
+
+    public SamplingIntervalDiagnosticsNode(
+            UaNodeManager nodeManager,
+            NodeId nodeId,
+            QualifiedName browseName,
+            LocalizedText displayName,
+            Optional<LocalizedText> description,
+            Optional<UInteger> writeMask,
+            Optional<UInteger> userWriteMask,
+            DataValue value,
+            NodeId dataType,
+            Integer valueRank,
+            Optional<UInteger[]> arrayDimensions,
+            UByte accessLevel,
+            UByte userAccessLevel,
+            Optional<Double> minimumSamplingInterval,
+            boolean historizing) {
+
+        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
-
     }
 
     @Override
@@ -73,83 +79,83 @@ public class SamplingIntervalDiagnosticsNode extends BaseDataVariableNode implem
     }
 
     @Override
-    public synchronized void setValue(DataValue value) {
-        SamplingIntervalDiagnosticsDataType v = (SamplingIntervalDiagnosticsDataType) value.getValue().getValue();
-
-        setSamplingInterval(v.getSamplingInterval());
-        setSampledMonitoredItemsCount(v.getMonitoredItemCount());
-        setMaxSampledMonitoredItemsCount(v.getMaxMonitoredItemCount());
-        setDisabledMonitoredItemsSamplingCount(v.getDisabledMonitoredItemCount());
-
-        fireAttributeChanged(AttributeIds.Value, value);
-    }
-
-    @Override
-    @UaMandatory("SamplingInterval")
     public Double getSamplingInterval() {
-        Optional<VariableNode> node = getVariableComponent("SamplingInterval");
+        Optional<VariableNode> component = getVariableComponent("SamplingInterval");
 
-        return node.map(n -> (Double) n.getValue().getValue().getValue()).orElse(null);
+        return component.map(node -> (Double) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    @UaMandatory("SampledMonitoredItemsCount")
+    public BaseDataVariableNode getSamplingIntervalNode() {
+        Optional<VariableNode> component = getVariableComponent("SamplingInterval");
+
+        return component.map(node -> (BaseDataVariableNode) node).orElse(null);
+    }
+
+    @Override
+    public void setSamplingInterval(Double value) {
+        getVariableComponent("SamplingInterval")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
+    }
+
+    @Override
     public UInteger getSampledMonitoredItemsCount() {
-        Optional<VariableNode> node = getVariableComponent("SampledMonitoredItemsCount");
+        Optional<VariableNode> component = getVariableComponent("SampledMonitoredItemsCount");
 
-        return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
+        return component.map(node -> (UInteger) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    @UaMandatory("MaxSampledMonitoredItemsCount")
+    public BaseDataVariableNode getSampledMonitoredItemsCountNode() {
+        Optional<VariableNode> component = getVariableComponent("SampledMonitoredItemsCount");
+
+        return component.map(node -> (BaseDataVariableNode) node).orElse(null);
+    }
+
+    @Override
+    public void setSampledMonitoredItemsCount(UInteger value) {
+        getVariableComponent("SampledMonitoredItemsCount")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
+    }
+
+    @Override
     public UInteger getMaxSampledMonitoredItemsCount() {
-        Optional<VariableNode> node = getVariableComponent("MaxSampledMonitoredItemsCount");
+        Optional<VariableNode> component = getVariableComponent("MaxSampledMonitoredItemsCount");
 
-        return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
+        return component.map(node -> (UInteger) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    @UaMandatory("DisabledMonitoredItemsSamplingCount")
+    public BaseDataVariableNode getMaxSampledMonitoredItemsCountNode() {
+        Optional<VariableNode> component = getVariableComponent("MaxSampledMonitoredItemsCount");
+
+        return component.map(node -> (BaseDataVariableNode) node).orElse(null);
+    }
+
+    @Override
+    public void setMaxSampledMonitoredItemsCount(UInteger value) {
+        getVariableComponent("MaxSampledMonitoredItemsCount")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
+    }
+
+    @Override
     public UInteger getDisabledMonitoredItemsSamplingCount() {
-        Optional<VariableNode> node = getVariableComponent("DisabledMonitoredItemsSamplingCount");
+        Optional<VariableNode> component = getVariableComponent("DisabledMonitoredItemsSamplingCount");
 
-        return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
+        return component.map(node -> (UInteger) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    public synchronized void setSamplingInterval(Double samplingInterval) {
-        getVariableComponent("SamplingInterval").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(samplingInterval)));
+    public BaseDataVariableNode getDisabledMonitoredItemsSamplingCountNode() {
+        Optional<VariableNode> component = getVariableComponent("DisabledMonitoredItemsSamplingCount");
 
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
+        return component.map(node -> (BaseDataVariableNode) node).orElse(null);
     }
 
     @Override
-    public synchronized void setSampledMonitoredItemsCount(UInteger sampledMonitoredItemsCount) {
-        getVariableComponent("SampledMonitoredItemsCount").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(sampledMonitoredItemsCount)));
-
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
-    }
-
-    @Override
-    public synchronized void setMaxSampledMonitoredItemsCount(UInteger maxSampledMonitoredItemsCount) {
-        getVariableComponent("MaxSampledMonitoredItemsCount").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(maxSampledMonitoredItemsCount)));
-
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
-    }
-
-    @Override
-    public synchronized void setDisabledMonitoredItemsSamplingCount(UInteger disabledMonitoredItemsSamplingCount) {
-        getVariableComponent("DisabledMonitoredItemsSamplingCount").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(disabledMonitoredItemsSamplingCount)));
-
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
+    public void setDisabledMonitoredItemsSamplingCount(UInteger value) {
+        getVariableComponent("DisabledMonitoredItemsSamplingCount")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
     }
 
 }

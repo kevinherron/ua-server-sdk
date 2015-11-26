@@ -19,39 +19,45 @@
 
 package com.digitalpetri.opcua.sdk.core.model.variables;
 
-import com.digitalpetri.opcua.sdk.core.model.UaMandatory;
 import com.digitalpetri.opcua.stack.core.types.builtin.DateTime;
+
 
 public interface BuildInfoType extends BaseDataVariableType {
 
-    @UaMandatory("ProductUri")
+
     String getProductUri();
 
-    @UaMandatory("ManufacturerName")
+    BaseDataVariableType getProductUriNode();
+
+    void setProductUri(String value);
+
     String getManufacturerName();
 
-    @UaMandatory("ProductName")
+    BaseDataVariableType getManufacturerNameNode();
+
+    void setManufacturerName(String value);
+
     String getProductName();
 
-    @UaMandatory("SoftwareVersion")
+    BaseDataVariableType getProductNameNode();
+
+    void setProductName(String value);
+
     String getSoftwareVersion();
 
-    @UaMandatory("BuildNumber")
+    BaseDataVariableType getSoftwareVersionNode();
+
+    void setSoftwareVersion(String value);
+
     String getBuildNumber();
 
-    @UaMandatory("BuildDate")
+    BaseDataVariableType getBuildNumberNode();
+
+    void setBuildNumber(String value);
+
     DateTime getBuildDate();
 
-    void setProductUri(String productUri);
+    BaseDataVariableType getBuildDateNode();
 
-    void setManufacturerName(String manufacturerName);
-
-    void setProductName(String productName);
-
-    void setSoftwareVersion(String softwareVersion);
-
-    void setBuildNumber(String buildNumber);
-
-    void setBuildDate(DateTime buildDate);
-
+    void setBuildDate(DateTime value);
 }

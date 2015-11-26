@@ -21,117 +21,144 @@ package com.digitalpetri.opcua.sdk.server.model.variables;
 
 import java.util.Optional;
 
-import com.digitalpetri.opcua.sdk.core.model.UaMandatory;
-import com.digitalpetri.opcua.sdk.core.model.UaOptional;
 import com.digitalpetri.opcua.sdk.core.model.variables.TwoStateVariableType;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.util.UaVariableType;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableTypeNode;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.DateTime;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
-import com.digitalpetri.opcua.stack.core.types.builtin.Variant;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 
-@UaVariableType(name = "TwoStateVariableType")
+@com.digitalpetri.opcua.sdk.server.util.UaVariableNode(typeName = "0:TwoStateVariableType")
 public class TwoStateVariableNode extends StateVariableNode implements TwoStateVariableType {
 
-    public TwoStateVariableNode(UaNamespace namespace,
-                                NodeId nodeId,
-                                QualifiedName browseName,
-                                LocalizedText displayName,
-                                Optional<LocalizedText> description,
-                                Optional<UInteger> writeMask,
-                                Optional<UInteger> userWriteMask,
-                                DataValue value,
-                                NodeId dataType,
-                                Integer valueRank,
-                                Optional<UInteger[]> arrayDimensions,
-                                UByte accessLevel,
-                                UByte userAccessLevel,
-                                Optional<Double> minimumSamplingInterval,
-                                boolean historizing) {
+    public TwoStateVariableNode(
+            UaNodeManager nodeManager,
+            NodeId nodeId,
+            VariableTypeNode variableTypeNode) {
 
-        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(nodeManager, nodeId, variableTypeNode);
+    }
+
+    public TwoStateVariableNode(
+            UaNodeManager nodeManager,
+            NodeId nodeId,
+            QualifiedName browseName,
+            LocalizedText displayName,
+            Optional<LocalizedText> description,
+            Optional<UInteger> writeMask,
+            Optional<UInteger> userWriteMask,
+            DataValue value,
+            NodeId dataType,
+            Integer valueRank,
+            Optional<UInteger[]> arrayDimensions,
+            UByte accessLevel,
+            UByte userAccessLevel,
+            Optional<Double> minimumSamplingInterval,
+            boolean historizing) {
+
+        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
-
     }
 
+
     @Override
-    @UaMandatory("Id")
     public Boolean getId() {
-        Optional<Boolean> id = getProperty("Id");
+        Optional<Boolean> property = getProperty(TwoStateVariableType.ID);
 
-        return id.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    @UaOptional("TransitionTime")
+    public PropertyNode getIdNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(TwoStateVariableType.ID.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setId(Boolean value) {
+        setProperty(TwoStateVariableType.ID, value);
+    }
+
+    @Override
     public DateTime getTransitionTime() {
-        Optional<DateTime> transitionTime = getProperty("TransitionTime");
+        Optional<DateTime> property = getProperty(TwoStateVariableType.TRANSITION_TIME);
 
-        return transitionTime.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    @UaOptional("EffectiveTransitionTime")
+    public PropertyNode getTransitionTimeNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(TwoStateVariableType.TRANSITION_TIME.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setTransitionTime(DateTime value) {
+        setProperty(TwoStateVariableType.TRANSITION_TIME, value);
+    }
+
+    @Override
     public DateTime getEffectiveTransitionTime() {
-        Optional<DateTime> effectiveTransitionTime = getProperty("EffectiveTransitionTime");
+        Optional<DateTime> property = getProperty(TwoStateVariableType.EFFECTIVE_TRANSITION_TIME);
 
-        return effectiveTransitionTime.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    @UaOptional("TrueState")
+    public PropertyNode getEffectiveTransitionTimeNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(TwoStateVariableType.EFFECTIVE_TRANSITION_TIME.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setEffectiveTransitionTime(DateTime value) {
+        setProperty(TwoStateVariableType.EFFECTIVE_TRANSITION_TIME, value);
+    }
+
+    @Override
     public LocalizedText getTrueState() {
-        Optional<LocalizedText> trueState = getProperty("TrueState");
+        Optional<LocalizedText> property = getProperty(TwoStateVariableType.TRUE_STATE);
 
-        return trueState.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    @UaOptional("FalseState")
+    public PropertyNode getTrueStateNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(TwoStateVariableType.TRUE_STATE.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setTrueState(LocalizedText value) {
+        setProperty(TwoStateVariableType.TRUE_STATE, value);
+    }
+
+    @Override
     public LocalizedText getFalseState() {
-        Optional<LocalizedText> falseState = getProperty("FalseState");
+        Optional<LocalizedText> property = getProperty(TwoStateVariableType.FALSE_STATE);
 
-        return falseState.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    public synchronized void setId(Boolean id) {
-        getPropertyNode("Id").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(id)));
-        });
+    public PropertyNode getFalseStateNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(TwoStateVariableType.FALSE_STATE.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
     }
 
     @Override
-    public synchronized void setTransitionTime(DateTime transitionTime) {
-        getPropertyNode("TransitionTime").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(transitionTime)));
-        });
-    }
-
-    @Override
-    public synchronized void setEffectiveTransitionTime(DateTime effectiveTransitionTime) {
-        getPropertyNode("EffectiveTransitionTime").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(effectiveTransitionTime)));
-        });
-    }
-
-    @Override
-    public synchronized void setTrueState(LocalizedText trueState) {
-        getPropertyNode("TrueState").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(trueState)));
-        });
-    }
-
-    @Override
-    public synchronized void setFalseState(LocalizedText falseState) {
-        getPropertyNode("FalseState").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(falseState)));
-        });
+    public void setFalseState(LocalizedText value) {
+        setProperty(TwoStateVariableType.FALSE_STATE, value);
     }
 
 }

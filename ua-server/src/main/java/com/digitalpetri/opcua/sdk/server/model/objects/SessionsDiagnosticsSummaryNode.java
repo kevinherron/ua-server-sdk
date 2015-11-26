@@ -21,14 +21,11 @@ package com.digitalpetri.opcua.sdk.server.model.objects;
 
 import java.util.Optional;
 
-import com.digitalpetri.opcua.sdk.core.model.objects.SessionDiagnosticsObjectType;
 import com.digitalpetri.opcua.sdk.core.model.objects.SessionsDiagnosticsSummaryType;
-import com.digitalpetri.opcua.sdk.core.model.variables.SessionDiagnosticsArrayType;
-import com.digitalpetri.opcua.sdk.core.model.variables.SessionSecurityDiagnosticsArrayType;
-import com.digitalpetri.opcua.sdk.core.nodes.ObjectNode;
 import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.util.UaObjectType;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
+import com.digitalpetri.opcua.sdk.server.model.variables.SessionDiagnosticsArrayNode;
+import com.digitalpetri.opcua.sdk.server.model.variables.SessionSecurityDiagnosticsArrayNode;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
@@ -36,13 +33,14 @@ import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 import com.digitalpetri.opcua.stack.core.types.builtin.Variant;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
+import com.digitalpetri.opcua.stack.core.types.structured.SessionDiagnosticsDataType;
+import com.digitalpetri.opcua.stack.core.types.structured.SessionSecurityDiagnosticsDataType;
 
-
-@UaObjectType(name = "SessionsDiagnosticsSummaryType")
+@com.digitalpetri.opcua.sdk.server.util.UaObjectNode(typeName = "0:SessionsDiagnosticsSummaryType")
 public class SessionsDiagnosticsSummaryNode extends BaseObjectNode implements SessionsDiagnosticsSummaryType {
 
     public SessionsDiagnosticsSummaryNode(
-            UaNamespace namespace,
+            UaNodeManager nodeManager,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -51,36 +49,47 @@ public class SessionsDiagnosticsSummaryNode extends BaseObjectNode implements Se
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
-    public SessionDiagnosticsArrayType getSessionDiagnosticsArray() {
-        Optional<VariableNode> sessionDiagnosticsArray = getVariableComponent("SessionDiagnosticsArray");
+    @Override
+    public SessionDiagnosticsDataType[] getSessionDiagnosticsArray() {
+        Optional<VariableNode> component = getVariableComponent("SessionDiagnosticsArray");
 
-        return sessionDiagnosticsArray.map(node -> (SessionDiagnosticsArrayType) node).orElse(null);
+        return component.map(node -> (SessionDiagnosticsDataType[]) node.getValue().getValue().getValue()).orElse(null);
     }
 
-    public SessionSecurityDiagnosticsArrayType getSessionSecurityDiagnosticsArray() {
-        Optional<VariableNode> sessionSecurityDiagnosticsArray = getVariableComponent("SessionSecurityDiagnosticsArray");
+    @Override
+    public SessionDiagnosticsArrayNode getSessionDiagnosticsArrayNode() {
+        Optional<VariableNode> component = getVariableComponent("SessionDiagnosticsArray");
 
-        return sessionSecurityDiagnosticsArray.map(node -> (SessionSecurityDiagnosticsArrayType) node).orElse(null);
+        return component.map(node -> (SessionDiagnosticsArrayNode) node).orElse(null);
     }
 
-    public SessionDiagnosticsObjectType getSessionPlaceholder() {
-        Optional<ObjectNode> sessionPlaceholder = getObjectComponent("SessionPlaceholder");
-
-        return sessionPlaceholder.map(node -> (SessionDiagnosticsObjectType) node).orElse(null);
+    @Override
+    public void setSessionDiagnosticsArray(SessionDiagnosticsDataType[] value) {
+        getVariableComponent("SessionDiagnosticsArray")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
     }
 
-    public synchronized void setSessionDiagnosticsArray(SessionDiagnosticsArrayType sessionDiagnosticsArray) {
-        getVariableComponent("SessionDiagnosticsArray").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(sessionDiagnosticsArray)));
-        });
+    @Override
+    public SessionSecurityDiagnosticsDataType[] getSessionSecurityDiagnosticsArray() {
+        Optional<VariableNode> component = getVariableComponent("SessionSecurityDiagnosticsArray");
+
+        return component.map(node -> (SessionSecurityDiagnosticsDataType[]) node.getValue().getValue().getValue()).orElse(null);
     }
 
-    public synchronized void setSessionSecurityDiagnosticsArray(SessionSecurityDiagnosticsArrayType sessionSecurityDiagnosticsArray) {
-        getVariableComponent("SessionSecurityDiagnosticsArray").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(sessionSecurityDiagnosticsArray)));
-        });
+    @Override
+    public SessionSecurityDiagnosticsArrayNode getSessionSecurityDiagnosticsArrayNode() {
+        Optional<VariableNode> component = getVariableComponent("SessionSecurityDiagnosticsArray");
+
+        return component.map(node -> (SessionSecurityDiagnosticsArrayNode) node).orElse(null);
     }
+
+    @Override
+    public void setSessionSecurityDiagnosticsArray(SessionSecurityDiagnosticsDataType[] value) {
+        getVariableComponent("SessionSecurityDiagnosticsArray")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
+    }
+
 }

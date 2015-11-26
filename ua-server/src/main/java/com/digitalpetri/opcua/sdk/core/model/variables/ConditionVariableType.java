@@ -19,14 +19,26 @@
 
 package com.digitalpetri.opcua.sdk.core.model.variables;
 
-import com.digitalpetri.opcua.sdk.core.model.UaMandatory;
+import com.digitalpetri.opcua.sdk.server.model.Property;
 import com.digitalpetri.opcua.stack.core.types.builtin.DateTime;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
+
 
 public interface ConditionVariableType extends BaseDataVariableType {
 
-    @UaMandatory("SourceTimestamp")
+    Property<DateTime> SOURCE_TIMESTAMP = new Property.BasicProperty<>(
+            QualifiedName.parse("0:SourceTimestamp"),
+            NodeId.parse("ns=0;i=294"),
+            -1,
+            DateTime.class
+    );
+
+
     DateTime getSourceTimestamp();
 
-    void setSourceTimestamp(DateTime sourceTimestamp);
+    PropertyType getSourceTimestampNode();
+
+    void setSourceTimestamp(DateTime value);
 
 }

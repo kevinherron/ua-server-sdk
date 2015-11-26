@@ -19,8 +19,8 @@
 
 package com.digitalpetri.opcua.sdk.server.api;
 
-import com.digitalpetri.opcua.sdk.server.UaNodeManager;
+public interface UaNamespace extends Namespace, UaNodeManager {
 
-public interface UaNamespace extends Namespace, UaNodeManager.UaNodeSource {
+
 
 }

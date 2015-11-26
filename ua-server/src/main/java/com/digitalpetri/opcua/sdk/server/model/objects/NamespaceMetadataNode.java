@@ -21,27 +21,24 @@ package com.digitalpetri.opcua.sdk.server.model.objects;
 
 import java.util.Optional;
 
-import com.digitalpetri.opcua.sdk.core.model.objects.AddressSpaceFileType;
 import com.digitalpetri.opcua.sdk.core.model.objects.NamespaceMetadataType;
 import com.digitalpetri.opcua.sdk.core.nodes.ObjectNode;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.util.UaObjectType;
-import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
+import com.digitalpetri.opcua.sdk.server.model.variables.PropertyNode;
 import com.digitalpetri.opcua.stack.core.types.builtin.DateTime;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
-import com.digitalpetri.opcua.stack.core.types.builtin.Variant;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.digitalpetri.opcua.stack.core.types.enumerated.IdType;
 
-
-@UaObjectType(name = "NamespaceMetadataType")
+@com.digitalpetri.opcua.sdk.server.util.UaObjectNode(typeName = "0:NamespaceMetadataType")
 public class NamespaceMetadataNode extends BaseObjectNode implements NamespaceMetadataType {
 
     public NamespaceMetadataNode(
-            UaNamespace namespace,
+            UaNodeManager nodeManager,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -50,110 +47,147 @@ public class NamespaceMetadataNode extends BaseObjectNode implements NamespaceMe
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
+    @Override
     public String getNamespaceUri() {
-        Optional<String> namespaceUri = getProperty("NamespaceUri");
+        Optional<String> property = getProperty(NamespaceMetadataType.NAMESPACE_URI);
 
-        return namespaceUri.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getNamespaceUriNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(NamespaceMetadataType.NAMESPACE_URI.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setNamespaceUri(String value) {
+        setProperty(NamespaceMetadataType.NAMESPACE_URI, value);
+    }
+
+    @Override
     public String getNamespaceVersion() {
-        Optional<String> namespaceVersion = getProperty("NamespaceVersion");
+        Optional<String> property = getProperty(NamespaceMetadataType.NAMESPACE_VERSION);
 
-        return namespaceVersion.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getNamespaceVersionNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(NamespaceMetadataType.NAMESPACE_VERSION.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setNamespaceVersion(String value) {
+        setProperty(NamespaceMetadataType.NAMESPACE_VERSION, value);
+    }
+
+    @Override
     public DateTime getNamespacePublicationDate() {
-        Optional<DateTime> namespacePublicationDate = getProperty("NamespacePublicationDate");
+        Optional<DateTime> property = getProperty(NamespaceMetadataType.NAMESPACE_PUBLICATION_DATE);
 
-        return namespacePublicationDate.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getNamespacePublicationDateNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(NamespaceMetadataType.NAMESPACE_PUBLICATION_DATE.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setNamespacePublicationDate(DateTime value) {
+        setProperty(NamespaceMetadataType.NAMESPACE_PUBLICATION_DATE, value);
+    }
+
+    @Override
     public Boolean getIsNamespaceSubset() {
-        Optional<Boolean> isNamespaceSubset = getProperty("IsNamespaceSubset");
+        Optional<Boolean> property = getProperty(NamespaceMetadataType.IS_NAMESPACE_SUBSET);
 
-        return isNamespaceSubset.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getIsNamespaceSubsetNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(NamespaceMetadataType.IS_NAMESPACE_SUBSET.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setIsNamespaceSubset(Boolean value) {
+        setProperty(NamespaceMetadataType.IS_NAMESPACE_SUBSET, value);
+    }
+
+    @Override
     public IdType[] getStaticNodeIdIdentifierTypes() {
-        Optional<Integer[]> staticNodeIdIdentifierTypes = getProperty("StaticNodeIdIdentifierTypes");
+        Optional<IdType[]> property = getProperty(NamespaceMetadataType.STATIC_NODE_ID_IDENTIFIER_TYPES);
 
-        return staticNodeIdIdentifierTypes.map(values -> {
-            IdType[] staticNodeIdentifierTypes = new IdType[values.length];
-            for (int i = 0; i < values.length; i++) {
-                staticNodeIdentifierTypes[i] = IdType.from(values[i]);
-            }
-            return staticNodeIdentifierTypes;
-        }).orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getStaticNodeIdIdentifierTypesNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(NamespaceMetadataType.STATIC_NODE_ID_IDENTIFIER_TYPES.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setStaticNodeIdIdentifierTypes(IdType[] value) {
+        setProperty(NamespaceMetadataType.STATIC_NODE_ID_IDENTIFIER_TYPES, value);
+    }
+
+    @Override
     public String[] getStaticNumericNodeIdRange() {
-        Optional<String[]> staticNumericNodeIdRange = getProperty("StaticNumericNodeIdRange");
+        Optional<String[]> property = getProperty(NamespaceMetadataType.STATIC_NUMERIC_NODE_ID_RANGE);
 
-        return staticNumericNodeIdRange.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getStaticNumericNodeIdRangeNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(NamespaceMetadataType.STATIC_NUMERIC_NODE_ID_RANGE.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setStaticNumericNodeIdRange(String[] value) {
+        setProperty(NamespaceMetadataType.STATIC_NUMERIC_NODE_ID_RANGE, value);
+    }
+
+    @Override
     public String[] getStaticStringNodeIdPattern() {
-        Optional<String[]> staticStringNodeIdPattern = getProperty("StaticStringNodeIdPattern");
+        Optional<String[]> property = getProperty(NamespaceMetadataType.STATIC_STRING_NODE_ID_PATTERN);
 
-        return staticStringNodeIdPattern.orElse(null);
+        return property.orElse(null);
     }
 
-    public AddressSpaceFileType getNamespaceFile() {
-        Optional<ObjectNode> namespaceFile = getObjectComponent("NamespaceFile");
+    @Override
+    public PropertyNode getStaticStringNodeIdPatternNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(NamespaceMetadataType.STATIC_STRING_NODE_ID_PATTERN.getBrowseName());
 
-        return namespaceFile.map(node -> (AddressSpaceFileType) node).orElse(null);
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
     }
 
-    public synchronized void setNamespaceUri(String namespaceUri) {
-        getPropertyNode("NamespaceUri").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(namespaceUri)));
-        });
+    @Override
+    public void setStaticStringNodeIdPattern(String[] value) {
+        setProperty(NamespaceMetadataType.STATIC_STRING_NODE_ID_PATTERN, value);
     }
 
-    public synchronized void setNamespaceVersion(String namespaceVersion) {
-        getPropertyNode("NamespaceVersion").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(namespaceVersion)));
-        });
+    @Override
+    public AddressSpaceFileNode getNamespaceFileNode() {
+        Optional<ObjectNode> component = getObjectComponent("NamespaceFile");
+
+        return component.map(node -> (AddressSpaceFileNode) node).orElse(null);
     }
 
-    public synchronized void setNamespacePublicationDate(DateTime namespacePublicationDate) {
-        getPropertyNode("NamespacePublicationDate").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(namespacePublicationDate)));
-        });
-    }
-
-    public synchronized void setIsNamespaceSubset(Boolean isNamespaceSubset) {
-        getPropertyNode("IsNamespaceSubset").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(isNamespaceSubset)));
-        });
-    }
-
-    public synchronized void setStaticNodeIdIdentifierTypes(IdType[] staticNodeIdIdentifierTypes) {
-        getPropertyNode("StaticNodeIdIdentifierTypes").ifPresent(n -> {
-            if (staticNodeIdIdentifierTypes != null) {
-                Integer[] values = new Integer[staticNodeIdIdentifierTypes.length];
-                for (int i = 0; i < values.length; i++) {
-                    values[i] = staticNodeIdIdentifierTypes[i].getValue();
-                }
-                n.setValue(new DataValue(new Variant(values)));
-            } else {
-                n.setValue(new DataValue(new Variant(new Integer[0])));
-            }
-        });
-    }
-
-    public synchronized void setStaticNumericNodeIdRange(String[] staticNumericNodeIdRange) {
-        getPropertyNode("StaticNumericNodeIdRange").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(staticNumericNodeIdRange)));
-        });
-    }
-
-    public synchronized void setStaticStringNodeIdPattern(String[] staticStringNodeIdPattern) {
-        getPropertyNode("StaticStringNodeIdPattern").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(staticStringNodeIdPattern)));
-        });
-    }
 }

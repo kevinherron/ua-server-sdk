@@ -21,86 +21,106 @@ package com.digitalpetri.opcua.sdk.server.model.variables;
 
 import java.util.Optional;
 
-import com.digitalpetri.opcua.sdk.core.model.UaMandatory;
 import com.digitalpetri.opcua.sdk.core.model.variables.CubeItemType;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.util.UaVariableType;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableTypeNode;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
-import com.digitalpetri.opcua.stack.core.types.builtin.Variant;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.digitalpetri.opcua.stack.core.types.structured.AxisInformation;
 
-@UaVariableType(name = "CubeItemType")
+@com.digitalpetri.opcua.sdk.server.util.UaVariableNode(typeName = "0:CubeItemType")
 public class CubeItemNode extends ArrayItemNode implements CubeItemType {
 
-    public CubeItemNode(UaNamespace namespace,
-                        NodeId nodeId,
-                        QualifiedName browseName,
-                        LocalizedText displayName,
-                        Optional<LocalizedText> description,
-                        Optional<UInteger> writeMask,
-                        Optional<UInteger> userWriteMask,
-                        DataValue value,
-                        NodeId dataType,
-                        Integer valueRank,
-                        Optional<UInteger[]> arrayDimensions,
-                        UByte accessLevel,
-                        UByte userAccessLevel,
-                        Optional<Double> minimumSamplingInterval,
-                        boolean historizing) {
+    public CubeItemNode(
+            UaNodeManager nodeManager,
+            NodeId nodeId,
+            VariableTypeNode variableTypeNode) {
 
-        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(nodeManager, nodeId, variableTypeNode);
+    }
+
+    public CubeItemNode(
+            UaNodeManager nodeManager,
+            NodeId nodeId,
+            QualifiedName browseName,
+            LocalizedText displayName,
+            Optional<LocalizedText> description,
+            Optional<UInteger> writeMask,
+            Optional<UInteger> userWriteMask,
+            DataValue value,
+            NodeId dataType,
+            Integer valueRank,
+            Optional<UInteger[]> arrayDimensions,
+            UByte accessLevel,
+            UByte userAccessLevel,
+            Optional<Double> minimumSamplingInterval,
+            boolean historizing) {
+
+        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
-
     }
 
+
     @Override
-    @UaMandatory("XAxisDefinition")
     public AxisInformation getXAxisDefinition() {
-        Optional<AxisInformation> xAxisDefinition = getProperty("XAxisDefinition");
+        Optional<AxisInformation> property = getProperty(CubeItemType.X_AXIS_DEFINITION);
 
-        return xAxisDefinition.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    @UaMandatory("YAxisDefinition")
+    public PropertyNode getXAxisDefinitionNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(CubeItemType.X_AXIS_DEFINITION.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setXAxisDefinition(AxisInformation value) {
+        setProperty(CubeItemType.X_AXIS_DEFINITION, value);
+    }
+
+    @Override
     public AxisInformation getYAxisDefinition() {
-        Optional<AxisInformation> yAxisDefinition = getProperty("YAxisDefinition");
+        Optional<AxisInformation> property = getProperty(CubeItemType.Y_AXIS_DEFINITION);
 
-        return yAxisDefinition.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    @UaMandatory("ZAxisDefinition")
+    public PropertyNode getYAxisDefinitionNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(CubeItemType.Y_AXIS_DEFINITION.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setYAxisDefinition(AxisInformation value) {
+        setProperty(CubeItemType.Y_AXIS_DEFINITION, value);
+    }
+
+    @Override
     public AxisInformation getZAxisDefinition() {
-        Optional<AxisInformation> zAxisDefinition = getProperty("ZAxisDefinition");
+        Optional<AxisInformation> property = getProperty(CubeItemType.Z_AXIS_DEFINITION);
 
-        return zAxisDefinition.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    public synchronized void setXAxisDefinition(AxisInformation xAxisDefinition) {
-        getPropertyNode("XAxisDefinition").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(xAxisDefinition)));
-        });
+    public PropertyNode getZAxisDefinitionNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(CubeItemType.Z_AXIS_DEFINITION.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
     }
 
     @Override
-    public synchronized void setYAxisDefinition(AxisInformation yAxisDefinition) {
-        getPropertyNode("YAxisDefinition").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(yAxisDefinition)));
-        });
-    }
-
-    @Override
-    public synchronized void setZAxisDefinition(AxisInformation zAxisDefinition) {
-        getPropertyNode("ZAxisDefinition").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(zAxisDefinition)));
-        });
+    public void setZAxisDefinition(AxisInformation value) {
+        setProperty(CubeItemType.Z_AXIS_DEFINITION, value);
     }
 
 }

@@ -21,28 +21,24 @@ package com.digitalpetri.opcua.sdk.server.model.objects;
 
 import java.util.Optional;
 
-import com.digitalpetri.opcua.sdk.core.model.objects.AggregateConfigurationType;
-import com.digitalpetri.opcua.sdk.core.model.objects.FolderType;
 import com.digitalpetri.opcua.sdk.core.model.objects.HistoricalDataConfigurationType;
 import com.digitalpetri.opcua.sdk.core.nodes.ObjectNode;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.util.UaObjectType;
-import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
+import com.digitalpetri.opcua.sdk.server.model.variables.PropertyNode;
 import com.digitalpetri.opcua.stack.core.types.builtin.DateTime;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
-import com.digitalpetri.opcua.stack.core.types.builtin.Variant;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.digitalpetri.opcua.stack.core.types.enumerated.ExceptionDeviationFormat;
 
-
-@UaObjectType(name = "HistoricalDataConfigurationType")
+@com.digitalpetri.opcua.sdk.server.util.UaObjectNode(typeName = "0:HistoricalDataConfigurationType")
 public class HistoricalDataConfigurationNode extends BaseObjectNode implements HistoricalDataConfigurationType {
 
     public HistoricalDataConfigurationNode(
-            UaNamespace namespace,
+            UaNodeManager nodeManager,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -51,116 +47,173 @@ public class HistoricalDataConfigurationNode extends BaseObjectNode implements H
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
-    public AggregateConfigurationType getAggregateConfiguration() {
-        Optional<ObjectNode> aggregateConfiguration = getObjectComponent("AggregateConfiguration");
-
-        return aggregateConfiguration.map(node -> (AggregateConfigurationType) node).orElse(null);
-    }
-
-    public FolderType getAggregateFunctions() {
-        Optional<ObjectNode> aggregateFunctions = getObjectComponent("AggregateFunctions");
-
-        return aggregateFunctions.map(node -> (FolderType) node).orElse(null);
-    }
-
+    @Override
     public Boolean getStepped() {
-        Optional<Boolean> stepped = getProperty("Stepped");
+        Optional<Boolean> property = getProperty(HistoricalDataConfigurationType.STEPPED);
 
-        return stepped.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getSteppedNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(HistoricalDataConfigurationType.STEPPED.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setStepped(Boolean value) {
+        setProperty(HistoricalDataConfigurationType.STEPPED, value);
+    }
+
+    @Override
     public String getDefinition() {
-        Optional<String> definition = getProperty("Definition");
+        Optional<String> property = getProperty(HistoricalDataConfigurationType.DEFINITION);
 
-        return definition.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getDefinitionNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(HistoricalDataConfigurationType.DEFINITION.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setDefinition(String value) {
+        setProperty(HistoricalDataConfigurationType.DEFINITION, value);
+    }
+
+    @Override
     public Double getMaxTimeInterval() {
-        Optional<Double> maxTimeInterval = getProperty("MaxTimeInterval");
+        Optional<Double> property = getProperty(HistoricalDataConfigurationType.MAX_TIME_INTERVAL);
 
-        return maxTimeInterval.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getMaxTimeIntervalNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(HistoricalDataConfigurationType.MAX_TIME_INTERVAL.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setMaxTimeInterval(Double value) {
+        setProperty(HistoricalDataConfigurationType.MAX_TIME_INTERVAL, value);
+    }
+
+    @Override
     public Double getMinTimeInterval() {
-        Optional<Double> minTimeInterval = getProperty("MinTimeInterval");
+        Optional<Double> property = getProperty(HistoricalDataConfigurationType.MIN_TIME_INTERVAL);
 
-        return minTimeInterval.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getMinTimeIntervalNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(HistoricalDataConfigurationType.MIN_TIME_INTERVAL.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setMinTimeInterval(Double value) {
+        setProperty(HistoricalDataConfigurationType.MIN_TIME_INTERVAL, value);
+    }
+
+    @Override
     public Double getExceptionDeviation() {
-        Optional<Double> exceptionDeviation = getProperty("ExceptionDeviation");
+        Optional<Double> property = getProperty(HistoricalDataConfigurationType.EXCEPTION_DEVIATION);
 
-        return exceptionDeviation.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getExceptionDeviationNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(HistoricalDataConfigurationType.EXCEPTION_DEVIATION.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setExceptionDeviation(Double value) {
+        setProperty(HistoricalDataConfigurationType.EXCEPTION_DEVIATION, value);
+    }
+
+    @Override
     public ExceptionDeviationFormat getExceptionDeviationFormat() {
-        Optional<Integer> exceptionDeviationFormat = getProperty("ExceptionDeviationFormat");
+        Optional<ExceptionDeviationFormat> property = getProperty(HistoricalDataConfigurationType.EXCEPTION_DEVIATION_FORMAT);
 
-        return exceptionDeviationFormat.map(ExceptionDeviationFormat::from).orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getExceptionDeviationFormatNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(HistoricalDataConfigurationType.EXCEPTION_DEVIATION_FORMAT.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setExceptionDeviationFormat(ExceptionDeviationFormat value) {
+        setProperty(HistoricalDataConfigurationType.EXCEPTION_DEVIATION_FORMAT, value);
+    }
+
+    @Override
     public DateTime getStartOfArchive() {
-        Optional<DateTime> startOfArchive = getProperty("StartOfArchive");
+        Optional<DateTime> property = getProperty(HistoricalDataConfigurationType.START_OF_ARCHIVE);
 
-        return startOfArchive.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getStartOfArchiveNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(HistoricalDataConfigurationType.START_OF_ARCHIVE.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setStartOfArchive(DateTime value) {
+        setProperty(HistoricalDataConfigurationType.START_OF_ARCHIVE, value);
+    }
+
+    @Override
     public DateTime getStartOfOnlineArchive() {
-        Optional<DateTime> startOfOnlineArchive = getProperty("StartOfOnlineArchive");
+        Optional<DateTime> property = getProperty(HistoricalDataConfigurationType.START_OF_ONLINE_ARCHIVE);
 
-        return startOfOnlineArchive.orElse(null);
+        return property.orElse(null);
     }
 
-    public synchronized void setStepped(Boolean stepped) {
-        getPropertyNode("Stepped").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(stepped)));
-        });
+    @Override
+    public PropertyNode getStartOfOnlineArchiveNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(HistoricalDataConfigurationType.START_OF_ONLINE_ARCHIVE.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
     }
 
-    public synchronized void setDefinition(String definition) {
-        getPropertyNode("Definition").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(definition)));
-        });
+    @Override
+    public void setStartOfOnlineArchive(DateTime value) {
+        setProperty(HistoricalDataConfigurationType.START_OF_ONLINE_ARCHIVE, value);
     }
 
-    public synchronized void setMaxTimeInterval(Double maxTimeInterval) {
-        getPropertyNode("MaxTimeInterval").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(maxTimeInterval)));
-        });
+    @Override
+    public AggregateConfigurationNode getAggregateConfigurationNode() {
+        Optional<ObjectNode> component = getObjectComponent("AggregateConfiguration");
+
+        return component.map(node -> (AggregateConfigurationNode) node).orElse(null);
     }
 
-    public synchronized void setMinTimeInterval(Double minTimeInterval) {
-        getPropertyNode("MinTimeInterval").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(minTimeInterval)));
-        });
+    @Override
+    public FolderNode getAggregateFunctionsNode() {
+        Optional<ObjectNode> component = getObjectComponent("AggregateFunctions");
+
+        return component.map(node -> (FolderNode) node).orElse(null);
     }
 
-    public synchronized void setExceptionDeviation(Double exceptionDeviation) {
-        getPropertyNode("ExceptionDeviation").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(exceptionDeviation)));
-        });
-    }
-
-    public synchronized void setExceptionDeviationFormat(ExceptionDeviationFormat exceptionDeviationFormat) {
-        getPropertyNode("ExceptionDeviationFormat").ifPresent(n -> {
-            Integer value = exceptionDeviationFormat.getValue();
-
-            n.setValue(new DataValue(new Variant(value)));
-        });
-    }
-
-    public synchronized void setStartOfArchive(DateTime startOfArchive) {
-        getPropertyNode("StartOfArchive").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(startOfArchive)));
-        });
-    }
-
-    public synchronized void setStartOfOnlineArchive(DateTime startOfOnlineArchive) {
-        getPropertyNode("StartOfOnlineArchive").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(startOfOnlineArchive)));
-        });
-    }
 }

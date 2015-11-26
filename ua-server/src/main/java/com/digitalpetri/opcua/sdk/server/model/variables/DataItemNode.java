@@ -21,70 +21,86 @@ package com.digitalpetri.opcua.sdk.server.model.variables;
 
 import java.util.Optional;
 
-import com.digitalpetri.opcua.sdk.core.model.UaOptional;
 import com.digitalpetri.opcua.sdk.core.model.variables.DataItemType;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.util.UaVariableType;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableTypeNode;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
-import com.digitalpetri.opcua.stack.core.types.builtin.Variant;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 
-@UaVariableType(name = "DataItemType")
+@com.digitalpetri.opcua.sdk.server.util.UaVariableNode(typeName = "0:DataItemType")
 public class DataItemNode extends BaseDataVariableNode implements DataItemType {
 
-    public DataItemNode(UaNamespace namespace,
-                        NodeId nodeId,
-                        QualifiedName browseName,
-                        LocalizedText displayName,
-                        Optional<LocalizedText> description,
-                        Optional<UInteger> writeMask,
-                        Optional<UInteger> userWriteMask,
-                        DataValue value,
-                        NodeId dataType,
-                        Integer valueRank,
-                        Optional<UInteger[]> arrayDimensions,
-                        UByte accessLevel,
-                        UByte userAccessLevel,
-                        Optional<Double> minimumSamplingInterval,
-                        boolean historizing) {
+    public DataItemNode(
+            UaNodeManager nodeManager,
+            NodeId nodeId,
+            VariableTypeNode variableTypeNode) {
 
-        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(nodeManager, nodeId, variableTypeNode);
+    }
+
+    public DataItemNode(
+            UaNodeManager nodeManager,
+            NodeId nodeId,
+            QualifiedName browseName,
+            LocalizedText displayName,
+            Optional<LocalizedText> description,
+            Optional<UInteger> writeMask,
+            Optional<UInteger> userWriteMask,
+            DataValue value,
+            NodeId dataType,
+            Integer valueRank,
+            Optional<UInteger[]> arrayDimensions,
+            UByte accessLevel,
+            UByte userAccessLevel,
+            Optional<Double> minimumSamplingInterval,
+            boolean historizing) {
+
+        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
-
     }
 
+
     @Override
-    @UaOptional("Definition")
     public String getDefinition() {
-        Optional<String> definition = getProperty("Definition");
+        Optional<String> property = getProperty(DataItemType.DEFINITION);
 
-        return definition.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    @UaOptional("ValuePrecision")
+    public PropertyNode getDefinitionNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(DataItemType.DEFINITION.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setDefinition(String value) {
+        setProperty(DataItemType.DEFINITION, value);
+    }
+
+    @Override
     public Double getValuePrecision() {
-        Optional<Double> valuePrecision = getProperty("ValuePrecision");
+        Optional<Double> property = getProperty(DataItemType.VALUE_PRECISION);
 
-        return valuePrecision.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    public synchronized void setDefinition(String definition) {
-        getPropertyNode("Definition").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(definition)));
-        });
+    public PropertyNode getValuePrecisionNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(DataItemType.VALUE_PRECISION.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
     }
 
     @Override
-    public synchronized void setValuePrecision(Double valuePrecision) {
-        getPropertyNode("ValuePrecision").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(valuePrecision)));
-        });
+    public void setValuePrecision(Double value) {
+        setProperty(DataItemType.VALUE_PRECISION, value);
     }
 
 }

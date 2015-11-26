@@ -22,14 +22,27 @@ package com.digitalpetri.opcua.sdk.core.model.objects;
 import com.digitalpetri.opcua.sdk.core.model.variables.SessionDiagnosticsVariableType;
 import com.digitalpetri.opcua.sdk.core.model.variables.SessionSecurityDiagnosticsType;
 import com.digitalpetri.opcua.sdk.core.model.variables.SubscriptionDiagnosticsArrayType;
+import com.digitalpetri.opcua.stack.core.types.structured.SessionDiagnosticsDataType;
+import com.digitalpetri.opcua.stack.core.types.structured.SessionSecurityDiagnosticsDataType;
+import com.digitalpetri.opcua.stack.core.types.structured.SubscriptionDiagnosticsDataType;
 
 public interface SessionDiagnosticsObjectType extends BaseObjectType {
 
-    SessionDiagnosticsVariableType getSessionDiagnostics();
+    SessionDiagnosticsDataType getSessionDiagnostics();
 
-    SessionSecurityDiagnosticsType getSessionSecurityDiagnostics();
+    SessionDiagnosticsVariableType getSessionDiagnosticsNode();
 
-    SubscriptionDiagnosticsArrayType getSubscriptionDiagnosticsArray();
+    void setSessionDiagnostics(SessionDiagnosticsDataType value);
 
+    SessionSecurityDiagnosticsDataType getSessionSecurityDiagnostics();
 
+    SessionSecurityDiagnosticsType getSessionSecurityDiagnosticsNode();
+
+    void setSessionSecurityDiagnostics(SessionSecurityDiagnosticsDataType value);
+
+    SubscriptionDiagnosticsDataType[] getSubscriptionDiagnosticsArray();
+
+    SubscriptionDiagnosticsArrayType getSubscriptionDiagnosticsArrayNode();
+
+    void setSubscriptionDiagnosticsArray(SubscriptionDiagnosticsDataType[] value);
 }

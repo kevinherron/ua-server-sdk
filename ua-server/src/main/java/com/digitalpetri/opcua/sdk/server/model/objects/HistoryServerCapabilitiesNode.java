@@ -21,25 +21,22 @@ package com.digitalpetri.opcua.sdk.server.model.objects;
 
 import java.util.Optional;
 
-import com.digitalpetri.opcua.sdk.core.model.objects.FolderType;
 import com.digitalpetri.opcua.sdk.core.model.objects.HistoryServerCapabilitiesType;
 import com.digitalpetri.opcua.sdk.core.nodes.ObjectNode;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.util.UaObjectType;
-import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
+import com.digitalpetri.opcua.sdk.server.model.variables.PropertyNode;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
-import com.digitalpetri.opcua.stack.core.types.builtin.Variant;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 
-
-@UaObjectType(name = "HistoryServerCapabilitiesType")
+@com.digitalpetri.opcua.sdk.server.util.UaObjectNode(typeName = "0:HistoryServerCapabilitiesType")
 public class HistoryServerCapabilitiesNode extends BaseObjectNode implements HistoryServerCapabilitiesType {
 
     public HistoryServerCapabilitiesNode(
-            UaNamespace namespace,
+            UaNodeManager nodeManager,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -48,180 +45,280 @@ public class HistoryServerCapabilitiesNode extends BaseObjectNode implements His
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
+    @Override
     public Boolean getAccessHistoryDataCapability() {
-        Optional<Boolean> accessHistoryDataCapability = getProperty("AccessHistoryDataCapability");
+        Optional<Boolean> property = getProperty(HistoryServerCapabilitiesType.ACCESS_HISTORY_DATA_CAPABILITY);
 
-        return accessHistoryDataCapability.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getAccessHistoryDataCapabilityNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(HistoryServerCapabilitiesType.ACCESS_HISTORY_DATA_CAPABILITY.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setAccessHistoryDataCapability(Boolean value) {
+        setProperty(HistoryServerCapabilitiesType.ACCESS_HISTORY_DATA_CAPABILITY, value);
+    }
+
+    @Override
     public Boolean getAccessHistoryEventsCapability() {
-        Optional<Boolean> accessHistoryEventsCapability = getProperty("AccessHistoryEventsCapability");
+        Optional<Boolean> property = getProperty(HistoryServerCapabilitiesType.ACCESS_HISTORY_EVENTS_CAPABILITY);
 
-        return accessHistoryEventsCapability.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getAccessHistoryEventsCapabilityNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(HistoryServerCapabilitiesType.ACCESS_HISTORY_EVENTS_CAPABILITY.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setAccessHistoryEventsCapability(Boolean value) {
+        setProperty(HistoryServerCapabilitiesType.ACCESS_HISTORY_EVENTS_CAPABILITY, value);
+    }
+
+    @Override
     public UInteger getMaxReturnDataValues() {
-        Optional<UInteger> maxReturnDataValues = getProperty("MaxReturnDataValues");
+        Optional<UInteger> property = getProperty(HistoryServerCapabilitiesType.MAX_RETURN_DATA_VALUES);
 
-        return maxReturnDataValues.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getMaxReturnDataValuesNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(HistoryServerCapabilitiesType.MAX_RETURN_DATA_VALUES.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setMaxReturnDataValues(UInteger value) {
+        setProperty(HistoryServerCapabilitiesType.MAX_RETURN_DATA_VALUES, value);
+    }
+
+    @Override
     public UInteger getMaxReturnEventValues() {
-        Optional<UInteger> maxReturnEventValues = getProperty("MaxReturnEventValues");
+        Optional<UInteger> property = getProperty(HistoryServerCapabilitiesType.MAX_RETURN_EVENT_VALUES);
 
-        return maxReturnEventValues.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getMaxReturnEventValuesNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(HistoryServerCapabilitiesType.MAX_RETURN_EVENT_VALUES.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setMaxReturnEventValues(UInteger value) {
+        setProperty(HistoryServerCapabilitiesType.MAX_RETURN_EVENT_VALUES, value);
+    }
+
+    @Override
     public Boolean getInsertDataCapability() {
-        Optional<Boolean> insertDataCapability = getProperty("InsertDataCapability");
+        Optional<Boolean> property = getProperty(HistoryServerCapabilitiesType.INSERT_DATA_CAPABILITY);
 
-        return insertDataCapability.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getInsertDataCapabilityNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(HistoryServerCapabilitiesType.INSERT_DATA_CAPABILITY.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setInsertDataCapability(Boolean value) {
+        setProperty(HistoryServerCapabilitiesType.INSERT_DATA_CAPABILITY, value);
+    }
+
+    @Override
     public Boolean getReplaceDataCapability() {
-        Optional<Boolean> replaceDataCapability = getProperty("ReplaceDataCapability");
+        Optional<Boolean> property = getProperty(HistoryServerCapabilitiesType.REPLACE_DATA_CAPABILITY);
 
-        return replaceDataCapability.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getReplaceDataCapabilityNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(HistoryServerCapabilitiesType.REPLACE_DATA_CAPABILITY.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setReplaceDataCapability(Boolean value) {
+        setProperty(HistoryServerCapabilitiesType.REPLACE_DATA_CAPABILITY, value);
+    }
+
+    @Override
     public Boolean getUpdateDataCapability() {
-        Optional<Boolean> updateDataCapability = getProperty("UpdateDataCapability");
+        Optional<Boolean> property = getProperty(HistoryServerCapabilitiesType.UPDATE_DATA_CAPABILITY);
 
-        return updateDataCapability.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getUpdateDataCapabilityNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(HistoryServerCapabilitiesType.UPDATE_DATA_CAPABILITY.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setUpdateDataCapability(Boolean value) {
+        setProperty(HistoryServerCapabilitiesType.UPDATE_DATA_CAPABILITY, value);
+    }
+
+    @Override
     public Boolean getDeleteRawCapability() {
-        Optional<Boolean> deleteRawCapability = getProperty("DeleteRawCapability");
+        Optional<Boolean> property = getProperty(HistoryServerCapabilitiesType.DELETE_RAW_CAPABILITY);
 
-        return deleteRawCapability.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getDeleteRawCapabilityNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(HistoryServerCapabilitiesType.DELETE_RAW_CAPABILITY.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setDeleteRawCapability(Boolean value) {
+        setProperty(HistoryServerCapabilitiesType.DELETE_RAW_CAPABILITY, value);
+    }
+
+    @Override
     public Boolean getDeleteAtTimeCapability() {
-        Optional<Boolean> deleteAtTimeCapability = getProperty("DeleteAtTimeCapability");
+        Optional<Boolean> property = getProperty(HistoryServerCapabilitiesType.DELETE_AT_TIME_CAPABILITY);
 
-        return deleteAtTimeCapability.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getDeleteAtTimeCapabilityNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(HistoryServerCapabilitiesType.DELETE_AT_TIME_CAPABILITY.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setDeleteAtTimeCapability(Boolean value) {
+        setProperty(HistoryServerCapabilitiesType.DELETE_AT_TIME_CAPABILITY, value);
+    }
+
+    @Override
     public Boolean getInsertEventCapability() {
-        Optional<Boolean> insertEventCapability = getProperty("InsertEventCapability");
+        Optional<Boolean> property = getProperty(HistoryServerCapabilitiesType.INSERT_EVENT_CAPABILITY);
 
-        return insertEventCapability.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getInsertEventCapabilityNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(HistoryServerCapabilitiesType.INSERT_EVENT_CAPABILITY.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setInsertEventCapability(Boolean value) {
+        setProperty(HistoryServerCapabilitiesType.INSERT_EVENT_CAPABILITY, value);
+    }
+
+    @Override
     public Boolean getReplaceEventCapability() {
-        Optional<Boolean> replaceEventCapability = getProperty("ReplaceEventCapability");
+        Optional<Boolean> property = getProperty(HistoryServerCapabilitiesType.REPLACE_EVENT_CAPABILITY);
 
-        return replaceEventCapability.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getReplaceEventCapabilityNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(HistoryServerCapabilitiesType.REPLACE_EVENT_CAPABILITY.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setReplaceEventCapability(Boolean value) {
+        setProperty(HistoryServerCapabilitiesType.REPLACE_EVENT_CAPABILITY, value);
+    }
+
+    @Override
     public Boolean getUpdateEventCapability() {
-        Optional<Boolean> updateEventCapability = getProperty("UpdateEventCapability");
+        Optional<Boolean> property = getProperty(HistoryServerCapabilitiesType.UPDATE_EVENT_CAPABILITY);
 
-        return updateEventCapability.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getUpdateEventCapabilityNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(HistoryServerCapabilitiesType.UPDATE_EVENT_CAPABILITY.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setUpdateEventCapability(Boolean value) {
+        setProperty(HistoryServerCapabilitiesType.UPDATE_EVENT_CAPABILITY, value);
+    }
+
+    @Override
     public Boolean getDeleteEventCapability() {
-        Optional<Boolean> deleteEventCapability = getProperty("DeleteEventCapability");
+        Optional<Boolean> property = getProperty(HistoryServerCapabilitiesType.DELETE_EVENT_CAPABILITY);
 
-        return deleteEventCapability.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getDeleteEventCapabilityNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(HistoryServerCapabilitiesType.DELETE_EVENT_CAPABILITY.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setDeleteEventCapability(Boolean value) {
+        setProperty(HistoryServerCapabilitiesType.DELETE_EVENT_CAPABILITY, value);
+    }
+
+    @Override
     public Boolean getInsertAnnotationCapability() {
-        Optional<Boolean> insertAnnotationCapability = getProperty("InsertAnnotationCapability");
+        Optional<Boolean> property = getProperty(HistoryServerCapabilitiesType.INSERT_ANNOTATION_CAPABILITY);
 
-        return insertAnnotationCapability.orElse(null);
+        return property.orElse(null);
     }
 
-    public FolderType getAggregateFunctions() {
-        Optional<ObjectNode> aggregateFunctions = getObjectComponent("AggregateFunctions");
+    @Override
+    public PropertyNode getInsertAnnotationCapabilityNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(HistoryServerCapabilitiesType.INSERT_ANNOTATION_CAPABILITY.getBrowseName());
 
-        return aggregateFunctions.map(node -> (FolderType) node).orElse(null);
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
     }
 
-    public synchronized void setAccessHistoryDataCapability(Boolean accessHistoryDataCapability) {
-        getPropertyNode("AccessHistoryDataCapability").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(accessHistoryDataCapability)));
-        });
+    @Override
+    public void setInsertAnnotationCapability(Boolean value) {
+        setProperty(HistoryServerCapabilitiesType.INSERT_ANNOTATION_CAPABILITY, value);
     }
 
-    public synchronized void setAccessHistoryEventsCapability(Boolean accessHistoryEventsCapability) {
-        getPropertyNode("AccessHistoryEventsCapability").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(accessHistoryEventsCapability)));
-        });
+    @Override
+    public FolderNode getAggregateFunctionsNode() {
+        Optional<ObjectNode> component = getObjectComponent("AggregateFunctions");
+
+        return component.map(node -> (FolderNode) node).orElse(null);
     }
 
-    public synchronized void setMaxReturnDataValues(UInteger maxReturnDataValues) {
-        getPropertyNode("MaxReturnDataValues").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(maxReturnDataValues)));
-        });
-    }
-
-    public synchronized void setMaxReturnEventValues(UInteger maxReturnEventValues) {
-        getPropertyNode("MaxReturnEventValues").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(maxReturnEventValues)));
-        });
-    }
-
-    public synchronized void setInsertDataCapability(Boolean insertDataCapability) {
-        getPropertyNode("InsertDataCapability").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(insertDataCapability)));
-        });
-    }
-
-    public synchronized void setReplaceDataCapability(Boolean replaceDataCapability) {
-        getPropertyNode("ReplaceDataCapability").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(replaceDataCapability)));
-        });
-    }
-
-    public synchronized void setUpdateDataCapability(Boolean updateDataCapability) {
-        getPropertyNode("UpdateDataCapability").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(updateDataCapability)));
-        });
-    }
-
-    public synchronized void setDeleteRawCapability(Boolean deleteRawCapability) {
-        getPropertyNode("DeleteRawCapability").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(deleteRawCapability)));
-        });
-    }
-
-    public synchronized void setDeleteAtTimeCapability(Boolean deleteAtTimeCapability) {
-        getPropertyNode("DeleteAtTimeCapability").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(deleteAtTimeCapability)));
-        });
-    }
-
-    public synchronized void setInsertEventCapability(Boolean insertEventCapability) {
-        getPropertyNode("InsertEventCapability").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(insertEventCapability)));
-        });
-    }
-
-    public synchronized void setReplaceEventCapability(Boolean replaceEventCapability) {
-        getPropertyNode("ReplaceEventCapability").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(replaceEventCapability)));
-        });
-    }
-
-    public synchronized void setUpdateEventCapability(Boolean updateEventCapability) {
-        getPropertyNode("UpdateEventCapability").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(updateEventCapability)));
-        });
-    }
-
-    public synchronized void setDeleteEventCapability(Boolean deleteEventCapability) {
-        getPropertyNode("DeleteEventCapability").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(deleteEventCapability)));
-        });
-    }
-
-    public synchronized void setInsertAnnotationCapability(Boolean insertAnnotationCapability) {
-        getPropertyNode("InsertAnnotationCapability").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(insertAnnotationCapability)));
-        });
-    }
 }

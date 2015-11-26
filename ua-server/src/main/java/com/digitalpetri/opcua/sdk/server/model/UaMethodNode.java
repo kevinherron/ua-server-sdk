@@ -32,6 +32,7 @@ import com.digitalpetri.opcua.sdk.core.nodes.Node;
 import com.digitalpetri.opcua.sdk.core.nodes.ObjectNode;
 import com.digitalpetri.opcua.sdk.server.api.MethodInvocationHandler;
 import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.sdk.server.model.Property.BasicProperty;
 import com.digitalpetri.opcua.stack.core.Identifiers;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
@@ -55,7 +56,7 @@ public class UaMethodNode extends UaNode implements MethodNode {
     private volatile boolean executable;
     private volatile boolean userExecutable;
 
-    public UaMethodNode(UaNamespace namespace,
+    public UaMethodNode(UaNodeManager nodeManager,
                         NodeId nodeId,
                         QualifiedName browseName,
                         LocalizedText displayName,
@@ -65,7 +66,7 @@ public class UaMethodNode extends UaNode implements MethodNode {
                         boolean executable,
                         boolean userExecutable) {
 
-        super(namespace, nodeId, NodeClass.Method, browseName, displayName, description, writeMask, userWriteMask);
+        super(nodeManager, nodeId, NodeClass.Method, browseName, displayName, description, writeMask, userWriteMask);
 
         this.executable = executable;
         this.userExecutable = userExecutable;

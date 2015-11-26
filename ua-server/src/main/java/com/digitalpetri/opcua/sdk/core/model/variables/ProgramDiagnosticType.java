@@ -19,62 +19,145 @@
 
 package com.digitalpetri.opcua.sdk.core.model.variables;
 
-import com.digitalpetri.opcua.sdk.core.model.UaMandatory;
+import com.digitalpetri.opcua.sdk.server.model.Property;
 import com.digitalpetri.opcua.stack.core.types.builtin.DateTime;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 import com.digitalpetri.opcua.stack.core.types.structured.Argument;
 import com.digitalpetri.opcua.stack.core.types.structured.StatusResult;
 
+
 public interface ProgramDiagnosticType extends BaseDataVariableType {
 
-    @UaMandatory("CreateSessionId")
+    Property<NodeId> CREATE_SESSION_ID = new Property.BasicProperty<>(
+            QualifiedName.parse("0:CreateSessionId"),
+            NodeId.parse("ns=0;i=17"),
+            -1,
+            NodeId.class
+    );
+
+    Property<String> CREATE_CLIENT_NAME = new Property.BasicProperty<>(
+            QualifiedName.parse("0:CreateClientName"),
+            NodeId.parse("ns=0;i=12"),
+            -1,
+            String.class
+    );
+
+    Property<DateTime> INVOCATION_CREATION_TIME = new Property.BasicProperty<>(
+            QualifiedName.parse("0:InvocationCreationTime"),
+            NodeId.parse("ns=0;i=294"),
+            -1,
+            DateTime.class
+    );
+
+    Property<DateTime> LAST_TRANSITION_TIME = new Property.BasicProperty<>(
+            QualifiedName.parse("0:LastTransitionTime"),
+            NodeId.parse("ns=0;i=294"),
+            -1,
+            DateTime.class
+    );
+
+    Property<String> LAST_METHOD_CALL = new Property.BasicProperty<>(
+            QualifiedName.parse("0:LastMethodCall"),
+            NodeId.parse("ns=0;i=12"),
+            -1,
+            String.class
+    );
+
+    Property<NodeId> LAST_METHOD_SESSION_ID = new Property.BasicProperty<>(
+            QualifiedName.parse("0:LastMethodSessionId"),
+            NodeId.parse("ns=0;i=17"),
+            -1,
+            NodeId.class
+    );
+
+    Property<Argument[]> LAST_METHOD_INPUT_ARGUMENTS = new Property.BasicProperty<>(
+            QualifiedName.parse("0:LastMethodInputArguments"),
+            NodeId.parse("ns=0;i=296"),
+            1,
+            Argument[].class
+    );
+
+    Property<Argument[]> LAST_METHOD_OUTPUT_ARGUMENTS = new Property.BasicProperty<>(
+            QualifiedName.parse("0:LastMethodOutputArguments"),
+            NodeId.parse("ns=0;i=296"),
+            1,
+            Argument[].class
+    );
+
+    Property<DateTime> LAST_METHOD_CALL_TIME = new Property.BasicProperty<>(
+            QualifiedName.parse("0:LastMethodCallTime"),
+            NodeId.parse("ns=0;i=294"),
+            -1,
+            DateTime.class
+    );
+
+    Property<StatusResult> LAST_METHOD_RETURN_STATUS = new Property.BasicProperty<>(
+            QualifiedName.parse("0:LastMethodReturnStatus"),
+            NodeId.parse("ns=0;i=299"),
+            -1,
+            StatusResult.class
+    );
+
+
     NodeId getCreateSessionId();
 
-    @UaMandatory("CreateClientName")
+    PropertyType getCreateSessionIdNode();
+
+    void setCreateSessionId(NodeId value);
+
     String getCreateClientName();
 
-    @UaMandatory("InvocationCreationTime")
+    PropertyType getCreateClientNameNode();
+
+    void setCreateClientName(String value);
+
     DateTime getInvocationCreationTime();
 
-    @UaMandatory("LastTransitionTime")
+    PropertyType getInvocationCreationTimeNode();
+
+    void setInvocationCreationTime(DateTime value);
+
     DateTime getLastTransitionTime();
 
-    @UaMandatory("LastMethodCall")
+    PropertyType getLastTransitionTimeNode();
+
+    void setLastTransitionTime(DateTime value);
+
     String getLastMethodCall();
 
-    @UaMandatory("LastMethodSessionId")
+    PropertyType getLastMethodCallNode();
+
+    void setLastMethodCall(String value);
+
     NodeId getLastMethodSessionId();
 
-    @UaMandatory("LastMethodInputArguments")
+    PropertyType getLastMethodSessionIdNode();
+
+    void setLastMethodSessionId(NodeId value);
+
     Argument[] getLastMethodInputArguments();
 
-    @UaMandatory("LastMethodOutputArguments")
+    PropertyType getLastMethodInputArgumentsNode();
+
+    void setLastMethodInputArguments(Argument[] value);
+
     Argument[] getLastMethodOutputArguments();
 
-    @UaMandatory("LastMethodCallTime")
+    PropertyType getLastMethodOutputArgumentsNode();
+
+    void setLastMethodOutputArguments(Argument[] value);
+
     DateTime getLastMethodCallTime();
 
-    @UaMandatory("LastMethodReturnStatus")
+    PropertyType getLastMethodCallTimeNode();
+
+    void setLastMethodCallTime(DateTime value);
+
     StatusResult getLastMethodReturnStatus();
 
-    void setCreateSessionId(NodeId createSessionId);
+    PropertyType getLastMethodReturnStatusNode();
 
-    void setCreateClientName(String createClientName);
-
-    void setInvocationCreationTime(DateTime invocationCreationTime);
-
-    void setLastTransitionTime(DateTime lastTransitionTime);
-
-    void setLastMethodCall(String lastMethodCall);
-
-    void setLastMethodSessionId(NodeId lastMethodSessionId);
-
-    void setLastMethodInputArguments(Argument[] lastMethodInputArguments);
-
-    void setLastMethodOutputArguments(Argument[] lastMethodOutputArguments);
-
-    void setLastMethodCallTime(DateTime lastMethodCallTime);
-
-    void setLastMethodReturnStatus(StatusResult lastMethodReturnStatus);
+    void setLastMethodReturnStatus(StatusResult value);
 
 }

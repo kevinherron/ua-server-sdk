@@ -19,12 +19,24 @@
 
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
+import com.digitalpetri.opcua.sdk.core.model.variables.PropertyType;
+import com.digitalpetri.opcua.sdk.server.model.Property;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 import com.digitalpetri.opcua.stack.core.types.enumerated.NamingRuleType;
 
 public interface ModellingRuleType extends BaseObjectType {
 
+    Property<NamingRuleType> NAMING_RULE = new Property.BasicProperty<>(
+            QualifiedName.parse("0:NamingRule"),
+            NodeId.parse("ns=0;i=120"),
+            -1,
+            NamingRuleType.class
+    );
+
     NamingRuleType getNamingRule();
 
-    void setNamingRule(NamingRuleType namingRule);
+    PropertyType getNamingRuleNode();
 
+    void setNamingRule(NamingRuleType value);
 }

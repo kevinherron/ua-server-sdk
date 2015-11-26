@@ -28,9 +28,6 @@ import java.util.concurrent.TimeUnit;
 
 import com.digitalpetri.opcua.sdk.core.NamespaceTable;
 import com.digitalpetri.opcua.sdk.core.Reference;
-import com.digitalpetri.opcua.sdk.core.model.objects.OperationLimitsType;
-import com.digitalpetri.opcua.sdk.core.model.objects.ServerCapabilitiesType;
-import com.digitalpetri.opcua.sdk.core.model.variables.ServerStatusType;
 import com.digitalpetri.opcua.sdk.server.OpcUaServer;
 import com.digitalpetri.opcua.sdk.server.api.DataItem;
 import com.digitalpetri.opcua.sdk.server.api.EventItem;
@@ -44,7 +41,10 @@ import com.digitalpetri.opcua.sdk.server.model.UaNode;
 import com.digitalpetri.opcua.sdk.server.model.UaObjectNode;
 import com.digitalpetri.opcua.sdk.server.model.UaVariableNode;
 import com.digitalpetri.opcua.sdk.server.model.methods.GetMonitoredItems;
+import com.digitalpetri.opcua.sdk.server.model.objects.OperationLimitsNode;
+import com.digitalpetri.opcua.sdk.server.model.objects.ServerCapabilitiesNode;
 import com.digitalpetri.opcua.sdk.server.model.objects.ServerNode;
+import com.digitalpetri.opcua.sdk.server.model.variables.ServerStatusNode;
 import com.digitalpetri.opcua.sdk.server.namespaces.loader.UaNodeLoader;
 import com.digitalpetri.opcua.sdk.server.util.AnnotationBasedInvocationHandler;
 import com.digitalpetri.opcua.sdk.server.util.SubscriptionModel;
@@ -282,10 +282,10 @@ public class OpcUaNamespace implements UaNamespace {
         replaceNamespaceArrayNode();
 
         serverNode.setAuditing(false);
-        serverNode.getServerDiagnostics().setEnabledFlag(false);
+        serverNode.getServerDiagnosticsNode().setEnabledFlag(false);
         serverNode.setServiceLevel(ubyte(255));
 
-        ServerStatusType serverStatus = serverNode.getServerStatus();
+        ServerStatusNode serverStatus = serverNode.getServerStatusNode();
         serverStatus.setBuildInfo(server.getConfig().getBuildInfo());
         serverStatus.setCurrentTime(DateTime.now());
         serverStatus.setSecondsTillShutdown(uint(0));
@@ -302,7 +302,7 @@ public class OpcUaNamespace implements UaNamespace {
         };
         nodes.put(Identifiers.Server_ServerStatus_CurrentTime, derivedCurrentTime);
 
-        ServerCapabilitiesType serverCapabilities = serverNode.getServerCapabilities();
+        ServerCapabilitiesNode serverCapabilities = serverNode.getServerCapabilitiesNode();
         serverCapabilities.setLocaleIdArray(new String[]{Locale.ENGLISH.getLanguage()});
         serverCapabilities.setMaxArrayLength(limits.getMaxArrayLength());
         serverCapabilities.setMaxBrowseContinuationPoints(limits.getMaxBrowseContinuationPoints());
@@ -311,7 +311,7 @@ public class OpcUaNamespace implements UaNamespace {
         serverCapabilities.setMaxStringLength(limits.getMaxStringLength());
         serverCapabilities.setMinSupportedSampleRate(limits.getMinSupportedSampleRate());
 
-        OperationLimitsType operationLimits = serverCapabilities.getOperationLimits();
+        OperationLimitsNode operationLimits = serverCapabilities.getOperationLimitsNode();
         operationLimits.setMaxMonitoredItemsPerCall(limits.getMaxMonitoredItemsPerCall());
         operationLimits.setMaxNodesPerBrowse(limits.getMaxNodesPerBrowse());
         operationLimits.setMaxNodesPerHistoryReadData(limits.getMaxNodesPerHistoryReadData());
@@ -325,7 +325,7 @@ public class OpcUaNamespace implements UaNamespace {
         operationLimits.setMaxNodesPerTranslateBrowsePathsToNodeIds(limits.getMaxNodesPerTranslateBrowsePathsToNodeIds());
         operationLimits.setMaxNodesPerWrite(limits.getMaxNodesPerWrite());
 
-        serverNode.getServerRedundancy().setRedundancySupport(RedundancySupport.None);
+        serverNode.getServerRedundancyNode().setRedundancySupport(RedundancySupport.None);
 
         try {
             UaMethodNode getMonitoredItems = (UaMethodNode) nodes.get(Identifiers.Server_GetMonitoredItems);

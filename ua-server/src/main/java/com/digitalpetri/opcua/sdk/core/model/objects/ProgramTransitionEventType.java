@@ -19,10 +19,23 @@
 
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
+import com.digitalpetri.opcua.sdk.core.model.variables.PropertyType;
+import com.digitalpetri.opcua.sdk.server.model.Property;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
+
 public interface ProgramTransitionEventType extends TransitionEventType {
+
+    Property<Object> INTERMEDIATE_RESULT = new Property.BasicProperty<>(
+            QualifiedName.parse("0:IntermediateResult"),
+            NodeId.parse("ns=0;i=24"),
+            -1,
+            Object.class
+    );
 
     Object getIntermediateResult();
 
-    void setIntermediateResult(Object intermediateResult);
+    PropertyType getIntermediateResultNode();
 
+    void setIntermediateResult(Object value);
 }

@@ -26,7 +26,7 @@ import com.digitalpetri.opcua.sdk.core.AttributeIds;
 import com.digitalpetri.opcua.sdk.core.ValueRank;
 import com.digitalpetri.opcua.sdk.core.model.UaOptional;
 import com.digitalpetri.opcua.sdk.core.nodes.DataTypeNode;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.sdk.server.model.Property.BasicProperty;
 import com.digitalpetri.opcua.stack.core.Identifiers;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
@@ -40,7 +40,7 @@ public class UaDataTypeNode extends UaNode implements DataTypeNode {
 
     private final AtomicBoolean isAbstract;
 
-    public UaDataTypeNode(UaNamespace namespace,
+    public UaDataTypeNode(UaNodeManager nodeManager,
                           NodeId nodeId,
                           QualifiedName browseName,
                           LocalizedText displayName,
@@ -49,7 +49,7 @@ public class UaDataTypeNode extends UaNode implements DataTypeNode {
                           Optional<UInteger> userWriteMask,
                           boolean isAbstract) {
 
-        super(namespace, nodeId, NodeClass.DataType, browseName, displayName, description, writeMask, userWriteMask);
+        super(nodeManager, nodeId, NodeClass.DataType, browseName, displayName, description, writeMask, userWriteMask);
 
         this.isAbstract = new AtomicBoolean(isAbstract);
     }

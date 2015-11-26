@@ -19,18 +19,38 @@
 
 package com.digitalpetri.opcua.sdk.core.model.variables;
 
-import com.digitalpetri.opcua.sdk.core.model.UaOptional;
+import com.digitalpetri.opcua.sdk.server.model.Property;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
+
 
 public interface DataItemType extends BaseDataVariableType {
 
-    @UaOptional("Definition")
+    Property<String> DEFINITION = new Property.BasicProperty<>(
+            QualifiedName.parse("0:Definition"),
+            NodeId.parse("ns=0;i=12"),
+            -1,
+            String.class
+    );
+
+    Property<Double> VALUE_PRECISION = new Property.BasicProperty<>(
+            QualifiedName.parse("0:ValuePrecision"),
+            NodeId.parse("ns=0;i=11"),
+            -1,
+            Double.class
+    );
+
+
     String getDefinition();
 
-    @UaOptional("ValuePrecision")
+    PropertyType getDefinitionNode();
+
+    void setDefinition(String value);
+
     Double getValuePrecision();
 
-    void setDefinition(String definition);
+    PropertyType getValuePrecisionNode();
 
-    void setValuePrecision(Double valuePrecision);
+    void setValuePrecision(Double value);
 
 }

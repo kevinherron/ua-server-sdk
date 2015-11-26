@@ -19,12 +19,24 @@
 
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
+import com.digitalpetri.opcua.sdk.core.model.variables.PropertyType;
+import com.digitalpetri.opcua.sdk.server.model.Property;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 import com.digitalpetri.opcua.stack.core.types.structured.DeleteReferencesItem;
 
 public interface AuditDeleteReferencesEventType extends AuditNodeManagementEventType {
 
+    Property<DeleteReferencesItem[]> REFERENCES_TO_DELETE = new Property.BasicProperty<>(
+            QualifiedName.parse("0:ReferencesToDelete"),
+            NodeId.parse("ns=0;i=385"),
+            1,
+            DeleteReferencesItem[].class
+    );
+
     DeleteReferencesItem[] getReferencesToDelete();
 
-    void setReferencesToDelete(DeleteReferencesItem[] referencesToDelete);
+    PropertyType getReferencesToDeleteNode();
 
+    void setReferencesToDelete(DeleteReferencesItem[] value);
 }

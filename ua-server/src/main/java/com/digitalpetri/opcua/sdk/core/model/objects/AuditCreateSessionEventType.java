@@ -19,24 +19,63 @@
 
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
+import com.digitalpetri.opcua.sdk.core.model.variables.PropertyType;
+import com.digitalpetri.opcua.sdk.server.model.Property;
 import com.digitalpetri.opcua.stack.core.types.builtin.ByteString;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 
 public interface AuditCreateSessionEventType extends AuditSessionEventType {
 
+    Property<String> SECURE_CHANNEL_ID = new Property.BasicProperty<>(
+            QualifiedName.parse("0:SecureChannelId"),
+            NodeId.parse("ns=0;i=12"),
+            -1,
+            String.class
+    );
+
+    Property<ByteString> CLIENT_CERTIFICATE = new Property.BasicProperty<>(
+            QualifiedName.parse("0:ClientCertificate"),
+            NodeId.parse("ns=0;i=15"),
+            -1,
+            ByteString.class
+    );
+
+    Property<String> CLIENT_CERTIFICATE_THUMBPRINT = new Property.BasicProperty<>(
+            QualifiedName.parse("0:ClientCertificateThumbprint"),
+            NodeId.parse("ns=0;i=12"),
+            -1,
+            String.class
+    );
+
+    Property<Double> REVISED_SESSION_TIMEOUT = new Property.BasicProperty<>(
+            QualifiedName.parse("0:RevisedSessionTimeout"),
+            NodeId.parse("ns=0;i=290"),
+            -1,
+            Double.class
+    );
+
     String getSecureChannelId();
+
+    PropertyType getSecureChannelIdNode();
+
+    void setSecureChannelId(String value);
 
     ByteString getClientCertificate();
 
+    PropertyType getClientCertificateNode();
+
+    void setClientCertificate(ByteString value);
+
     String getClientCertificateThumbprint();
+
+    PropertyType getClientCertificateThumbprintNode();
+
+    void setClientCertificateThumbprint(String value);
 
     Double getRevisedSessionTimeout();
 
-    void setSecureChannelId(String secureChannelId);
+    PropertyType getRevisedSessionTimeoutNode();
 
-    void setClientCertificate(ByteString clientCertificate);
-
-    void setClientCertificateThumbprint(String clientCertificateThumbprint);
-
-    void setRevisedSessionTimeout(Double revisedSessionTimeout);
-
+    void setRevisedSessionTimeout(Double value);
 }

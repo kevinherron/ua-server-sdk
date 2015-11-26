@@ -19,29 +19,33 @@
 
 package com.digitalpetri.opcua.sdk.core.model.variables;
 
-import com.digitalpetri.opcua.sdk.core.model.UaMandatory;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
+
 
 public interface SamplingIntervalDiagnosticsType extends BaseDataVariableType {
 
-    @UaMandatory("SamplingInterval")
+
     Double getSamplingInterval();
 
-    @UaMandatory("SampledMonitoredItemsCount")
+    BaseDataVariableType getSamplingIntervalNode();
+
+    void setSamplingInterval(Double value);
+
     UInteger getSampledMonitoredItemsCount();
 
-    @UaMandatory("MaxSampledMonitoredItemsCount")
+    BaseDataVariableType getSampledMonitoredItemsCountNode();
+
+    void setSampledMonitoredItemsCount(UInteger value);
+
     UInteger getMaxSampledMonitoredItemsCount();
 
-    @UaMandatory("DisabledMonitoredItemsSamplingCount")
+    BaseDataVariableType getMaxSampledMonitoredItemsCountNode();
+
+    void setMaxSampledMonitoredItemsCount(UInteger value);
+
     UInteger getDisabledMonitoredItemsSamplingCount();
 
-    void setSamplingInterval(Double samplingInterval);
+    BaseDataVariableType getDisabledMonitoredItemsSamplingCountNode();
 
-    void setSampledMonitoredItemsCount(UInteger sampledMonitoredItemsCount);
-
-    void setMaxSampledMonitoredItemsCount(UInteger maxSampledMonitoredItemsCount);
-
-    void setDisabledMonitoredItemsSamplingCount(UInteger disabledMonitoredItemsSamplingCount);
-
+    void setDisabledMonitoredItemsSamplingCount(UInteger value);
 }

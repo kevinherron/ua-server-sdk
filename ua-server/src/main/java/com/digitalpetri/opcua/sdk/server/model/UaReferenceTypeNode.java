@@ -25,7 +25,7 @@ import com.digitalpetri.opcua.sdk.core.AttributeIds;
 import com.digitalpetri.opcua.sdk.core.ValueRank;
 import com.digitalpetri.opcua.sdk.core.model.UaOptional;
 import com.digitalpetri.opcua.sdk.core.nodes.ReferenceTypeNode;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.sdk.server.model.Property.BasicProperty;
 import com.digitalpetri.opcua.stack.core.Identifiers;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
@@ -40,7 +40,7 @@ public class UaReferenceTypeNode extends UaNode implements ReferenceTypeNode {
     private volatile boolean symmetric;
     private volatile Optional<LocalizedText> inverseName;
 
-    public UaReferenceTypeNode(UaNamespace namespace,
+    public UaReferenceTypeNode(UaNodeManager nodeManager,
                                NodeId nodeId,
                                QualifiedName browseName,
                                LocalizedText displayName,
@@ -51,7 +51,7 @@ public class UaReferenceTypeNode extends UaNode implements ReferenceTypeNode {
                                boolean symmetric,
                                Optional<LocalizedText> inverseName) {
 
-        super(namespace, nodeId, NodeClass.ReferenceType, browseName, displayName, description, writeMask, userWriteMask);
+        super(nodeManager, nodeId, NodeClass.ReferenceType, browseName, displayName, description, writeMask, userWriteMask);
 
         this.isAbstract = isAbstract;
         this.symmetric = symmetric;

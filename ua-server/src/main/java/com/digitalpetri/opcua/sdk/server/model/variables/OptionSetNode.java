@@ -21,71 +21,86 @@ package com.digitalpetri.opcua.sdk.server.model.variables;
 
 import java.util.Optional;
 
-import com.digitalpetri.opcua.sdk.core.model.UaMandatory;
-import com.digitalpetri.opcua.sdk.core.model.UaOptional;
 import com.digitalpetri.opcua.sdk.core.model.variables.OptionSetType;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.util.UaVariableType;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableTypeNode;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
-import com.digitalpetri.opcua.stack.core.types.builtin.Variant;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 
-@UaVariableType(name = "OptionSetType")
+@com.digitalpetri.opcua.sdk.server.util.UaVariableNode(typeName = "0:OptionSetType")
 public class OptionSetNode extends BaseDataVariableNode implements OptionSetType {
 
-    public OptionSetNode(UaNamespace namespace,
-                         NodeId nodeId,
-                         QualifiedName browseName,
-                         LocalizedText displayName,
-                         Optional<LocalizedText> description,
-                         Optional<UInteger> writeMask,
-                         Optional<UInteger> userWriteMask,
-                         DataValue value,
-                         NodeId dataType,
-                         Integer valueRank,
-                         Optional<UInteger[]> arrayDimensions,
-                         UByte accessLevel,
-                         UByte userAccessLevel,
-                         Optional<Double> minimumSamplingInterval,
-                         boolean historizing) {
+    public OptionSetNode(
+            UaNodeManager nodeManager,
+            NodeId nodeId,
+            VariableTypeNode variableTypeNode) {
 
-        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(nodeManager, nodeId, variableTypeNode);
+    }
+
+    public OptionSetNode(
+            UaNodeManager nodeManager,
+            NodeId nodeId,
+            QualifiedName browseName,
+            LocalizedText displayName,
+            Optional<LocalizedText> description,
+            Optional<UInteger> writeMask,
+            Optional<UInteger> userWriteMask,
+            DataValue value,
+            NodeId dataType,
+            Integer valueRank,
+            Optional<UInteger[]> arrayDimensions,
+            UByte accessLevel,
+            UByte userAccessLevel,
+            Optional<Double> minimumSamplingInterval,
+            boolean historizing) {
+
+        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
-
     }
 
+
     @Override
-    @UaMandatory("OptionSetValues")
     public LocalizedText[] getOptionSetValues() {
-        Optional<LocalizedText[]> optionSetValues = getProperty("OptionSetValues");
+        Optional<LocalizedText[]> property = getProperty(OptionSetType.OPTION_SET_VALUES);
 
-        return optionSetValues.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    @UaOptional("BitMask")
+    public PropertyNode getOptionSetValuesNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(OptionSetType.OPTION_SET_VALUES.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setOptionSetValues(LocalizedText[] value) {
+        setProperty(OptionSetType.OPTION_SET_VALUES, value);
+    }
+
+    @Override
     public Boolean[] getBitMask() {
-        Optional<Boolean[]> bitMask = getProperty("BitMask");
+        Optional<Boolean[]> property = getProperty(OptionSetType.BIT_MASK);
 
-        return bitMask.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    public synchronized void setOptionSetValues(LocalizedText[] optionSetValues) {
-        getPropertyNode("OptionSetValues").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(optionSetValues)));
-        });
+    public PropertyNode getBitMaskNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(OptionSetType.BIT_MASK.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
     }
 
     @Override
-    public synchronized void setBitMask(Boolean[] bitMask) {
-        getPropertyNode("BitMask").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(bitMask)));
-        });
+    public void setBitMask(Boolean[] value) {
+        setProperty(OptionSetType.BIT_MASK, value);
     }
 
 }

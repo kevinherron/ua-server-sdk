@@ -185,7 +185,7 @@ public class VendorNamespace implements UaNamespace {
 
                 @Override
                 public DataValue getValue() {
-                    return new DataValue(new Variant(osBean.getProcessCpuLoad()));
+                    return new DataValue(new Variant(osBean.getProcessCpuLoad() * 100d));
                 }
             };
             processCpuLoad.setDataType(Identifiers.Double);
@@ -197,7 +197,7 @@ public class VendorNamespace implements UaNamespace {
                     LocalizedText.english("SystemCpuLoad")) {
                 @Override
                 public DataValue getValue() {
-                    return new DataValue(new Variant(osBean.getSystemCpuLoad()));
+                    return new DataValue(new Variant(osBean.getSystemCpuLoad() * 100d));
                 }
             };
             systemCpuLoad.setDataType(Identifiers.Double);
@@ -209,7 +209,7 @@ public class VendorNamespace implements UaNamespace {
                     LocalizedText.english("UsedMemory")) {
                 @Override
                 public DataValue getValue() {
-                    return new DataValue(new Variant(memoryBean.getHeapMemoryUsage().getUsed()));
+                    return new DataValue(new Variant(memoryBean.getHeapMemoryUsage().getUsed()/1000));
                 }
             };
             usedMemory.setDataType(Identifiers.Int64);

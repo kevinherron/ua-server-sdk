@@ -22,24 +22,22 @@ package com.digitalpetri.opcua.sdk.server.model.objects;
 import java.util.Optional;
 
 import com.digitalpetri.opcua.sdk.core.model.objects.FileType;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.util.UaObjectType;
-import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
+import com.digitalpetri.opcua.sdk.server.model.variables.PropertyNode;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
-import com.digitalpetri.opcua.stack.core.types.builtin.Variant;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.ULong;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UShort;
 
-
-@UaObjectType(name = "FileType")
+@com.digitalpetri.opcua.sdk.server.util.UaObjectNode(typeName = "0:FileType")
 public class FileNode extends BaseObjectNode implements FileType {
 
     public FileNode(
-            UaNamespace namespace,
+            UaNodeManager nodeManager,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -48,54 +46,102 @@ public class FileNode extends BaseObjectNode implements FileType {
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
+    @Override
     public ULong getSize() {
-        Optional<ULong> size = getProperty("Size");
+        Optional<ULong> property = getProperty(FileType.SIZE);
 
-        return size.orElse(null);
+        return property.orElse(null);
     }
 
-    public Boolean getWriteable() {
-        Optional<Boolean> writeable = getProperty("Writeable");
+    @Override
+    public PropertyNode getSizeNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(FileType.SIZE.getBrowseName());
 
-        return writeable.orElse(null);
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
     }
 
-    public Boolean getUserWriteable() {
-        Optional<Boolean> userWriteable = getProperty("UserWriteable");
-
-        return userWriteable.orElse(null);
+    @Override
+    public void setSize(ULong value) {
+        setProperty(FileType.SIZE, value);
     }
 
+    @Override
+    public Boolean getWritable() {
+        Optional<Boolean> property = getProperty(FileType.WRITABLE);
+
+        return property.orElse(null);
+    }
+
+    @Override
+    public PropertyNode getWritableNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(FileType.WRITABLE.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setWritable(Boolean value) {
+        setProperty(FileType.WRITABLE, value);
+    }
+
+    @Override
+    public Boolean getUserWritable() {
+        Optional<Boolean> property = getProperty(FileType.USER_WRITABLE);
+
+        return property.orElse(null);
+    }
+
+    @Override
+    public PropertyNode getUserWritableNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(FileType.USER_WRITABLE.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setUserWritable(Boolean value) {
+        setProperty(FileType.USER_WRITABLE, value);
+    }
+
+    @Override
     public UShort getOpenCount() {
-        Optional<UShort> openCount = getProperty("OpenCount");
+        Optional<UShort> property = getProperty(FileType.OPEN_COUNT);
 
-        return openCount.orElse(null);
+        return property.orElse(null);
     }
 
-    public synchronized void setSize(ULong size) {
-        getPropertyNode("Size").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(size)));
-        });
+    @Override
+    public PropertyNode getOpenCountNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(FileType.OPEN_COUNT.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
     }
 
-    public synchronized void setWriteable(Boolean writeable) {
-        getPropertyNode("Writeable").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(writeable)));
-        });
+    @Override
+    public void setOpenCount(UShort value) {
+        setProperty(FileType.OPEN_COUNT, value);
     }
 
-    public synchronized void setUserWriteable(Boolean userWriteable) {
-        getPropertyNode("UserWriteable").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(userWriteable)));
-        });
+    @Override
+    public String getMimeType() {
+        Optional<String> property = getProperty(FileType.MIME_TYPE);
+
+        return property.orElse(null);
     }
 
-    public synchronized void setOpenCount(UShort openCount) {
-        getPropertyNode("OpenCount").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(openCount)));
-        });
+    @Override
+    public PropertyNode getMimeTypeNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(FileType.MIME_TYPE.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
     }
+
+    @Override
+    public void setMimeType(String value) {
+        setProperty(FileType.MIME_TYPE, value);
+    }
+
 }

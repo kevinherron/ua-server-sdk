@@ -19,22 +19,49 @@
 
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
+import com.digitalpetri.opcua.sdk.core.model.variables.PropertyType;
 import com.digitalpetri.opcua.sdk.core.model.variables.SamplingIntervalDiagnosticsArrayType;
 import com.digitalpetri.opcua.sdk.core.model.variables.ServerDiagnosticsSummaryType;
 import com.digitalpetri.opcua.sdk.core.model.variables.SubscriptionDiagnosticsArrayType;
+import com.digitalpetri.opcua.sdk.server.model.Property;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
+import com.digitalpetri.opcua.stack.core.types.structured.SamplingIntervalDiagnosticsDataType;
+import com.digitalpetri.opcua.stack.core.types.structured.ServerDiagnosticsSummaryDataType;
+import com.digitalpetri.opcua.stack.core.types.structured.SubscriptionDiagnosticsDataType;
 
 public interface ServerDiagnosticsType extends BaseObjectType {
 
-    ServerDiagnosticsSummaryType getServerDiagnosticsSummary();
-
-    SamplingIntervalDiagnosticsArrayType getSamplingIntervalDiagnosticsArray();
-
-    SubscriptionDiagnosticsArrayType getSubscriptionDiagnosticsArray();
-
-    SessionsDiagnosticsSummaryType getSessionsDiagnosticsSummary();
+    Property<Boolean> ENABLED_FLAG = new Property.BasicProperty<>(
+            QualifiedName.parse("0:EnabledFlag"),
+            NodeId.parse("ns=0;i=1"),
+            -1,
+            Boolean.class
+    );
 
     Boolean getEnabledFlag();
 
-    void setEnabledFlag(Boolean enabledFlag);
+    PropertyType getEnabledFlagNode();
 
+    void setEnabledFlag(Boolean value);
+
+    SessionsDiagnosticsSummaryType getSessionsDiagnosticsSummaryNode();
+
+    ServerDiagnosticsSummaryDataType getServerDiagnosticsSummary();
+
+    ServerDiagnosticsSummaryType getServerDiagnosticsSummaryNode();
+
+    void setServerDiagnosticsSummary(ServerDiagnosticsSummaryDataType value);
+
+    SamplingIntervalDiagnosticsDataType[] getSamplingIntervalDiagnosticsArray();
+
+    SamplingIntervalDiagnosticsArrayType getSamplingIntervalDiagnosticsArrayNode();
+
+    void setSamplingIntervalDiagnosticsArray(SamplingIntervalDiagnosticsDataType[] value);
+
+    SubscriptionDiagnosticsDataType[] getSubscriptionDiagnosticsArray();
+
+    SubscriptionDiagnosticsArrayType getSubscriptionDiagnosticsArrayNode();
+
+    void setSubscriptionDiagnosticsArray(SubscriptionDiagnosticsDataType[] value);
 }

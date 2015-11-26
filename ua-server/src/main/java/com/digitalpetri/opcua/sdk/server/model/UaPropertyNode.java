@@ -20,7 +20,7 @@
 package com.digitalpetri.opcua.sdk.server.model;
 
 import com.digitalpetri.opcua.sdk.core.Reference;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.stack.core.Identifiers;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
@@ -29,12 +29,12 @@ import com.digitalpetri.opcua.stack.core.types.enumerated.NodeClass;
 
 public class UaPropertyNode extends UaVariableNode {
 
-    public UaPropertyNode(UaNamespace namespace,
+    public UaPropertyNode(UaNodeManager nodeManager,
                           NodeId nodeId,
                           QualifiedName browseName,
                           LocalizedText displayName) {
 
-        super(namespace, nodeId, browseName, displayName);
+        super(nodeManager, nodeId, browseName, displayName);
 
         addReference(new Reference(
                 nodeId,

@@ -19,16 +19,37 @@
 
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
+import com.digitalpetri.opcua.sdk.core.model.variables.PropertyType;
+import com.digitalpetri.opcua.sdk.server.model.Property;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 import com.digitalpetri.opcua.stack.core.types.structured.RedundantServerDataType;
 
 public interface TransparentRedundancyType extends ServerRedundancyType {
 
+    Property<String> CURRENT_SERVER_ID = new Property.BasicProperty<>(
+            QualifiedName.parse("0:CurrentServerId"),
+            NodeId.parse("ns=0;i=12"),
+            -1,
+            String.class
+    );
+
+    Property<RedundantServerDataType[]> REDUNDANT_SERVER_ARRAY = new Property.BasicProperty<>(
+            QualifiedName.parse("0:RedundantServerArray"),
+            NodeId.parse("ns=0;i=853"),
+            1,
+            RedundantServerDataType[].class
+    );
+
     String getCurrentServerId();
+
+    PropertyType getCurrentServerIdNode();
+
+    void setCurrentServerId(String value);
 
     RedundantServerDataType[] getRedundantServerArray();
 
-    void setCurrentServerId(String currentServerId);
+    PropertyType getRedundantServerArrayNode();
 
-    void setRedundantServerArray(RedundantServerDataType[] redundantServerArray);
-
+    void setRedundantServerArray(RedundantServerDataType[] value);
 }

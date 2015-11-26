@@ -20,18 +20,37 @@
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
 import com.digitalpetri.opcua.sdk.core.model.variables.TwoStateVariableType;
+import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 
 public interface NonExclusiveLimitAlarmType extends LimitAlarmType {
 
-    TwoStateVariableType getActiveState();
+    LocalizedText getActiveState();
 
-    TwoStateVariableType getHighHighState();
+    TwoStateVariableType getActiveStateNode();
 
-    TwoStateVariableType getHighState();
+    void setActiveState(LocalizedText value);
 
-    TwoStateVariableType getLowState();
+    LocalizedText getHighHighState();
 
-    TwoStateVariableType getLowLowState();
+    TwoStateVariableType getHighHighStateNode();
 
+    void setHighHighState(LocalizedText value);
 
+    LocalizedText getHighState();
+
+    TwoStateVariableType getHighStateNode();
+
+    void setHighState(LocalizedText value);
+
+    LocalizedText getLowState();
+
+    TwoStateVariableType getLowStateNode();
+
+    void setLowState(LocalizedText value);
+
+    LocalizedText getLowLowState();
+
+    TwoStateVariableType getLowLowStateNode();
+
+    void setLowLowState(LocalizedText value);
 }

@@ -21,12 +21,10 @@ package com.digitalpetri.opcua.sdk.server.model.variables;
 
 import java.util.Optional;
 
-import com.digitalpetri.opcua.sdk.core.AttributeIds;
-import com.digitalpetri.opcua.sdk.core.model.UaMandatory;
 import com.digitalpetri.opcua.sdk.core.model.variables.SessionSecurityDiagnosticsType;
 import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.util.UaVariableType;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableTypeNode;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.stack.core.types.builtin.ByteString;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
@@ -38,28 +36,36 @@ import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.digitalpetri.opcua.stack.core.types.enumerated.MessageSecurityMode;
 import com.digitalpetri.opcua.stack.core.types.structured.SessionSecurityDiagnosticsDataType;
 
-@UaVariableType(name = "SessionSecurityDiagnosticsType")
+@com.digitalpetri.opcua.sdk.server.util.UaVariableNode(typeName = "0:SessionSecurityDiagnosticsType")
 public class SessionSecurityDiagnosticsNode extends BaseDataVariableNode implements SessionSecurityDiagnosticsType {
 
-    public SessionSecurityDiagnosticsNode(UaNamespace namespace,
-                                          NodeId nodeId,
-                                          QualifiedName browseName,
-                                          LocalizedText displayName,
-                                          Optional<LocalizedText> description,
-                                          Optional<UInteger> writeMask,
-                                          Optional<UInteger> userWriteMask,
-                                          DataValue value,
-                                          NodeId dataType,
-                                          Integer valueRank,
-                                          Optional<UInteger[]> arrayDimensions,
-                                          UByte accessLevel,
-                                          UByte userAccessLevel,
-                                          Optional<Double> minimumSamplingInterval,
-                                          boolean historizing) {
+    public SessionSecurityDiagnosticsNode(
+            UaNodeManager nodeManager,
+            NodeId nodeId,
+            VariableTypeNode variableTypeNode) {
 
-        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(nodeManager, nodeId, variableTypeNode);
+    }
+
+    public SessionSecurityDiagnosticsNode(
+            UaNodeManager nodeManager,
+            NodeId nodeId,
+            QualifiedName browseName,
+            LocalizedText displayName,
+            Optional<LocalizedText> description,
+            Optional<UInteger> writeMask,
+            Optional<UInteger> userWriteMask,
+            DataValue value,
+            NodeId dataType,
+            Integer valueRank,
+            Optional<UInteger[]> arrayDimensions,
+            UByte accessLevel,
+            UByte userAccessLevel,
+            Optional<Double> minimumSamplingInterval,
+            boolean historizing) {
+
+        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
-
     }
 
     @Override
@@ -80,178 +86,183 @@ public class SessionSecurityDiagnosticsNode extends BaseDataVariableNode impleme
     }
 
     @Override
-    public synchronized void setValue(DataValue value) {
-        SessionSecurityDiagnosticsDataType v = (SessionSecurityDiagnosticsDataType) value.getValue().getValue();
-
-        setSessionId(v.getSessionId());
-        setClientUserIdOfSession(v.getClientUserIdOfSession());
-        setClientUserIdHistory(v.getClientUserIdHistory());
-        setAuthenticationMechanism(v.getAuthenticationMechanism());
-        setEncoding(v.getEncoding());
-        setTransportProtocol(v.getTransportProtocol());
-        setSecurityMode(v.getSecurityMode());
-        setSecurityPolicyUri(v.getSecurityPolicyUri());
-        setClientCertificate(v.getClientCertificate());
-
-        fireAttributeChanged(AttributeIds.Value, value);
-    }
-
-    @Override
-    @UaMandatory("SessionId")
     public NodeId getSessionId() {
-        Optional<VariableNode> node = getVariableComponent("SessionId");
+        Optional<VariableNode> component = getVariableComponent("SessionId");
 
-        return node.map(n -> (NodeId) n.getValue().getValue().getValue()).orElse(null);
+        return component.map(node -> (NodeId) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    @UaMandatory("ClientUserIdOfSession")
+    public BaseDataVariableNode getSessionIdNode() {
+        Optional<VariableNode> component = getVariableComponent("SessionId");
+
+        return component.map(node -> (BaseDataVariableNode) node).orElse(null);
+    }
+
+    @Override
+    public void setSessionId(NodeId value) {
+        getVariableComponent("SessionId")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
+    }
+
+    @Override
     public String getClientUserIdOfSession() {
-        Optional<VariableNode> node = getVariableComponent("ClientUserIdOfSession");
+        Optional<VariableNode> component = getVariableComponent("ClientUserIdOfSession");
 
-        return node.map(n -> (String) n.getValue().getValue().getValue()).orElse(null);
+        return component.map(node -> (String) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    @UaMandatory("ClientUserIdHistory")
+    public BaseDataVariableNode getClientUserIdOfSessionNode() {
+        Optional<VariableNode> component = getVariableComponent("ClientUserIdOfSession");
+
+        return component.map(node -> (BaseDataVariableNode) node).orElse(null);
+    }
+
+    @Override
+    public void setClientUserIdOfSession(String value) {
+        getVariableComponent("ClientUserIdOfSession")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
+    }
+
+    @Override
     public String[] getClientUserIdHistory() {
-        Optional<VariableNode> node = getVariableComponent("ClientUserIdHistory");
+        Optional<VariableNode> component = getVariableComponent("ClientUserIdHistory");
 
-        return node.map(n -> (String[]) n.getValue().getValue().getValue()).orElse(null);
+        return component.map(node -> (String[]) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    @UaMandatory("AuthenticationMechanism")
+    public BaseDataVariableNode getClientUserIdHistoryNode() {
+        Optional<VariableNode> component = getVariableComponent("ClientUserIdHistory");
+
+        return component.map(node -> (BaseDataVariableNode) node).orElse(null);
+    }
+
+    @Override
+    public void setClientUserIdHistory(String[] value) {
+        getVariableComponent("ClientUserIdHistory")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
+    }
+
+    @Override
     public String getAuthenticationMechanism() {
-        Optional<VariableNode> node = getVariableComponent("AuthenticationMechanism");
+        Optional<VariableNode> component = getVariableComponent("AuthenticationMechanism");
 
-        return node.map(n -> (String) n.getValue().getValue().getValue()).orElse(null);
+        return component.map(node -> (String) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    @UaMandatory("Encoding")
+    public BaseDataVariableNode getAuthenticationMechanismNode() {
+        Optional<VariableNode> component = getVariableComponent("AuthenticationMechanism");
+
+        return component.map(node -> (BaseDataVariableNode) node).orElse(null);
+    }
+
+    @Override
+    public void setAuthenticationMechanism(String value) {
+        getVariableComponent("AuthenticationMechanism")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
+    }
+
+    @Override
     public String getEncoding() {
-        Optional<VariableNode> node = getVariableComponent("Encoding");
+        Optional<VariableNode> component = getVariableComponent("Encoding");
 
-        return node.map(n -> (String) n.getValue().getValue().getValue()).orElse(null);
+        return component.map(node -> (String) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    @UaMandatory("TransportProtocol")
+    public BaseDataVariableNode getEncodingNode() {
+        Optional<VariableNode> component = getVariableComponent("Encoding");
+
+        return component.map(node -> (BaseDataVariableNode) node).orElse(null);
+    }
+
+    @Override
+    public void setEncoding(String value) {
+        getVariableComponent("Encoding")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
+    }
+
+    @Override
     public String getTransportProtocol() {
-        Optional<VariableNode> node = getVariableComponent("TransportProtocol");
+        Optional<VariableNode> component = getVariableComponent("TransportProtocol");
 
-        return node.map(n -> (String) n.getValue().getValue().getValue()).orElse(null);
+        return component.map(node -> (String) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    @UaMandatory("SecurityMode")
+    public BaseDataVariableNode getTransportProtocolNode() {
+        Optional<VariableNode> component = getVariableComponent("TransportProtocol");
+
+        return component.map(node -> (BaseDataVariableNode) node).orElse(null);
+    }
+
+    @Override
+    public void setTransportProtocol(String value) {
+        getVariableComponent("TransportProtocol")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
+    }
+
+    @Override
     public MessageSecurityMode getSecurityMode() {
-        Optional<VariableNode> node = getVariableComponent("SecurityMode");
-        return node.map(n -> {
-            Integer value = (Integer) n.getValue().getValue().getValue();
+        Optional<VariableNode> component = getVariableComponent("SecurityMode");
 
-            return MessageSecurityMode.from(value);
-        }).orElse(null);
+        return component.map(node -> (MessageSecurityMode) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    @UaMandatory("SecurityPolicyUri")
+    public BaseDataVariableNode getSecurityModeNode() {
+        Optional<VariableNode> component = getVariableComponent("SecurityMode");
+
+        return component.map(node -> (BaseDataVariableNode) node).orElse(null);
+    }
+
+    @Override
+    public void setSecurityMode(MessageSecurityMode value) {
+        getVariableComponent("SecurityMode")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
+    }
+
+    @Override
     public String getSecurityPolicyUri() {
-        Optional<VariableNode> node = getVariableComponent("SecurityPolicyUri");
+        Optional<VariableNode> component = getVariableComponent("SecurityPolicyUri");
 
-        return node.map(n -> (String) n.getValue().getValue().getValue()).orElse(null);
+        return component.map(node -> (String) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    @UaMandatory("ClientCertificate")
+    public BaseDataVariableNode getSecurityPolicyUriNode() {
+        Optional<VariableNode> component = getVariableComponent("SecurityPolicyUri");
+
+        return component.map(node -> (BaseDataVariableNode) node).orElse(null);
+    }
+
+    @Override
+    public void setSecurityPolicyUri(String value) {
+        getVariableComponent("SecurityPolicyUri")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
+    }
+
+    @Override
     public ByteString getClientCertificate() {
-        Optional<VariableNode> node = getVariableComponent("ClientCertificate");
+        Optional<VariableNode> component = getVariableComponent("ClientCertificate");
 
-        return node.map(n -> (ByteString) n.getValue().getValue().getValue()).orElse(null);
+        return component.map(node -> (ByteString) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    public synchronized void setSessionId(NodeId sessionId) {
-        getVariableComponent("SessionId").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(sessionId)));
+    public BaseDataVariableNode getClientCertificateNode() {
+        Optional<VariableNode> component = getVariableComponent("ClientCertificate");
 
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
+        return component.map(node -> (BaseDataVariableNode) node).orElse(null);
     }
 
     @Override
-    public synchronized void setClientUserIdOfSession(String clientUserIdOfSession) {
-        getVariableComponent("ClientUserIdOfSession").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(clientUserIdOfSession)));
-
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
-    }
-
-    @Override
-    public synchronized void setClientUserIdHistory(String[] clientUserIdHistory) {
-        getVariableComponent("ClientUserIdHistory").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(clientUserIdHistory)));
-
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
-    }
-
-    @Override
-    public synchronized void setAuthenticationMechanism(String authenticationMechanism) {
-        getVariableComponent("AuthenticationMechanism").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(authenticationMechanism)));
-
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
-    }
-
-    @Override
-    public synchronized void setEncoding(String encoding) {
-        getVariableComponent("Encoding").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(encoding)));
-
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
-    }
-
-    @Override
-    public synchronized void setTransportProtocol(String transportProtocol) {
-        getVariableComponent("TransportProtocol").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(transportProtocol)));
-
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
-    }
-
-    @Override
-    public synchronized void setSecurityMode(MessageSecurityMode securityMode) {
-        getVariableComponent("SecurityMode").ifPresent(n -> {
-            Integer value = securityMode.getValue();
-
-            n.setValue(new DataValue(new Variant(value)));
-
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
-    }
-
-    @Override
-    public synchronized void setSecurityPolicyUri(String securityPolicyUri) {
-        getVariableComponent("SecurityPolicyUri").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(securityPolicyUri)));
-
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
-    }
-
-    @Override
-    public synchronized void setClientCertificate(ByteString clientCertificate) {
-        getVariableComponent("ClientCertificate").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(clientCertificate)));
-
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
+    public void setClientCertificate(ByteString value) {
+        getVariableComponent("ClientCertificate")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
     }
 
 }

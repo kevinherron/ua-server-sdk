@@ -19,37 +19,79 @@
 
 package com.digitalpetri.opcua.sdk.core.model.variables;
 
-import com.digitalpetri.opcua.sdk.core.model.UaMandatory;
-import com.digitalpetri.opcua.sdk.core.model.UaOptional;
+import com.digitalpetri.opcua.sdk.server.model.Property;
 import com.digitalpetri.opcua.stack.core.types.builtin.DateTime;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 
+
 public interface TransitionVariableType extends BaseDataVariableType {
 
-    @UaMandatory("Id")
+    Property<Object> ID = new Property.BasicProperty<>(
+            QualifiedName.parse("0:Id"),
+            NodeId.parse("ns=0;i=24"),
+            -1,
+            Object.class
+    );
+
+    Property<QualifiedName> NAME = new Property.BasicProperty<>(
+            QualifiedName.parse("0:Name"),
+            NodeId.parse("ns=0;i=20"),
+            -1,
+            QualifiedName.class
+    );
+
+    Property<UInteger> NUMBER = new Property.BasicProperty<>(
+            QualifiedName.parse("0:Number"),
+            NodeId.parse("ns=0;i=7"),
+            -1,
+            UInteger.class
+    );
+
+    Property<DateTime> TRANSITION_TIME = new Property.BasicProperty<>(
+            QualifiedName.parse("0:TransitionTime"),
+            NodeId.parse("ns=0;i=294"),
+            -1,
+            DateTime.class
+    );
+
+    Property<DateTime> EFFECTIVE_TRANSITION_TIME = new Property.BasicProperty<>(
+            QualifiedName.parse("0:EffectiveTransitionTime"),
+            NodeId.parse("ns=0;i=294"),
+            -1,
+            DateTime.class
+    );
+
+
     Object getId();
 
-    @UaOptional("Name")
+    PropertyType getIdNode();
+
+    void setId(Object value);
+
     QualifiedName getName();
 
-    @UaOptional("Number")
+    PropertyType getNameNode();
+
+    void setName(QualifiedName value);
+
     UInteger getNumber();
 
-    @UaOptional("TransitionTime")
+    PropertyType getNumberNode();
+
+    void setNumber(UInteger value);
+
     DateTime getTransitionTime();
 
-    @UaOptional("EffectiveTransitionTime")
+    PropertyType getTransitionTimeNode();
+
+    void setTransitionTime(DateTime value);
+
     DateTime getEffectiveTransitionTime();
 
-    void setId(Object id);
+    PropertyType getEffectiveTransitionTimeNode();
 
-    void setName(QualifiedName name);
-
-    void setNumber(UInteger number);
-
-    void setTransitionTime(DateTime transitionTime);
-
-    void setEffectiveTransitionTime(DateTime effectiveTransitionTime);
+    void setEffectiveTransitionTime(DateTime value);
 
 }

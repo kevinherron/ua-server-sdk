@@ -19,45 +19,121 @@
 
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
+import com.digitalpetri.opcua.sdk.core.model.variables.PropertyType;
+import com.digitalpetri.opcua.sdk.server.model.Property;
 import com.digitalpetri.opcua.stack.core.types.builtin.DateTime;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 import com.digitalpetri.opcua.stack.core.types.enumerated.ExceptionDeviationFormat;
 
 public interface HistoricalDataConfigurationType extends BaseObjectType {
 
-    AggregateConfigurationType getAggregateConfiguration();
+    Property<Boolean> STEPPED = new Property.BasicProperty<>(
+            QualifiedName.parse("0:Stepped"),
+            NodeId.parse("ns=0;i=1"),
+            -1,
+            Boolean.class
+    );
 
-    FolderType getAggregateFunctions();
+    Property<String> DEFINITION = new Property.BasicProperty<>(
+            QualifiedName.parse("0:Definition"),
+            NodeId.parse("ns=0;i=12"),
+            -1,
+            String.class
+    );
+
+    Property<Double> MAX_TIME_INTERVAL = new Property.BasicProperty<>(
+            QualifiedName.parse("0:MaxTimeInterval"),
+            NodeId.parse("ns=0;i=290"),
+            -1,
+            Double.class
+    );
+
+    Property<Double> MIN_TIME_INTERVAL = new Property.BasicProperty<>(
+            QualifiedName.parse("0:MinTimeInterval"),
+            NodeId.parse("ns=0;i=290"),
+            -1,
+            Double.class
+    );
+
+    Property<Double> EXCEPTION_DEVIATION = new Property.BasicProperty<>(
+            QualifiedName.parse("0:ExceptionDeviation"),
+            NodeId.parse("ns=0;i=11"),
+            -1,
+            Double.class
+    );
+
+    Property<ExceptionDeviationFormat> EXCEPTION_DEVIATION_FORMAT = new Property.BasicProperty<>(
+            QualifiedName.parse("0:ExceptionDeviationFormat"),
+            NodeId.parse("ns=0;i=890"),
+            -1,
+            ExceptionDeviationFormat.class
+    );
+
+    Property<DateTime> START_OF_ARCHIVE = new Property.BasicProperty<>(
+            QualifiedName.parse("0:StartOfArchive"),
+            NodeId.parse("ns=0;i=294"),
+            -1,
+            DateTime.class
+    );
+
+    Property<DateTime> START_OF_ONLINE_ARCHIVE = new Property.BasicProperty<>(
+            QualifiedName.parse("0:StartOfOnlineArchive"),
+            NodeId.parse("ns=0;i=294"),
+            -1,
+            DateTime.class
+    );
 
     Boolean getStepped();
 
+    PropertyType getSteppedNode();
+
+    void setStepped(Boolean value);
+
     String getDefinition();
+
+    PropertyType getDefinitionNode();
+
+    void setDefinition(String value);
 
     Double getMaxTimeInterval();
 
+    PropertyType getMaxTimeIntervalNode();
+
+    void setMaxTimeInterval(Double value);
+
     Double getMinTimeInterval();
+
+    PropertyType getMinTimeIntervalNode();
+
+    void setMinTimeInterval(Double value);
 
     Double getExceptionDeviation();
 
+    PropertyType getExceptionDeviationNode();
+
+    void setExceptionDeviation(Double value);
+
     ExceptionDeviationFormat getExceptionDeviationFormat();
+
+    PropertyType getExceptionDeviationFormatNode();
+
+    void setExceptionDeviationFormat(ExceptionDeviationFormat value);
 
     DateTime getStartOfArchive();
 
+    PropertyType getStartOfArchiveNode();
+
+    void setStartOfArchive(DateTime value);
+
     DateTime getStartOfOnlineArchive();
 
-    void setStepped(Boolean stepped);
+    PropertyType getStartOfOnlineArchiveNode();
 
-    void setDefinition(String definition);
+    void setStartOfOnlineArchive(DateTime value);
 
-    void setMaxTimeInterval(Double maxTimeInterval);
+    AggregateConfigurationType getAggregateConfigurationNode();
 
-    void setMinTimeInterval(Double minTimeInterval);
-
-    void setExceptionDeviation(Double exceptionDeviation);
-
-    void setExceptionDeviationFormat(ExceptionDeviationFormat exceptionDeviationFormat);
-
-    void setStartOfArchive(DateTime startOfArchive);
-
-    void setStartOfOnlineArchive(DateTime startOfOnlineArchive);
+    FolderType getAggregateFunctionsNode();
 
 }

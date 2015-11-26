@@ -1,3 +1,22 @@
+/*
+ * digitalpetri OPC-UA SDK
+ *
+ * Copyright (C) 2015 Kevin Herron
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package com.digitalpetri.opcua.sdk.server.model;
 
 import java.lang.annotation.Annotation;
@@ -9,40 +28,56 @@ import java.util.stream.Collectors;
 import com.digitalpetri.opcua.sdk.core.Reference;
 import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
 import com.digitalpetri.opcua.sdk.core.nodes.VariableTypeNode;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.UaNodeManager.UaNodeSource;
-import com.digitalpetri.opcua.sdk.server.model.variables.AnalogItemNode;
 import com.digitalpetri.opcua.sdk.server.util.StreamUtil;
 import com.digitalpetri.opcua.stack.core.Identifiers;
 import com.digitalpetri.opcua.stack.core.StatusCodes;
 import com.digitalpetri.opcua.stack.core.UaRuntimeException;
-import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
+import com.digitalpetri.opcua.stack.core.types.builtin.ExpandedNodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
-import com.digitalpetri.opcua.stack.core.types.builtin.Variant;
-import com.digitalpetri.opcua.stack.core.types.structured.Range;
+import com.digitalpetri.opcua.stack.core.types.enumerated.NodeClass;
 import org.reflections.Reflections;
 
 public class VariableNodeFactory {
 
-    public static void main(String[] args) {
-        VariableNodeFactory factory = new VariableNodeFactory(null);
+    private final Reflections reflections = new Reflections("com.digitalpetri.opcua.sdk.server.model");
 
-        AnalogItemNode node = factory.create(
-                new NodeId(2, "MyAnalogItem"),
-                Identifiers.AnalogItemType,
-                AnalogItemNode.class
-        );
+    private final UaNodeManager nodeManager;
 
-        node.setDataType(Identifiers.Float);
-        node.setValue(new DataValue(new Variant(3.14f)));
-        node.setEURange(new Range((double) Float.MIN_VALUE, (double) Float.MAX_VALUE));
+    public VariableNodeFactory(UaNodeManager nodeManager) {
+        this.nodeManager = nodeManager;
     }
 
-    private final UaNodeSource nodeManager;
+    public UaVariableNode create(
+            NodeId nodeId,
+            QualifiedName browseName,
+            LocalizedText displayName,
+            NodeId typeDefinitionId) {
 
-    public VariableNodeFactory(UaNodeSource nodeManager) {
-        this.nodeManager = nodeManager;
+        UaVariableNode variableNode = create(nodeId, typeDefinitionId);
+
+        variableNode.setBrowseName(browseName);
+        variableNode.setDisplayName(displayName);
+
+        return variableNode;
+    }
+
+    public <T extends VariableNode> T create(
+            NodeId nodeId,
+            QualifiedName browseName,
+            LocalizedText displayName,
+            NodeId typeDefinitionId,
+            Class<T> clazz) {
+
+        T variableNode = create(nodeId, typeDefinitionId, clazz);
+
+        variableNode.setBrowseName(browseName);
+        variableNode.setDisplayName(displayName);
+
+        return variableNode;
     }
 
     public UaVariableNode create(NodeId nodeId, NodeId typeDefinitionId) throws UaRuntimeException {
@@ -59,18 +94,35 @@ public class VariableNodeFactory {
         UaVariableNode node = instanceFromTypeDefinition(nodeId, typeDefinitionNode);
         nodeManager.addNode(node);
 
-        List<UaPropertyNode> propertyDeclarations = typeDefinitionNode.getReferences().stream()
+        List<UaVariableNode> propertyDeclarations = typeDefinitionNode.getReferences().stream()
                 .filter(Reference.HAS_PROPERTY_PREDICATE)
+                .distinct()
                 .map(r -> nodeManager.getNode(r.getTargetNodeId()))
                 .flatMap(StreamUtil::opt2stream)
-                .map(UaPropertyNode.class::cast)
+                .map(UaVariableNode.class::cast)
+                .filter(vn ->
+                        vn.getReferences().stream().anyMatch(r ->
+                                Identifiers.HasModellingRule.equals(r.getReferenceTypeId()) &&
+                                        Identifiers.ModellingRule_Mandatory.expanded().equals(r.getTargetNodeId())))
                 .collect(Collectors.toList());
 
-        for (UaPropertyNode declaration : propertyDeclarations) {
+        for (UaVariableNode declaration : propertyDeclarations) {
             UaVariableTypeNode typeDefinition = (UaVariableTypeNode) declaration.getTypeDefinitionNode();
-            UaVariableNode instance = create(node.getNodeId(), typeDefinition.getNodeId());
 
-            node.addComponent(instance);
+            NodeId instanceId = createNodeId(nodeId, declaration.getBrowseName().getName());
+
+            UaVariableNode instance = create(instanceId, typeDefinition.getNodeId());
+            instance.setBrowseName(declaration.getBrowseName());
+            instance.setDisplayName(declaration.getDisplayName());
+            instance.setDescription(declaration.getDescription());
+            instance.setWriteMask(declaration.getWriteMask());
+            instance.setUserWriteMask(declaration.getUserWriteMask());
+            instance.setValue(declaration.getValue());
+            instance.setDataType(declaration.getDataType());
+            instance.setValueRank(declaration.getValueRank());
+            instance.setArrayDimensions(declaration.getArrayDimensions());
+
+            node.addProperty(instance);
             nodeManager.addNode(instance);
         }
 
@@ -83,7 +135,19 @@ public class VariableNodeFactory {
 
         for (UaVariableNode declaration : variableDeclarations) {
             UaVariableTypeNode typeDefinition = (UaVariableTypeNode) declaration.getTypeDefinitionNode();
-            UaVariableNode instance = create(node.getNodeId(), typeDefinition.getNodeId());
+
+            NodeId instanceId = createNodeId(nodeId, declaration.getBrowseName().getName());
+
+            UaVariableNode instance = create(instanceId, typeDefinition.getNodeId());
+            instance.setBrowseName(declaration.getBrowseName());
+            instance.setDisplayName(declaration.getDisplayName());
+            instance.setDescription(declaration.getDescription());
+            instance.setWriteMask(declaration.getWriteMask());
+            instance.setUserWriteMask(declaration.getUserWriteMask());
+            instance.setValue(declaration.getValue());
+            instance.setDataType(declaration.getDataType());
+            instance.setValueRank(declaration.getValueRank());
+            instance.setArrayDimensions(declaration.getArrayDimensions());
 
             node.addComponent(instance);
             nodeManager.addNode(instance);
@@ -95,8 +159,6 @@ public class VariableNodeFactory {
     private UaVariableNode instanceFromTypeDefinition(NodeId nodeId, UaVariableTypeNode typeDefinitionNode) {
         QualifiedName browseName = typeDefinitionNode.getBrowseName();
 
-        Reflections reflections = new Reflections("com.digitalpetri.opcua.server.model");
-
         Set<Class<?>> classes = reflections.getTypesAnnotatedWith(
                 variableAnnotation(browseName.toParseableString()));
 
@@ -107,7 +169,7 @@ public class VariableNodeFactory {
 
         try {
             Class[] UA_VARIABLE_NODE_CTOR_PARAMS = {
-                    UaNamespace.class,
+                    UaNodeManager.class,
                     NodeId.class,
                     VariableTypeNode.class
             };
@@ -115,15 +177,29 @@ public class VariableNodeFactory {
             Constructor<?> ctor = clazz.getDeclaredConstructor(UA_VARIABLE_NODE_CTOR_PARAMS);
 
             Object[] initArgs = {
-                    typeDefinitionNode.getNamespace(),
+                    nodeManager,
                     nodeId,
                     typeDefinitionNode
             };
 
-            return (UaVariableNode) ctor.newInstance(initArgs);
+            UaVariableNode variableNode = (UaVariableNode) ctor.newInstance(initArgs);
+
+            variableNode.addReference(new Reference(
+                    nodeId,
+                    Identifiers.HasTypeDefinition,
+                    new ExpandedNodeId(typeDefinitionNode.getNodeId()),
+                    NodeClass.VariableType,
+                    true
+            ));
+
+            return variableNode;
         } catch (Exception e) {
             throw new UaRuntimeException(e);
         }
+    }
+
+    private NodeId createNodeId(NodeId nodeId, String toAppend) {
+        return new NodeId(nodeId.getNamespaceIndex(), nodeId.getIdentifier() + "." + toAppend);
     }
 
     private com.digitalpetri.opcua.sdk.server.util.UaVariableNode variableAnnotation(final String typeName) {

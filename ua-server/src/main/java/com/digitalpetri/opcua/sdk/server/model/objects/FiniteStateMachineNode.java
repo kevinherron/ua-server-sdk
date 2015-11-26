@@ -22,11 +22,10 @@ package com.digitalpetri.opcua.sdk.server.model.objects;
 import java.util.Optional;
 
 import com.digitalpetri.opcua.sdk.core.model.objects.FiniteStateMachineType;
-import com.digitalpetri.opcua.sdk.core.model.variables.FiniteStateVariableType;
-import com.digitalpetri.opcua.sdk.core.model.variables.FiniteTransitionVariableType;
 import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.util.UaObjectType;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
+import com.digitalpetri.opcua.sdk.server.model.variables.FiniteStateVariableNode;
+import com.digitalpetri.opcua.sdk.server.model.variables.FiniteTransitionVariableNode;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
@@ -35,12 +34,11 @@ import com.digitalpetri.opcua.stack.core.types.builtin.Variant;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 
-
-@UaObjectType(name = "FiniteStateMachineType")
+@com.digitalpetri.opcua.sdk.server.util.UaObjectNode(typeName = "0:FiniteStateMachineType")
 public class FiniteStateMachineNode extends StateMachineNode implements FiniteStateMachineType {
 
     public FiniteStateMachineNode(
-            UaNamespace namespace,
+            UaNodeManager nodeManager,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -49,30 +47,47 @@ public class FiniteStateMachineNode extends StateMachineNode implements FiniteSt
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
-    public FiniteStateVariableType getCurrentState() {
-        Optional<VariableNode> currentState = getVariableComponent("CurrentState");
+    @Override
+    public LocalizedText getCurrentState() {
+        Optional<VariableNode> component = getVariableComponent("CurrentState");
 
-        return currentState.map(node -> (FiniteStateVariableType) node).orElse(null);
+        return component.map(node -> (LocalizedText) node.getValue().getValue().getValue()).orElse(null);
     }
 
-    public FiniteTransitionVariableType getLastTransition() {
-        Optional<VariableNode> lastTransition = getVariableComponent("LastTransition");
+    @Override
+    public FiniteStateVariableNode getCurrentStateNode() {
+        Optional<VariableNode> component = getVariableComponent("CurrentState");
 
-        return lastTransition.map(node -> (FiniteTransitionVariableType) node).orElse(null);
+        return component.map(node -> (FiniteStateVariableNode) node).orElse(null);
     }
 
-    public synchronized void setCurrentState(FiniteStateVariableType currentState) {
-        getVariableComponent("CurrentState").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(currentState)));
-        });
+    @Override
+    public void setCurrentState(LocalizedText value) {
+        getVariableComponent("CurrentState")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
     }
 
-    public synchronized void setLastTransition(FiniteTransitionVariableType lastTransition) {
-        getVariableComponent("LastTransition").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(lastTransition)));
-        });
+    @Override
+    public LocalizedText getLastTransition() {
+        Optional<VariableNode> component = getVariableComponent("LastTransition");
+
+        return component.map(node -> (LocalizedText) node.getValue().getValue().getValue()).orElse(null);
     }
+
+    @Override
+    public FiniteTransitionVariableNode getLastTransitionNode() {
+        Optional<VariableNode> component = getVariableComponent("LastTransition");
+
+        return component.map(node -> (FiniteTransitionVariableNode) node).orElse(null);
+    }
+
+    @Override
+    public void setLastTransition(LocalizedText value) {
+        getVariableComponent("LastTransition")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
+    }
+
 }

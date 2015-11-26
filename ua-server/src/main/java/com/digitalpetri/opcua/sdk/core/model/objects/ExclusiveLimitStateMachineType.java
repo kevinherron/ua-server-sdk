@@ -21,21 +21,20 @@ package com.digitalpetri.opcua.sdk.core.model.objects;
 
 public interface ExclusiveLimitStateMachineType extends FiniteStateMachineType {
 
-    StateType getHighHigh();
+    StateType getHighHighNode();
 
-    StateType getHigh();
+    StateType getHighNode();
 
-    StateType getLow();
+    StateType getLowNode();
 
-    StateType getLowLow();
+    StateType getLowLowNode();
 
-    TransitionType getLowLowToLow();
+    TransitionType getLowLowToLowNode();
 
-    TransitionType getLowToLowLow();
+    TransitionType getLowToLowLowNode();
 
-    TransitionType getHighHighToHigh();
+    TransitionType getHighHighToHighNode();
 
-    TransitionType getHighToHighHigh();
-
+    TransitionType getHighToHighHighNode();
 
 }

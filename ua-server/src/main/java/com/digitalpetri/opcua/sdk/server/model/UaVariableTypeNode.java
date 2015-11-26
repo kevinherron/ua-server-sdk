@@ -25,7 +25,7 @@ import com.digitalpetri.opcua.sdk.core.AttributeIds;
 import com.digitalpetri.opcua.sdk.core.ValueRank;
 import com.digitalpetri.opcua.sdk.core.model.UaOptional;
 import com.digitalpetri.opcua.sdk.core.nodes.VariableTypeNode;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.sdk.server.model.Property.BasicProperty;
 import com.digitalpetri.opcua.stack.core.Identifiers;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
@@ -43,7 +43,7 @@ public class UaVariableTypeNode extends UaNode implements VariableTypeNode {
     private volatile Optional<UInteger[]> arrayDimensions;
     private volatile boolean isAbstract;
 
-    public UaVariableTypeNode(UaNamespace namespace,
+    public UaVariableTypeNode(UaNodeManager nodeManager,
                               NodeId nodeId,
                               QualifiedName browseName,
                               LocalizedText displayName,
@@ -56,7 +56,7 @@ public class UaVariableTypeNode extends UaNode implements VariableTypeNode {
                               Optional<UInteger[]> arrayDimensions,
                               boolean isAbstract) {
 
-        super(namespace, nodeId, NodeClass.VariableType, browseName, displayName, description, writeMask, userWriteMask);
+        super(nodeManager, nodeId, NodeClass.VariableType, browseName, displayName, description, writeMask, userWriteMask);
 
         this.value = value;
         this.dataType = dataType;

@@ -19,7 +19,36 @@
 
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
+import com.digitalpetri.opcua.sdk.core.model.variables.PropertyType;
+import com.digitalpetri.opcua.sdk.server.model.Property;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
+
 public interface CertificateUpdatedAuditEventType extends AuditUpdateMethodEventType {
 
+    Property<NodeId> CERTIFICATE_GROUP = new Property.BasicProperty<>(
+            QualifiedName.parse("0:CertificateGroup"),
+            NodeId.parse("ns=0;i=17"),
+            -1,
+            NodeId.class
+    );
 
+    Property<NodeId> CERTIFICATE_TYPE = new Property.BasicProperty<>(
+            QualifiedName.parse("0:CertificateType"),
+            NodeId.parse("ns=0;i=17"),
+            -1,
+            NodeId.class
+    );
+
+    NodeId getCertificateGroup();
+
+    PropertyType getCertificateGroupNode();
+
+    void setCertificateGroup(NodeId value);
+
+    NodeId getCertificateType();
+
+    PropertyType getCertificateTypeNode();
+
+    void setCertificateType(NodeId value);
 }

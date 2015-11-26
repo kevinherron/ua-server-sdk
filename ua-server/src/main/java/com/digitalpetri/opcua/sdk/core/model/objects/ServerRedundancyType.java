@@ -19,12 +19,24 @@
 
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
+import com.digitalpetri.opcua.sdk.core.model.variables.PropertyType;
+import com.digitalpetri.opcua.sdk.server.model.Property;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 import com.digitalpetri.opcua.stack.core.types.enumerated.RedundancySupport;
 
 public interface ServerRedundancyType extends BaseObjectType {
 
+    Property<RedundancySupport> REDUNDANCY_SUPPORT = new Property.BasicProperty<>(
+            QualifiedName.parse("0:RedundancySupport"),
+            NodeId.parse("ns=0;i=851"),
+            -1,
+            RedundancySupport.class
+    );
+
     RedundancySupport getRedundancySupport();
 
-    void setRedundancySupport(RedundancySupport redundancySupport);
+    PropertyType getRedundancySupportNode();
 
+    void setRedundancySupport(RedundancySupport value);
 }

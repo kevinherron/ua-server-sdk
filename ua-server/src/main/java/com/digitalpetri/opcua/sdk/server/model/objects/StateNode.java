@@ -22,22 +22,20 @@ package com.digitalpetri.opcua.sdk.server.model.objects;
 import java.util.Optional;
 
 import com.digitalpetri.opcua.sdk.core.model.objects.StateType;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.util.UaObjectType;
-import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
+import com.digitalpetri.opcua.sdk.server.model.variables.PropertyNode;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
-import com.digitalpetri.opcua.stack.core.types.builtin.Variant;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 
-
-@UaObjectType(name = "StateType")
+@com.digitalpetri.opcua.sdk.server.util.UaObjectNode(typeName = "0:StateType")
 public class StateNode extends BaseObjectNode implements StateType {
 
     public StateNode(
-            UaNamespace namespace,
+            UaNodeManager nodeManager,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -46,18 +44,26 @@ public class StateNode extends BaseObjectNode implements StateType {
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
+    @Override
     public UInteger getStateNumber() {
-        Optional<UInteger> stateNumber = getProperty("StateNumber");
+        Optional<UInteger> property = getProperty(StateType.STATE_NUMBER);
 
-        return stateNumber.orElse(null);
+        return property.orElse(null);
     }
 
-    public synchronized void setStateNumber(UInteger stateNumber) {
-        getPropertyNode("StateNumber").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(stateNumber)));
-        });
+    @Override
+    public PropertyNode getStateNumberNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(StateType.STATE_NUMBER.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
     }
+
+    @Override
+    public void setStateNumber(UInteger value) {
+        setProperty(StateType.STATE_NUMBER, value);
+    }
+
 }

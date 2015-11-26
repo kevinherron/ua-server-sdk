@@ -22,23 +22,19 @@ package com.digitalpetri.opcua.sdk.server.model.objects;
 import java.util.Optional;
 
 import com.digitalpetri.opcua.sdk.core.model.objects.ExclusiveLimitStateMachineType;
-import com.digitalpetri.opcua.sdk.core.model.objects.StateType;
-import com.digitalpetri.opcua.sdk.core.model.objects.TransitionType;
 import com.digitalpetri.opcua.sdk.core.nodes.ObjectNode;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.util.UaObjectType;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 
-
-@UaObjectType(name = "ExclusiveLimitStateMachineType")
+@com.digitalpetri.opcua.sdk.server.util.UaObjectNode(typeName = "0:ExclusiveLimitStateMachineType")
 public class ExclusiveLimitStateMachineNode extends FiniteStateMachineNode implements ExclusiveLimitStateMachineType {
 
     public ExclusiveLimitStateMachineNode(
-            UaNamespace namespace,
+            UaNodeManager nodeManager,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -47,55 +43,63 @@ public class ExclusiveLimitStateMachineNode extends FiniteStateMachineNode imple
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
-    public StateType getHighHigh() {
-        Optional<ObjectNode> highHigh = getObjectComponent("HighHigh");
+    @Override
+    public StateNode getHighHighNode() {
+        Optional<ObjectNode> component = getObjectComponent("HighHigh");
 
-        return highHigh.map(node -> (StateType) node).orElse(null);
+        return component.map(node -> (StateNode) node).orElse(null);
     }
 
-    public StateType getHigh() {
-        Optional<ObjectNode> high = getObjectComponent("High");
+    @Override
+    public StateNode getHighNode() {
+        Optional<ObjectNode> component = getObjectComponent("High");
 
-        return high.map(node -> (StateType) node).orElse(null);
+        return component.map(node -> (StateNode) node).orElse(null);
     }
 
-    public StateType getLow() {
-        Optional<ObjectNode> low = getObjectComponent("Low");
+    @Override
+    public StateNode getLowNode() {
+        Optional<ObjectNode> component = getObjectComponent("Low");
 
-        return low.map(node -> (StateType) node).orElse(null);
+        return component.map(node -> (StateNode) node).orElse(null);
     }
 
-    public StateType getLowLow() {
-        Optional<ObjectNode> lowLow = getObjectComponent("LowLow");
+    @Override
+    public StateNode getLowLowNode() {
+        Optional<ObjectNode> component = getObjectComponent("LowLow");
 
-        return lowLow.map(node -> (StateType) node).orElse(null);
+        return component.map(node -> (StateNode) node).orElse(null);
     }
 
-    public TransitionType getLowLowToLow() {
-        Optional<ObjectNode> lowLowToLow = getObjectComponent("LowLowToLow");
+    @Override
+    public TransitionNode getLowLowToLowNode() {
+        Optional<ObjectNode> component = getObjectComponent("LowLowToLow");
 
-        return lowLowToLow.map(node -> (TransitionType) node).orElse(null);
+        return component.map(node -> (TransitionNode) node).orElse(null);
     }
 
-    public TransitionType getLowToLowLow() {
-        Optional<ObjectNode> lowToLowLow = getObjectComponent("LowToLowLow");
+    @Override
+    public TransitionNode getLowToLowLowNode() {
+        Optional<ObjectNode> component = getObjectComponent("LowToLowLow");
 
-        return lowToLowLow.map(node -> (TransitionType) node).orElse(null);
+        return component.map(node -> (TransitionNode) node).orElse(null);
     }
 
-    public TransitionType getHighHighToHigh() {
-        Optional<ObjectNode> highHighToHigh = getObjectComponent("HighHighToHigh");
+    @Override
+    public TransitionNode getHighHighToHighNode() {
+        Optional<ObjectNode> component = getObjectComponent("HighHighToHigh");
 
-        return highHighToHigh.map(node -> (TransitionType) node).orElse(null);
+        return component.map(node -> (TransitionNode) node).orElse(null);
     }
 
-    public TransitionType getHighToHighHigh() {
-        Optional<ObjectNode> highToHighHigh = getObjectComponent("HighToHighHigh");
+    @Override
+    public TransitionNode getHighToHighHighNode() {
+        Optional<ObjectNode> component = getObjectComponent("HighToHighHigh");
 
-        return highToHighHigh.map(node -> (TransitionType) node).orElse(null);
+        return component.map(node -> (TransitionNode) node).orElse(null);
     }
 
 }

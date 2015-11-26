@@ -19,26 +19,53 @@
 
 package com.digitalpetri.opcua.sdk.core.model.variables;
 
-import com.digitalpetri.opcua.sdk.core.model.UaMandatory;
-import com.digitalpetri.opcua.sdk.core.model.UaOptional;
+import com.digitalpetri.opcua.sdk.server.model.Property;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 import com.digitalpetri.opcua.stack.core.types.structured.EUInformation;
 import com.digitalpetri.opcua.stack.core.types.structured.Range;
 
+
 public interface AnalogItemType extends DataItemType {
 
-    @UaOptional("InstrumentRange")
+    Property<Range> INSTRUMENT_RANGE = new Property.BasicProperty<>(
+            QualifiedName.parse("0:InstrumentRange"),
+            NodeId.parse("ns=0;i=884"),
+            -1,
+            Range.class
+    );
+
+    Property<Range> E_U_RANGE = new Property.BasicProperty<>(
+            QualifiedName.parse("0:EURange"),
+            NodeId.parse("ns=0;i=884"),
+            -1,
+            Range.class
+    );
+
+    Property<EUInformation> ENGINEERING_UNITS = new Property.BasicProperty<>(
+            QualifiedName.parse("0:EngineeringUnits"),
+            NodeId.parse("ns=0;i=887"),
+            -1,
+            EUInformation.class
+    );
+
+
     Range getInstrumentRange();
 
-    @UaMandatory("EURange")
+    PropertyType getInstrumentRangeNode();
+
+    void setInstrumentRange(Range value);
+
     Range getEURange();
 
-    @UaOptional("EngineeringUnits")
+    PropertyType getEURangeNode();
+
+    void setEURange(Range value);
+
     EUInformation getEngineeringUnits();
 
-    void setInstrumentRange(Range instrumentRange);
+    PropertyType getEngineeringUnitsNode();
 
-    void setEURange(Range eURange);
-
-    void setEngineeringUnits(EUInformation engineeringUnits);
+    void setEngineeringUnits(EUInformation value);
 
 }

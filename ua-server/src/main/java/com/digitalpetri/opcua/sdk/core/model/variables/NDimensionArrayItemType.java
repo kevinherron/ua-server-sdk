@@ -19,14 +19,26 @@
 
 package com.digitalpetri.opcua.sdk.core.model.variables;
 
-import com.digitalpetri.opcua.sdk.core.model.UaMandatory;
+import com.digitalpetri.opcua.sdk.server.model.Property;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 import com.digitalpetri.opcua.stack.core.types.structured.AxisInformation;
+
 
 public interface NDimensionArrayItemType extends ArrayItemType {
 
-    @UaMandatory("AxisDefinition")
+    Property<AxisInformation[]> AXIS_DEFINITION = new Property.BasicProperty<>(
+            QualifiedName.parse("0:AxisDefinition"),
+            NodeId.parse("ns=0;i=12079"),
+            1,
+            AxisInformation[].class
+    );
+
+
     AxisInformation[] getAxisDefinition();
 
-    void setAxisDefinition(AxisInformation[] axisDefinition);
+    PropertyType getAxisDefinitionNode();
+
+    void setAxisDefinition(AxisInformation[] value);
 
 }

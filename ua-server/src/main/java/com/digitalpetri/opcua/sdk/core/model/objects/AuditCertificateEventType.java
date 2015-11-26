@@ -19,12 +19,24 @@
 
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
+import com.digitalpetri.opcua.sdk.core.model.variables.PropertyType;
+import com.digitalpetri.opcua.sdk.server.model.Property;
 import com.digitalpetri.opcua.stack.core.types.builtin.ByteString;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 
 public interface AuditCertificateEventType extends AuditSecurityEventType {
 
+    Property<ByteString> CERTIFICATE = new Property.BasicProperty<>(
+            QualifiedName.parse("0:Certificate"),
+            NodeId.parse("ns=0;i=15"),
+            -1,
+            ByteString.class
+    );
+
     ByteString getCertificate();
 
-    void setCertificate(ByteString certificate);
+    PropertyType getCertificateNode();
 
+    void setCertificate(ByteString value);
 }

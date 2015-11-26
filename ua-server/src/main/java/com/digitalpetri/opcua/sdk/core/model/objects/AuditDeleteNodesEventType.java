@@ -19,12 +19,24 @@
 
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
+import com.digitalpetri.opcua.sdk.core.model.variables.PropertyType;
+import com.digitalpetri.opcua.sdk.server.model.Property;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 import com.digitalpetri.opcua.stack.core.types.structured.DeleteNodesItem;
 
 public interface AuditDeleteNodesEventType extends AuditNodeManagementEventType {
 
+    Property<DeleteNodesItem[]> NODES_TO_DELETE = new Property.BasicProperty<>(
+            QualifiedName.parse("0:NodesToDelete"),
+            NodeId.parse("ns=0;i=382"),
+            1,
+            DeleteNodesItem[].class
+    );
+
     DeleteNodesItem[] getNodesToDelete();
 
-    void setNodesToDelete(DeleteNodesItem[] nodesToDelete);
+    PropertyType getNodesToDeleteNode();
 
+    void setNodesToDelete(DeleteNodesItem[] value);
 }

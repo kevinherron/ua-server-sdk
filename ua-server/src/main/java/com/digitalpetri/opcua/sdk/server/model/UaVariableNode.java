@@ -35,6 +35,7 @@ import com.digitalpetri.opcua.sdk.core.nodes.ObjectNode;
 import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
 import com.digitalpetri.opcua.sdk.core.nodes.VariableTypeNode;
 import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.sdk.server.model.Property.BasicProperty;
 import com.digitalpetri.opcua.stack.core.Identifiers;
 import com.digitalpetri.opcua.stack.core.StatusCodes;
@@ -77,11 +78,11 @@ public class UaVariableNode extends UaNode implements VariableNode {
     private volatile boolean historizing = false;
 
     public UaVariableNode(
-            UaNamespace namespace,
+            UaNodeManager nodeManager,
             NodeId nodeId,
             VariableTypeNode variableTypeNode) {
 
-        this(namespace, nodeId, variableTypeNode.getBrowseName(), variableTypeNode.getDisplayName());
+        this(nodeManager, nodeId, variableTypeNode.getBrowseName(), variableTypeNode.getDisplayName());
 
         setDescription(variableTypeNode.getDescription());
         setWriteMask(variableTypeNode.getWriteMask());
@@ -92,15 +93,15 @@ public class UaVariableNode extends UaNode implements VariableNode {
         setArrayDimensions(variableTypeNode.getArrayDimensions());
     }
 
-    public UaVariableNode(UaNamespace namespace,
+    public UaVariableNode(UaNodeManager nodeManager,
                           NodeId nodeId,
                           QualifiedName browseName,
                           LocalizedText displayName) {
 
-        super(namespace, nodeId, NodeClass.Variable, browseName, displayName);
+        super(nodeManager, nodeId, NodeClass.Variable, browseName, displayName);
     }
 
-    public UaVariableNode(UaNamespace namespace,
+    public UaVariableNode(UaNodeManager nodeManager,
                           NodeId nodeId,
                           QualifiedName browseName,
                           LocalizedText displayName,
@@ -116,7 +117,7 @@ public class UaVariableNode extends UaNode implements VariableNode {
                           Optional<Double> minimumSamplingInterval,
                           boolean historizing) {
 
-        super(namespace, nodeId, NodeClass.Variable, browseName, displayName, description, writeMask, userWriteMask);
+        super(nodeManager, nodeId, NodeClass.Variable, browseName, displayName, description, writeMask, userWriteMask);
 
         this.value = value;
         this.dataType = dataType;
@@ -606,7 +607,7 @@ public class UaVariableNode extends UaNode implements VariableNode {
                     nodeId,
                     Identifiers.HasTypeDefinition,
                     new ExpandedNodeId(typeDefinition),
-                    NodeClass.ObjectType,
+                    NodeClass.VariableType,
                     true
             ));
 

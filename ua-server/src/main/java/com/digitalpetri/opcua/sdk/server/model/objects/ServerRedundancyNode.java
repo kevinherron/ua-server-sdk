@@ -22,23 +22,21 @@ package com.digitalpetri.opcua.sdk.server.model.objects;
 import java.util.Optional;
 
 import com.digitalpetri.opcua.sdk.core.model.objects.ServerRedundancyType;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.util.UaObjectType;
-import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
+import com.digitalpetri.opcua.sdk.server.model.variables.PropertyNode;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
-import com.digitalpetri.opcua.stack.core.types.builtin.Variant;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.digitalpetri.opcua.stack.core.types.enumerated.RedundancySupport;
 
-
-@UaObjectType(name = "ServerRedundancyType")
+@com.digitalpetri.opcua.sdk.server.util.UaObjectNode(typeName = "0:ServerRedundancyType")
 public class ServerRedundancyNode extends BaseObjectNode implements ServerRedundancyType {
 
     public ServerRedundancyNode(
-            UaNamespace namespace,
+            UaNodeManager nodeManager,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -47,20 +45,26 @@ public class ServerRedundancyNode extends BaseObjectNode implements ServerRedund
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
+    @Override
     public RedundancySupport getRedundancySupport() {
-        Optional<Integer> redundancySupport = getProperty("RedundancySupport");
+        Optional<RedundancySupport> property = getProperty(ServerRedundancyType.REDUNDANCY_SUPPORT);
 
-        return redundancySupport.map(RedundancySupport::from).orElse(null);
+        return property.orElse(null);
     }
 
-    public synchronized void setRedundancySupport(RedundancySupport redundancySupport) {
-        getPropertyNode("RedundancySupport").ifPresent(n -> {
-            Integer value = redundancySupport.getValue();
+    @Override
+    public PropertyNode getRedundancySupportNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(ServerRedundancyType.REDUNDANCY_SUPPORT.getBrowseName());
 
-            n.setValue(new DataValue(new Variant(value)));
-        });
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
     }
+
+    @Override
+    public void setRedundancySupport(RedundancySupport value) {
+        setProperty(ServerRedundancyType.REDUNDANCY_SUPPORT, value);
+    }
+
 }

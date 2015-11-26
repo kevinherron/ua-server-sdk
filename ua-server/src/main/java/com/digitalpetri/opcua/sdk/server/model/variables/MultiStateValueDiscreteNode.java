@@ -21,71 +21,87 @@ package com.digitalpetri.opcua.sdk.server.model.variables;
 
 import java.util.Optional;
 
-import com.digitalpetri.opcua.sdk.core.model.UaMandatory;
 import com.digitalpetri.opcua.sdk.core.model.variables.MultiStateValueDiscreteType;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.util.UaVariableType;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableTypeNode;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
-import com.digitalpetri.opcua.stack.core.types.builtin.Variant;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.digitalpetri.opcua.stack.core.types.structured.EnumValueType;
 
-@UaVariableType(name = "MultiStateValueDiscreteType")
+@com.digitalpetri.opcua.sdk.server.util.UaVariableNode(typeName = "0:MultiStateValueDiscreteType")
 public class MultiStateValueDiscreteNode extends DiscreteItemNode implements MultiStateValueDiscreteType {
 
-    public MultiStateValueDiscreteNode(UaNamespace namespace,
-                                       NodeId nodeId,
-                                       QualifiedName browseName,
-                                       LocalizedText displayName,
-                                       Optional<LocalizedText> description,
-                                       Optional<UInteger> writeMask,
-                                       Optional<UInteger> userWriteMask,
-                                       DataValue value,
-                                       NodeId dataType,
-                                       Integer valueRank,
-                                       Optional<UInteger[]> arrayDimensions,
-                                       UByte accessLevel,
-                                       UByte userAccessLevel,
-                                       Optional<Double> minimumSamplingInterval,
-                                       boolean historizing) {
+    public MultiStateValueDiscreteNode(
+            UaNodeManager nodeManager,
+            NodeId nodeId,
+            VariableTypeNode variableTypeNode) {
 
-        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(nodeManager, nodeId, variableTypeNode);
+    }
+
+    public MultiStateValueDiscreteNode(
+            UaNodeManager nodeManager,
+            NodeId nodeId,
+            QualifiedName browseName,
+            LocalizedText displayName,
+            Optional<LocalizedText> description,
+            Optional<UInteger> writeMask,
+            Optional<UInteger> userWriteMask,
+            DataValue value,
+            NodeId dataType,
+            Integer valueRank,
+            Optional<UInteger[]> arrayDimensions,
+            UByte accessLevel,
+            UByte userAccessLevel,
+            Optional<Double> minimumSamplingInterval,
+            boolean historizing) {
+
+        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
-
     }
 
+
     @Override
-    @UaMandatory("EnumValues")
     public EnumValueType[] getEnumValues() {
-        Optional<EnumValueType[]> enumValues = getProperty("EnumValues");
+        Optional<EnumValueType[]> property = getProperty(MultiStateValueDiscreteType.ENUM_VALUES);
 
-        return enumValues.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    @UaMandatory("ValueAsText")
+    public PropertyNode getEnumValuesNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(MultiStateValueDiscreteType.ENUM_VALUES.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setEnumValues(EnumValueType[] value) {
+        setProperty(MultiStateValueDiscreteType.ENUM_VALUES, value);
+    }
+
+    @Override
     public LocalizedText getValueAsText() {
-        Optional<LocalizedText> valueAsText = getProperty("ValueAsText");
+        Optional<LocalizedText> property = getProperty(MultiStateValueDiscreteType.VALUE_AS_TEXT);
 
-        return valueAsText.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    public synchronized void setEnumValues(EnumValueType[] enumValues) {
-        getPropertyNode("EnumValues").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(enumValues)));
-        });
+    public PropertyNode getValueAsTextNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(MultiStateValueDiscreteType.VALUE_AS_TEXT.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
     }
 
     @Override
-    public synchronized void setValueAsText(LocalizedText valueAsText) {
-        getPropertyNode("ValueAsText").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(valueAsText)));
-        });
+    public void setValueAsText(LocalizedText value) {
+        setProperty(MultiStateValueDiscreteType.VALUE_AS_TEXT, value);
     }
 
 }
