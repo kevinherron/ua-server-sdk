@@ -29,7 +29,6 @@ import com.digitalpetri.opcua.sdk.core.Reference;
 import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
 import com.digitalpetri.opcua.sdk.core.nodes.VariableTypeNode;
 import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
 import com.digitalpetri.opcua.sdk.server.util.StreamUtil;
 import com.digitalpetri.opcua.stack.core.Identifiers;
 import com.digitalpetri.opcua.stack.core.StatusCodes;
@@ -43,7 +42,8 @@ import org.reflections.Reflections;
 
 public class VariableNodeFactory {
 
-    private final Reflections reflections = new Reflections("com.digitalpetri.opcua.sdk.server.model");
+    private static final Reflections NODE_REFLECTIONS =
+            new Reflections("com.digitalpetri.opcua.sdk.server.model");
 
     private final UaNodeManager nodeManager;
 
@@ -159,7 +159,7 @@ public class VariableNodeFactory {
     private UaVariableNode instanceFromTypeDefinition(NodeId nodeId, UaVariableTypeNode typeDefinitionNode) {
         QualifiedName browseName = typeDefinitionNode.getBrowseName();
 
-        Set<Class<?>> classes = reflections.getTypesAnnotatedWith(
+        Set<Class<?>> classes = NODE_REFLECTIONS.getTypesAnnotatedWith(
                 variableAnnotation(browseName.toParseableString()));
 
         Class<?> clazz = classes.stream().findFirst().orElseThrow(() ->
