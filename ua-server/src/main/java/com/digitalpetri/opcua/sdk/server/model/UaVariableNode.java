@@ -34,7 +34,6 @@ import com.digitalpetri.opcua.sdk.core.nodes.Node;
 import com.digitalpetri.opcua.sdk.core.nodes.ObjectNode;
 import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
 import com.digitalpetri.opcua.sdk.core.nodes.VariableTypeNode;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
 import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.sdk.server.model.Property.BasicProperty;
 import com.digitalpetri.opcua.stack.core.Identifiers;
@@ -444,7 +443,7 @@ public class UaVariableNode extends UaNode implements VariableNode {
             EUInformation.class
     );
 
-    public static UaVariableNodeBuilder builder(UaNamespace nodeManager) {
+    public static UaVariableNodeBuilder builder(UaNodeManager nodeManager) {
         return new UaVariableNodeBuilder(nodeManager);
     }
 
@@ -472,9 +471,9 @@ public class UaVariableNode extends UaNode implements VariableNode {
         private Optional<Double> minimumSamplingInterval = Optional.empty();
         private boolean historizing = false;
 
-        private final UaNamespace nodeManager;
+        private final UaNodeManager nodeManager;
 
-        public UaVariableNodeBuilder(UaNamespace nodeManager) {
+        public UaVariableNodeBuilder(UaNodeManager nodeManager) {
             this.nodeManager = nodeManager;
         }
 

@@ -247,7 +247,7 @@ public class UaObjectNode extends UaNode implements ObjectNode {
             NamingRuleType.class
     );
 
-    public static UaObjectNodeBuilder builder(UaNamespace nodeManager) {
+    public static UaObjectNodeBuilder builder(UaNodeManager nodeManager) {
         return new UaObjectNodeBuilder(nodeManager);
     }
 
@@ -263,9 +263,9 @@ public class UaObjectNode extends UaNode implements ObjectNode {
         private Optional<UInteger> userWriteMask = Optional.of(uint(0));
         private UByte eventNotifier = ubyte(0);
 
-        private final UaNamespace nodeManager;
+        private final UaNodeManager nodeManager;
 
-        public UaObjectNodeBuilder(UaNamespace nodeManager) {
+        public UaObjectNodeBuilder(UaNodeManager nodeManager) {
             this.nodeManager = nodeManager;
         }
 
