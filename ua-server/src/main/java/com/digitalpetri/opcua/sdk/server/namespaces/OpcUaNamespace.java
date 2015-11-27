@@ -32,6 +32,7 @@ import com.digitalpetri.opcua.sdk.server.OpcUaServer;
 import com.digitalpetri.opcua.sdk.server.api.DataItem;
 import com.digitalpetri.opcua.sdk.server.api.EventItem;
 import com.digitalpetri.opcua.sdk.server.api.MethodInvocationHandler;
+import com.digitalpetri.opcua.sdk.server.api.MethodInvocationHandler.NotImplementedHandler;
 import com.digitalpetri.opcua.sdk.server.api.MonitoredItem;
 import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
 import com.digitalpetri.opcua.sdk.server.api.config.OpcUaServerConfigLimits;
@@ -41,6 +42,7 @@ import com.digitalpetri.opcua.sdk.server.model.UaNode;
 import com.digitalpetri.opcua.sdk.server.model.UaObjectNode;
 import com.digitalpetri.opcua.sdk.server.model.UaVariableNode;
 import com.digitalpetri.opcua.sdk.server.model.methods.GetMonitoredItems;
+import com.digitalpetri.opcua.sdk.server.model.methods.ResendData;
 import com.digitalpetri.opcua.sdk.server.model.objects.OperationLimitsNode;
 import com.digitalpetri.opcua.sdk.server.model.objects.ServerCapabilitiesNode;
 import com.digitalpetri.opcua.sdk.server.model.objects.ServerNode;
@@ -247,7 +249,11 @@ public class OpcUaNamespace implements UaNamespace {
     public Optional<MethodInvocationHandler> getInvocationHandler(NodeId methodId) {
         return Optional.ofNullable(nodes.get(methodId))
                 .filter(n -> n instanceof UaMethodNode)
-                .flatMap(n -> ((UaMethodNode) n).getInvocationHandler());
+                .map(n -> {
+                    UaMethodNode m = (UaMethodNode) n;
+                    return m.getInvocationHandler()
+                            .orElse(new NotImplementedHandler());
+                });
     }
 
     public UaObjectNode getObjectsFolder() {
@@ -330,14 +336,26 @@ public class OpcUaNamespace implements UaNamespace {
         try {
             UaMethodNode getMonitoredItems = (UaMethodNode) nodes.get(Identifiers.Server_GetMonitoredItems);
 
-            AnnotationBasedInvocationHandler invocationHandler =
+            AnnotationBasedInvocationHandler handler =
                     AnnotationBasedInvocationHandler.fromAnnotatedObject(this, new GetMonitoredItems(server));
 
-            getMonitoredItems.setInputArguments(invocationHandler.getInputArguments());
-            getMonitoredItems.setOutputArguments(invocationHandler.getOutputArguments());
-            getMonitoredItems.setInvocationHandler(invocationHandler);
+            getMonitoredItems.setInvocationHandler(handler);
+            getMonitoredItems.setInputArguments(handler.getInputArguments());
+            getMonitoredItems.setOutputArguments(handler.getOutputArguments());
         } catch (Exception e) {
             logger.error("Error setting up GetMonitoredItems Method.", e);
+        }
+
+        try {
+            UaMethodNode resendData = (UaMethodNode) nodes.get(Identifiers.Server_ResendData);
+
+            AnnotationBasedInvocationHandler handler =
+                    AnnotationBasedInvocationHandler.fromAnnotatedObject(this, new ResendData(server));
+
+            resendData.setInvocationHandler(handler);
+            resendData.setInputArguments(handler.getInputArguments());
+        } catch (Exception e) {
+            logger.error("Error setting up ResendData Method.", e);
         }
     }
 

@@ -61,19 +61,19 @@ public class GetMonitoredItems {
         Subscription subscription = server.getSubscriptions().get(subscriptionId);
 
         if (subscription == null) {
-            throw new UaException(new StatusCode(StatusCodes.Bad_SubscriptionIdInvalid));
+            context.setFailure(new UaException(new StatusCode(StatusCodes.Bad_SubscriptionIdInvalid)));
+        } else {
+            List<UInteger> serverHandleList = Lists.newArrayList();
+            List<UInteger> clientHandleList = Lists.newArrayList();
+
+            for (BaseMonitoredItem<?> item : subscription.getMonitoredItems().values()) {
+                serverHandleList.add(item.getId());
+                clientHandleList.add(uint(item.getClientHandle()));
+            }
+
+            serverHandles.set(serverHandleList.toArray(new UInteger[serverHandleList.size()]));
+            clientHandles.set(clientHandleList.toArray(new UInteger[clientHandleList.size()]));
         }
-
-        List<UInteger> serverHandleList = Lists.newArrayList();
-        List<UInteger> clientHandleList = Lists.newArrayList();
-
-        for (BaseMonitoredItem<?> item : subscription.getMonitoredItems().values()) {
-            serverHandleList.add(item.getId());
-            clientHandleList.add(uint(item.getClientHandle()));
-        }
-
-        serverHandles.set(serverHandleList.toArray(new UInteger[serverHandleList.size()]));
-        clientHandles.set(clientHandleList.toArray(new UInteger[clientHandleList.size()]));
     }
 
 }
