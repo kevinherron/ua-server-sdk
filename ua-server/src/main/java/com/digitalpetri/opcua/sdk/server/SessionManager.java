@@ -504,9 +504,30 @@ public class SessionManager implements
 
     @Override
     public void onCloseSession(ServiceRequest<CloseSessionRequest, CloseSessionResponse> service) throws UaException {
-        session(service).onCloseSession(service);
+        long secureChannelId = service.getSecureChannel().getChannelId();
+        NodeId authToken = service.getRequest().getRequestHeader().getAuthenticationToken();
 
-        activeSessions.remove(service.getRequest().getRequestHeader().getAuthenticationToken());
+        Session session = activeSessions.get(authToken);
+
+        if (session != null) {
+            if (session.getSecureChannelId() != secureChannelId) {
+                throw new UaException(StatusCodes.Bad_SecureChannelIdInvalid);
+            } else {
+                activeSessions.remove(authToken);
+                session.onCloseSession(service);
+            }
+        } else {
+            session = createdSessions.get(authToken);
+
+            if (session == null) {
+                throw new UaException(StatusCodes.Bad_SessionIdInvalid);
+            } else if (session.getSecureChannelId() != secureChannelId) {
+                throw new UaException(StatusCodes.Bad_SecureChannelIdInvalid);
+            } else {
+                createdSessions.remove(authToken);
+                session.onCloseSession(service);
+            }
+        }
     }
 
     @Override
