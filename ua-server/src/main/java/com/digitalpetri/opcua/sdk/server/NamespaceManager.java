@@ -26,6 +26,9 @@ import java.util.function.Function;
 
 import com.digitalpetri.opcua.sdk.core.NamespaceTable;
 import com.digitalpetri.opcua.sdk.server.api.Namespace;
+import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
+import com.digitalpetri.opcua.sdk.server.model.UaNode;
 import com.digitalpetri.opcua.sdk.server.util.NoOpNamespace;
 import com.digitalpetri.opcua.stack.core.StatusCodes;
 import com.digitalpetri.opcua.stack.core.UaRuntimeException;
@@ -36,12 +39,16 @@ import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UShort;
 import com.digitalpetri.opcua.stack.core.types.enumerated.IdType;
 import com.google.common.collect.Maps;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.ushort;
 
-public class NamespaceManager {
+public class NamespaceManager implements UaNodeManager {
 
     private static final Namespace NO_OP_NAMESPACE = new NoOpNamespace();
+
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     private final NamespaceTable namespaceTable = new NamespaceTable();
 
@@ -103,53 +110,45 @@ public class NamespaceManager {
         return namespace != null ? namespace : NO_OP_NAMESPACE;
     }
 
-//    public boolean containsNodeId(NodeId nodeId) {
-//        Namespace namespace = namespaces.get(nodeId.getNamespaceIndex());
-//
-//        return namespace != null && namespace.containsNodeId(nodeId);
-//    }
-//
-//    public boolean containsNodeId(ExpandedNodeId expandedNodeId) {
-//        return toNodeId(expandedNodeId).map(this::containsNodeId).orElse(false);
-//    }
-//
-//    public <T> Optional<T> getAttribute(NodeId nodeId, int attributeId) {
-//        Namespace namespace = namespaces.get(nodeId.getNamespaceIndex());
-//
-//        if (namespace == null) namespace = NO_OP_NAMESPACE;
-//
-//        return Optional.ofNullable(namespace.getAttribute(nodeId, attributeId));
-//    }
-//
-//    public <T> Optional<T> getAttribute(ExpandedNodeId nodeId, int attributeId) {
-//        return nodeId.local().flatMap(id -> getAttribute(id, attributeId));
-//    }
-//
-//    public boolean attributeExists(NodeId nodeId, int attribute) {
-//        Namespace namespace = namespaces.get(nodeId.getNamespaceIndex());
-//
-//        if (namespace == null) namespace = NO_OP_NAMESPACE;
-//
-//        return namespace.attributeExists(nodeId, attribute);
-//    }
-//
-//    public boolean attributeExists(NodeId nodeId, UInteger attributeId) {
-//        return attributeExists(nodeId, attributeId.intValue());
-//    }
-//
-//    public Optional<List<Reference>> getReferences(NodeId nodeId) {
-//        Namespace namespace = namespaces.get(nodeId.getNamespaceIndex());
-//
-//        if (namespace == null) {
-//            return Optional.empty();
-//        } else {
-//            return namespace.getReferences(nodeId);
-//        }
-//    }
-//
-//    public Optional<List<Reference>> getReferences(ExpandedNodeId nodeId) {
-//        return nodeId.local().flatMap(this::getReferences);
-//    }
+    @Override
+    public void addNode(UaNode node) {
+        UShort namespaceIndex = node.getNodeId().getNamespaceIndex();
+
+        getUaNamespace(namespaceIndex).ifPresent(ns -> ns.addNode(node));
+    }
+
+    @Override
+    public Optional<UaNode> getNode(NodeId nodeId) {
+        UShort namespaceIndex = nodeId.getNamespaceIndex();
+
+        return getUaNamespace(namespaceIndex).flatMap(ns -> ns.getNode(nodeId));
+    }
+
+    @Override
+    public Optional<UaNode> getNode(ExpandedNodeId nodeId) {
+        UShort namespaceIndex = nodeId.getNamespaceIndex();
+
+        return getUaNamespace(namespaceIndex).flatMap(ns -> ns.getNode(nodeId));
+    }
+
+    @Override
+    public Optional<UaNode> removeNode(NodeId nodeId) {
+        UShort namespaceIndex = nodeId.getNamespaceIndex();
+
+        return getUaNamespace(namespaceIndex).flatMap(ns -> ns.removeNode(nodeId));
+    }
+
+    private Optional<UaNamespace> getUaNamespace(UShort namespaceIndex) {
+        Namespace namespace = namespaces.get(namespaceIndex);
+
+        if (namespace instanceof UaNamespace) {
+            return Optional.of((UaNamespace) namespace);
+        } else {
+            logger.warn("namespace index not registered: {}", namespaceIndex);
+
+            return Optional.empty();
+        }
+    }
 
     public NamespaceTable getNamespaceTable() {
         return namespaceTable;

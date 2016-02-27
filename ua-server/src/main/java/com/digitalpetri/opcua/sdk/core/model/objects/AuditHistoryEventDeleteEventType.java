@@ -19,17 +19,38 @@
 
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
+import com.digitalpetri.opcua.sdk.core.model.variables.PropertyType;
+import com.digitalpetri.opcua.sdk.server.model.Property;
 import com.digitalpetri.opcua.stack.core.types.builtin.ByteString;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 import com.digitalpetri.opcua.stack.core.types.structured.HistoryEventFieldList;
 
 public interface AuditHistoryEventDeleteEventType extends AuditHistoryDeleteEventType {
 
+    Property<ByteString[]> EVENT_IDS = new Property.BasicProperty<>(
+            QualifiedName.parse("0:EventIds"),
+            NodeId.parse("ns=0;i=15"),
+            1,
+            ByteString[].class
+    );
+
+    Property<HistoryEventFieldList> OLD_VALUES = new Property.BasicProperty<>(
+            QualifiedName.parse("0:OldValues"),
+            NodeId.parse("ns=0;i=920"),
+            -1,
+            HistoryEventFieldList.class
+    );
+
     ByteString[] getEventIds();
+
+    PropertyType getEventIdsNode();
+
+    void setEventIds(ByteString[] value);
 
     HistoryEventFieldList getOldValues();
 
-    void setEventIds(ByteString[] eventIds);
+    PropertyType getOldValuesNode();
 
-    void setOldValues(HistoryEventFieldList oldValues);
-
+    void setOldValues(HistoryEventFieldList value);
 }

@@ -25,7 +25,7 @@ import com.digitalpetri.opcua.sdk.core.AttributeIds;
 import com.digitalpetri.opcua.sdk.core.ValueRank;
 import com.digitalpetri.opcua.sdk.core.model.UaOptional;
 import com.digitalpetri.opcua.sdk.core.nodes.ViewNode;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.sdk.server.model.Property.BasicProperty;
 import com.digitalpetri.opcua.stack.core.Identifiers;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
@@ -40,7 +40,7 @@ public class UaViewNode extends UaNode implements ViewNode {
     private volatile boolean containsNoLoops;
     private volatile UByte eventNotifier;
 
-    public UaViewNode(UaNamespace namespace,
+    public UaViewNode(UaNodeManager nodeManager,
                       NodeId nodeId,
                       QualifiedName browseName,
                       LocalizedText displayName,
@@ -50,7 +50,7 @@ public class UaViewNode extends UaNode implements ViewNode {
                       boolean containsNoLoops,
                       UByte eventNotifier) {
 
-        super(namespace, nodeId, NodeClass.View, browseName, displayName, description, writeMask, userWriteMask);
+        super(nodeManager, nodeId, NodeClass.View, browseName, displayName, description, writeMask, userWriteMask);
 
         this.containsNoLoops = containsNoLoops;
         this.eventNotifier = eventNotifier;

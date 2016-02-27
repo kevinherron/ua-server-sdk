@@ -21,12 +21,19 @@ package com.digitalpetri.opcua.sdk.core.model.objects;
 
 import com.digitalpetri.opcua.sdk.core.model.variables.FiniteStateVariableType;
 import com.digitalpetri.opcua.sdk.core.model.variables.FiniteTransitionVariableType;
+import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 
 public interface FiniteStateMachineType extends StateMachineType {
 
-    FiniteStateVariableType getCurrentState();
+    LocalizedText getCurrentState();
 
-    FiniteTransitionVariableType getLastTransition();
+    FiniteStateVariableType getCurrentStateNode();
 
+    void setCurrentState(LocalizedText value);
 
+    LocalizedText getLastTransition();
+
+    FiniteTransitionVariableType getLastTransitionNode();
+
+    void setLastTransition(LocalizedText value);
 }

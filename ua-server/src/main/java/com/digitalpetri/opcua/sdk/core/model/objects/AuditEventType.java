@@ -19,28 +19,76 @@
 
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
+import com.digitalpetri.opcua.sdk.core.model.variables.PropertyType;
+import com.digitalpetri.opcua.sdk.server.model.Property;
 import com.digitalpetri.opcua.stack.core.types.builtin.DateTime;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 
 public interface AuditEventType extends BaseEventType {
 
+    Property<DateTime> ACTION_TIME_STAMP = new Property.BasicProperty<>(
+            QualifiedName.parse("0:ActionTimeStamp"),
+            NodeId.parse("ns=0;i=294"),
+            -1,
+            DateTime.class
+    );
+
+    Property<Boolean> STATUS = new Property.BasicProperty<>(
+            QualifiedName.parse("0:Status"),
+            NodeId.parse("ns=0;i=1"),
+            -1,
+            Boolean.class
+    );
+
+    Property<String> SERVER_ID = new Property.BasicProperty<>(
+            QualifiedName.parse("0:ServerId"),
+            NodeId.parse("ns=0;i=12"),
+            -1,
+            String.class
+    );
+
+    Property<String> CLIENT_AUDIT_ENTRY_ID = new Property.BasicProperty<>(
+            QualifiedName.parse("0:ClientAuditEntryId"),
+            NodeId.parse("ns=0;i=12"),
+            -1,
+            String.class
+    );
+
+    Property<String> CLIENT_USER_ID = new Property.BasicProperty<>(
+            QualifiedName.parse("0:ClientUserId"),
+            NodeId.parse("ns=0;i=12"),
+            -1,
+            String.class
+    );
+
     DateTime getActionTimeStamp();
+
+    PropertyType getActionTimeStampNode();
+
+    void setActionTimeStamp(DateTime value);
 
     Boolean getStatus();
 
+    PropertyType getStatusNode();
+
+    void setStatus(Boolean value);
+
     String getServerId();
+
+    PropertyType getServerIdNode();
+
+    void setServerId(String value);
 
     String getClientAuditEntryId();
 
+    PropertyType getClientAuditEntryIdNode();
+
+    void setClientAuditEntryId(String value);
+
     String getClientUserId();
 
-    void setActionTimeStamp(DateTime actionTimeStamp);
+    PropertyType getClientUserIdNode();
 
-    void setStatus(Boolean status);
-
-    void setServerId(String serverId);
-
-    void setClientAuditEntryId(String clientAuditEntryId);
-
-    void setClientUserId(String clientUserId);
-
+    void setClientUserId(String value);
 }

@@ -19,17 +19,38 @@
 
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
+import com.digitalpetri.opcua.sdk.core.model.variables.PropertyType;
+import com.digitalpetri.opcua.sdk.server.model.Property;
 import com.digitalpetri.opcua.stack.core.types.builtin.ByteString;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 
 public interface AuditConditionAcknowledgeEventType extends AuditConditionEventType {
 
+    Property<ByteString> EVENT_ID = new Property.BasicProperty<>(
+            QualifiedName.parse("0:EventId"),
+            NodeId.parse("ns=0;i=15"),
+            -1,
+            ByteString.class
+    );
+
+    Property<LocalizedText> COMMENT = new Property.BasicProperty<>(
+            QualifiedName.parse("0:Comment"),
+            NodeId.parse("ns=0;i=21"),
+            -1,
+            LocalizedText.class
+    );
+
     ByteString getEventId();
+
+    PropertyType getEventIdNode();
+
+    void setEventId(ByteString value);
 
     LocalizedText getComment();
 
-    void setEventId(ByteString eventId);
+    PropertyType getCommentNode();
 
-    void setComment(LocalizedText comment);
-
+    void setComment(LocalizedText value);
 }

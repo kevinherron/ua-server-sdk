@@ -19,7 +19,10 @@
 
 package com.digitalpetri.opcua.sdk.core.model.variables;
 
-public interface BaseVariableType {
+import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
+
+
+public interface BaseVariableType extends VariableNode {
 
 
 }

@@ -19,166 +19,197 @@
 
 package com.digitalpetri.opcua.sdk.core.model.variables;
 
-import com.digitalpetri.opcua.sdk.core.model.UaMandatory;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 
+
 public interface SubscriptionDiagnosticsType extends BaseDataVariableType {
 
-    @UaMandatory("SessionId")
+
     NodeId getSessionId();
 
-    @UaMandatory("SubscriptionId")
+    BaseDataVariableType getSessionIdNode();
+
+    void setSessionId(NodeId value);
+
     UInteger getSubscriptionId();
 
-    @UaMandatory("Priority")
+    BaseDataVariableType getSubscriptionIdNode();
+
+    void setSubscriptionId(UInteger value);
+
     UByte getPriority();
 
-    @UaMandatory("PublishingInterval")
+    BaseDataVariableType getPriorityNode();
+
+    void setPriority(UByte value);
+
     Double getPublishingInterval();
 
-    @UaMandatory("MaxKeepAliveCount")
+    BaseDataVariableType getPublishingIntervalNode();
+
+    void setPublishingInterval(Double value);
+
     UInteger getMaxKeepAliveCount();
 
-    @UaMandatory("MaxLifetimeCount")
+    BaseDataVariableType getMaxKeepAliveCountNode();
+
+    void setMaxKeepAliveCount(UInteger value);
+
     UInteger getMaxLifetimeCount();
 
-    @UaMandatory("MaxNotificationsPerPublish")
+    BaseDataVariableType getMaxLifetimeCountNode();
+
+    void setMaxLifetimeCount(UInteger value);
+
     UInteger getMaxNotificationsPerPublish();
 
-    @UaMandatory("PublishingEnabled")
+    BaseDataVariableType getMaxNotificationsPerPublishNode();
+
+    void setMaxNotificationsPerPublish(UInteger value);
+
     Boolean getPublishingEnabled();
 
-    @UaMandatory("ModifyCount")
+    BaseDataVariableType getPublishingEnabledNode();
+
+    void setPublishingEnabled(Boolean value);
+
     UInteger getModifyCount();
 
-    @UaMandatory("EnableCount")
+    BaseDataVariableType getModifyCountNode();
+
+    void setModifyCount(UInteger value);
+
     UInteger getEnableCount();
 
-    @UaMandatory("DisableCount")
+    BaseDataVariableType getEnableCountNode();
+
+    void setEnableCount(UInteger value);
+
     UInteger getDisableCount();
 
-    @UaMandatory("RepublishRequestCount")
+    BaseDataVariableType getDisableCountNode();
+
+    void setDisableCount(UInteger value);
+
     UInteger getRepublishRequestCount();
 
-    @UaMandatory("RepublishMessageRequestCount")
+    BaseDataVariableType getRepublishRequestCountNode();
+
+    void setRepublishRequestCount(UInteger value);
+
     UInteger getRepublishMessageRequestCount();
 
-    @UaMandatory("RepublishMessageCount")
+    BaseDataVariableType getRepublishMessageRequestCountNode();
+
+    void setRepublishMessageRequestCount(UInteger value);
+
     UInteger getRepublishMessageCount();
 
-    @UaMandatory("TransferRequestCount")
+    BaseDataVariableType getRepublishMessageCountNode();
+
+    void setRepublishMessageCount(UInteger value);
+
     UInteger getTransferRequestCount();
 
-    @UaMandatory("TransferredToAltClientCount")
+    BaseDataVariableType getTransferRequestCountNode();
+
+    void setTransferRequestCount(UInteger value);
+
     UInteger getTransferredToAltClientCount();
 
-    @UaMandatory("TransferredToSameClientCount")
+    BaseDataVariableType getTransferredToAltClientCountNode();
+
+    void setTransferredToAltClientCount(UInteger value);
+
     UInteger getTransferredToSameClientCount();
 
-    @UaMandatory("PublishRequestCount")
+    BaseDataVariableType getTransferredToSameClientCountNode();
+
+    void setTransferredToSameClientCount(UInteger value);
+
     UInteger getPublishRequestCount();
 
-    @UaMandatory("DataChangeNotificationsCount")
+    BaseDataVariableType getPublishRequestCountNode();
+
+    void setPublishRequestCount(UInteger value);
+
     UInteger getDataChangeNotificationsCount();
 
-    @UaMandatory("EventNotificationsCount")
+    BaseDataVariableType getDataChangeNotificationsCountNode();
+
+    void setDataChangeNotificationsCount(UInteger value);
+
     UInteger getEventNotificationsCount();
 
-    @UaMandatory("NotificationsCount")
+    BaseDataVariableType getEventNotificationsCountNode();
+
+    void setEventNotificationsCount(UInteger value);
+
     UInteger getNotificationsCount();
 
-    @UaMandatory("LatePublishRequestCount")
+    BaseDataVariableType getNotificationsCountNode();
+
+    void setNotificationsCount(UInteger value);
+
     UInteger getLatePublishRequestCount();
 
-    @UaMandatory("CurrentKeepAliveCount")
+    BaseDataVariableType getLatePublishRequestCountNode();
+
+    void setLatePublishRequestCount(UInteger value);
+
     UInteger getCurrentKeepAliveCount();
 
-    @UaMandatory("CurrentLifetimeCount")
+    BaseDataVariableType getCurrentKeepAliveCountNode();
+
+    void setCurrentKeepAliveCount(UInteger value);
+
     UInteger getCurrentLifetimeCount();
 
-    @UaMandatory("UnacknowledgedMessageCount")
+    BaseDataVariableType getCurrentLifetimeCountNode();
+
+    void setCurrentLifetimeCount(UInteger value);
+
     UInteger getUnacknowledgedMessageCount();
 
-    @UaMandatory("DiscardedMessageCount")
+    BaseDataVariableType getUnacknowledgedMessageCountNode();
+
+    void setUnacknowledgedMessageCount(UInteger value);
+
     UInteger getDiscardedMessageCount();
 
-    @UaMandatory("MonitoredItemCount")
+    BaseDataVariableType getDiscardedMessageCountNode();
+
+    void setDiscardedMessageCount(UInteger value);
+
     UInteger getMonitoredItemCount();
 
-    @UaMandatory("DisabledMonitoredItemCount")
+    BaseDataVariableType getMonitoredItemCountNode();
+
+    void setMonitoredItemCount(UInteger value);
+
     UInteger getDisabledMonitoredItemCount();
 
-    @UaMandatory("MonitoringQueueOverflowCount")
+    BaseDataVariableType getDisabledMonitoredItemCountNode();
+
+    void setDisabledMonitoredItemCount(UInteger value);
+
     UInteger getMonitoringQueueOverflowCount();
 
-    @UaMandatory("NextSequenceNumber")
+    BaseDataVariableType getMonitoringQueueOverflowCountNode();
+
+    void setMonitoringQueueOverflowCount(UInteger value);
+
     UInteger getNextSequenceNumber();
 
-    @UaMandatory("EventQueueOverFlowCount")
+    BaseDataVariableType getNextSequenceNumberNode();
+
+    void setNextSequenceNumber(UInteger value);
+
     UInteger getEventQueueOverFlowCount();
 
-    void setSessionId(NodeId sessionId);
+    BaseDataVariableType getEventQueueOverFlowCountNode();
 
-    void setSubscriptionId(UInteger subscriptionId);
-
-    void setPriority(UByte priority);
-
-    void setPublishingInterval(Double publishingInterval);
-
-    void setMaxKeepAliveCount(UInteger maxKeepAliveCount);
-
-    void setMaxLifetimeCount(UInteger maxLifetimeCount);
-
-    void setMaxNotificationsPerPublish(UInteger maxNotificationsPerPublish);
-
-    void setPublishingEnabled(Boolean publishingEnabled);
-
-    void setModifyCount(UInteger modifyCount);
-
-    void setEnableCount(UInteger enableCount);
-
-    void setDisableCount(UInteger disableCount);
-
-    void setRepublishRequestCount(UInteger republishRequestCount);
-
-    void setRepublishMessageRequestCount(UInteger republishMessageRequestCount);
-
-    void setRepublishMessageCount(UInteger republishMessageCount);
-
-    void setTransferRequestCount(UInteger transferRequestCount);
-
-    void setTransferredToAltClientCount(UInteger transferredToAltClientCount);
-
-    void setTransferredToSameClientCount(UInteger transferredToSameClientCount);
-
-    void setPublishRequestCount(UInteger publishRequestCount);
-
-    void setDataChangeNotificationsCount(UInteger dataChangeNotificationsCount);
-
-    void setEventNotificationsCount(UInteger eventNotificationsCount);
-
-    void setNotificationsCount(UInteger notificationsCount);
-
-    void setLatePublishRequestCount(UInteger latePublishRequestCount);
-
-    void setCurrentKeepAliveCount(UInteger currentKeepAliveCount);
-
-    void setCurrentLifetimeCount(UInteger currentLifetimeCount);
-
-    void setUnacknowledgedMessageCount(UInteger unacknowledgedMessageCount);
-
-    void setDiscardedMessageCount(UInteger discardedMessageCount);
-
-    void setMonitoredItemCount(UInteger monitoredItemCount);
-
-    void setDisabledMonitoredItemCount(UInteger disabledMonitoredItemCount);
-
-    void setMonitoringQueueOverflowCount(UInteger monitoringQueueOverflowCount);
-
-    void setNextSequenceNumber(UInteger nextSequenceNumber);
-
-    void setEventQueueOverFlowCount(UInteger eventQueueOverFlowCount);
-
+    void setEventQueueOverFlowCount(UInteger value);
 }

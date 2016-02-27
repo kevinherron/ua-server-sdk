@@ -19,56 +19,65 @@
 
 package com.digitalpetri.opcua.sdk.core.model.variables;
 
-import com.digitalpetri.opcua.sdk.core.model.UaMandatory;
 import com.digitalpetri.opcua.stack.core.types.builtin.ByteString;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.enumerated.MessageSecurityMode;
 
+
 public interface SessionSecurityDiagnosticsType extends BaseDataVariableType {
 
-    @UaMandatory("SessionId")
+
     NodeId getSessionId();
 
-    @UaMandatory("ClientUserIdOfSession")
+    BaseDataVariableType getSessionIdNode();
+
+    void setSessionId(NodeId value);
+
     String getClientUserIdOfSession();
 
-    @UaMandatory("ClientUserIdHistory")
+    BaseDataVariableType getClientUserIdOfSessionNode();
+
+    void setClientUserIdOfSession(String value);
+
     String[] getClientUserIdHistory();
 
-    @UaMandatory("AuthenticationMechanism")
+    BaseDataVariableType getClientUserIdHistoryNode();
+
+    void setClientUserIdHistory(String[] value);
+
     String getAuthenticationMechanism();
 
-    @UaMandatory("Encoding")
+    BaseDataVariableType getAuthenticationMechanismNode();
+
+    void setAuthenticationMechanism(String value);
+
     String getEncoding();
 
-    @UaMandatory("TransportProtocol")
+    BaseDataVariableType getEncodingNode();
+
+    void setEncoding(String value);
+
     String getTransportProtocol();
 
-    @UaMandatory("SecurityMode")
+    BaseDataVariableType getTransportProtocolNode();
+
+    void setTransportProtocol(String value);
+
     MessageSecurityMode getSecurityMode();
 
-    @UaMandatory("SecurityPolicyUri")
+    BaseDataVariableType getSecurityModeNode();
+
+    void setSecurityMode(MessageSecurityMode value);
+
     String getSecurityPolicyUri();
 
-    @UaMandatory("ClientCertificate")
+    BaseDataVariableType getSecurityPolicyUriNode();
+
+    void setSecurityPolicyUri(String value);
+
     ByteString getClientCertificate();
 
-    void setSessionId(NodeId sessionId);
+    BaseDataVariableType getClientCertificateNode();
 
-    void setClientUserIdOfSession(String clientUserIdOfSession);
-
-    void setClientUserIdHistory(String[] clientUserIdHistory);
-
-    void setAuthenticationMechanism(String authenticationMechanism);
-
-    void setEncoding(String encoding);
-
-    void setTransportProtocol(String transportProtocol);
-
-    void setSecurityMode(MessageSecurityMode securityMode);
-
-    void setSecurityPolicyUri(String securityPolicyUri);
-
-    void setClientCertificate(ByteString clientCertificate);
-
+    void setClientCertificate(ByteString value);
 }

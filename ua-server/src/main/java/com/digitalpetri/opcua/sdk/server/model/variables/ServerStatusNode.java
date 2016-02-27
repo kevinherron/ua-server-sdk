@@ -21,12 +21,10 @@ package com.digitalpetri.opcua.sdk.server.model.variables;
 
 import java.util.Optional;
 
-import com.digitalpetri.opcua.sdk.core.AttributeIds;
-import com.digitalpetri.opcua.sdk.core.model.UaMandatory;
 import com.digitalpetri.opcua.sdk.core.model.variables.ServerStatusType;
 import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.util.UaVariableType;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableTypeNode;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.DateTime;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
@@ -39,28 +37,36 @@ import com.digitalpetri.opcua.stack.core.types.enumerated.ServerState;
 import com.digitalpetri.opcua.stack.core.types.structured.BuildInfo;
 import com.digitalpetri.opcua.stack.core.types.structured.ServerStatusDataType;
 
-@UaVariableType(name = "ServerStatusType")
+@com.digitalpetri.opcua.sdk.server.util.UaVariableNode(typeName = "0:ServerStatusType")
 public class ServerStatusNode extends BaseDataVariableNode implements ServerStatusType {
 
-    public ServerStatusNode(UaNamespace namespace,
-                            NodeId nodeId,
-                            QualifiedName browseName,
-                            LocalizedText displayName,
-                            Optional<LocalizedText> description,
-                            Optional<UInteger> writeMask,
-                            Optional<UInteger> userWriteMask,
-                            DataValue value,
-                            NodeId dataType,
-                            Integer valueRank,
-                            Optional<UInteger[]> arrayDimensions,
-                            UByte accessLevel,
-                            UByte userAccessLevel,
-                            Optional<Double> minimumSamplingInterval,
-                            boolean historizing) {
+    public ServerStatusNode(
+            UaNodeManager nodeManager,
+            NodeId nodeId,
+            VariableTypeNode variableTypeNode) {
 
-        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(nodeManager, nodeId, variableTypeNode);
+    }
+
+    public ServerStatusNode(
+            UaNodeManager nodeManager,
+            NodeId nodeId,
+            QualifiedName browseName,
+            LocalizedText displayName,
+            Optional<LocalizedText> description,
+            Optional<UInteger> writeMask,
+            Optional<UInteger> userWriteMask,
+            DataValue value,
+            NodeId dataType,
+            Integer valueRank,
+            Optional<UInteger[]> arrayDimensions,
+            UByte accessLevel,
+            UByte userAccessLevel,
+            Optional<Double> minimumSamplingInterval,
+            boolean historizing) {
+
+        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
-
     }
 
     @Override
@@ -78,124 +84,123 @@ public class ServerStatusNode extends BaseDataVariableNode implements ServerStat
     }
 
     @Override
-    public synchronized void setValue(DataValue value) {
-        ServerStatusDataType v = (ServerStatusDataType) value.getValue().getValue();
-
-        setStartTime(v.getStartTime());
-        setCurrentTime(v.getCurrentTime());
-        setState(v.getState());
-        setBuildInfo(v.getBuildInfo());
-        setSecondsTillShutdown(v.getSecondsTillShutdown());
-        setShutdownReason(v.getShutdownReason());
-
-        fireAttributeChanged(AttributeIds.Value, value);
-    }
-
-    @Override
-    @UaMandatory("StartTime")
     public DateTime getStartTime() {
-        Optional<VariableNode> node = getVariableComponent("StartTime");
+        Optional<VariableNode> component = getVariableComponent("StartTime");
 
-        return node.map(n -> (DateTime) n.getValue().getValue().getValue()).orElse(null);
+        return component.map(node -> (DateTime) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    @UaMandatory("CurrentTime")
+    public BaseDataVariableNode getStartTimeNode() {
+        Optional<VariableNode> component = getVariableComponent("StartTime");
+
+        return component.map(node -> (BaseDataVariableNode) node).orElse(null);
+    }
+
+    @Override
+    public void setStartTime(DateTime value) {
+        getVariableComponent("StartTime")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
+    }
+
+    @Override
     public DateTime getCurrentTime() {
-        Optional<VariableNode> node = getVariableComponent("CurrentTime");
+        Optional<VariableNode> component = getVariableComponent("CurrentTime");
 
-        return node.map(n -> (DateTime) n.getValue().getValue().getValue()).orElse(null);
+        return component.map(node -> (DateTime) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    @UaMandatory("State")
+    public BaseDataVariableNode getCurrentTimeNode() {
+        Optional<VariableNode> component = getVariableComponent("CurrentTime");
+
+        return component.map(node -> (BaseDataVariableNode) node).orElse(null);
+    }
+
+    @Override
+    public void setCurrentTime(DateTime value) {
+        getVariableComponent("CurrentTime")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
+    }
+
+    @Override
     public ServerState getState() {
-        Optional<VariableNode> node = getVariableComponent("State");
-        return node.map(n -> {
-            Integer value = (Integer) n.getValue().getValue().getValue();
+        Optional<VariableNode> component = getVariableComponent("State");
 
-            return ServerState.from(value);
-        }).orElse(null);
+        return component.map(node -> (ServerState) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    @UaMandatory("BuildInfo")
+    public BaseDataVariableNode getStateNode() {
+        Optional<VariableNode> component = getVariableComponent("State");
+
+        return component.map(node -> (BaseDataVariableNode) node).orElse(null);
+    }
+
+    @Override
+    public void setState(ServerState value) {
+        getVariableComponent("State")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
+    }
+
+    @Override
     public BuildInfo getBuildInfo() {
-        Optional<VariableNode> node = getVariableComponent("BuildInfo");
+        Optional<VariableNode> component = getVariableComponent("BuildInfo");
 
-        return node.map(n -> (BuildInfo) n.getValue().getValue().getValue()).orElse(null);
+        return component.map(node -> (BuildInfo) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    @UaMandatory("SecondsTillShutdown")
+    public BuildInfoNode getBuildInfoNode() {
+        Optional<VariableNode> component = getVariableComponent("BuildInfo");
+
+        return component.map(node -> (BuildInfoNode) node).orElse(null);
+    }
+
+    @Override
+    public void setBuildInfo(BuildInfo value) {
+        getVariableComponent("BuildInfo")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
+    }
+
+    @Override
     public UInteger getSecondsTillShutdown() {
-        Optional<VariableNode> node = getVariableComponent("SecondsTillShutdown");
+        Optional<VariableNode> component = getVariableComponent("SecondsTillShutdown");
 
-        return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
+        return component.map(node -> (UInteger) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    @UaMandatory("ShutdownReason")
+    public BaseDataVariableNode getSecondsTillShutdownNode() {
+        Optional<VariableNode> component = getVariableComponent("SecondsTillShutdown");
+
+        return component.map(node -> (BaseDataVariableNode) node).orElse(null);
+    }
+
+    @Override
+    public void setSecondsTillShutdown(UInteger value) {
+        getVariableComponent("SecondsTillShutdown")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
+    }
+
+    @Override
     public LocalizedText getShutdownReason() {
-        Optional<VariableNode> node = getVariableComponent("ShutdownReason");
+        Optional<VariableNode> component = getVariableComponent("ShutdownReason");
 
-        return node.map(n -> (LocalizedText) n.getValue().getValue().getValue()).orElse(null);
+        return component.map(node -> (LocalizedText) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    public synchronized void setStartTime(DateTime startTime) {
-        getVariableComponent("StartTime").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(startTime)));
+    public BaseDataVariableNode getShutdownReasonNode() {
+        Optional<VariableNode> component = getVariableComponent("ShutdownReason");
 
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
+        return component.map(node -> (BaseDataVariableNode) node).orElse(null);
     }
 
     @Override
-    public synchronized void setCurrentTime(DateTime currentTime) {
-        getVariableComponent("CurrentTime").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(currentTime)));
-
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
-    }
-
-    @Override
-    public synchronized void setState(ServerState state) {
-        getVariableComponent("State").ifPresent(n -> {
-            Integer value = state.getValue();
-
-            n.setValue(new DataValue(new Variant(value)));
-
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
-    }
-
-    @Override
-    public synchronized void setBuildInfo(BuildInfo buildInfo) {
-        getVariableComponent("BuildInfo").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(buildInfo)));
-
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
-    }
-
-    @Override
-    public synchronized void setSecondsTillShutdown(UInteger secondsTillShutdown) {
-        getVariableComponent("SecondsTillShutdown").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(secondsTillShutdown)));
-
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
-    }
-
-    @Override
-    public synchronized void setShutdownReason(LocalizedText shutdownReason) {
-        getVariableComponent("ShutdownReason").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(shutdownReason)));
-
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
+    public void setShutdownReason(LocalizedText value) {
+        getVariableComponent("ShutdownReason")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
     }
 
 }

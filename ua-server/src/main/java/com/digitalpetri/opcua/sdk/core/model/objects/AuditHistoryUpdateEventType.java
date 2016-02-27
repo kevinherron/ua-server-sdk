@@ -19,12 +19,23 @@
 
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
+import com.digitalpetri.opcua.sdk.core.model.variables.PropertyType;
+import com.digitalpetri.opcua.sdk.server.model.Property;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 
 public interface AuditHistoryUpdateEventType extends AuditUpdateEventType {
 
+    Property<NodeId> PARAMETER_DATA_TYPE_ID = new Property.BasicProperty<>(
+            QualifiedName.parse("0:ParameterDataTypeId"),
+            NodeId.parse("ns=0;i=17"),
+            -1,
+            NodeId.class
+    );
+
     NodeId getParameterDataTypeId();
 
-    void setParameterDataTypeId(NodeId parameterDataTypeId);
+    PropertyType getParameterDataTypeIdNode();
 
+    void setParameterDataTypeId(NodeId value);
 }

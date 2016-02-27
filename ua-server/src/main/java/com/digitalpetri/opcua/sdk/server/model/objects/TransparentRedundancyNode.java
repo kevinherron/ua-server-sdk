@@ -22,23 +22,21 @@ package com.digitalpetri.opcua.sdk.server.model.objects;
 import java.util.Optional;
 
 import com.digitalpetri.opcua.sdk.core.model.objects.TransparentRedundancyType;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.util.UaObjectType;
-import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
+import com.digitalpetri.opcua.sdk.server.model.variables.PropertyNode;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
-import com.digitalpetri.opcua.stack.core.types.builtin.Variant;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.digitalpetri.opcua.stack.core.types.structured.RedundantServerDataType;
 
-
-@UaObjectType(name = "TransparentRedundancyType")
+@com.digitalpetri.opcua.sdk.server.util.UaObjectNode(typeName = "0:TransparentRedundancyType")
 public class TransparentRedundancyNode extends ServerRedundancyNode implements TransparentRedundancyType {
 
     public TransparentRedundancyNode(
-            UaNamespace namespace,
+            UaNodeManager nodeManager,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -47,30 +45,45 @@ public class TransparentRedundancyNode extends ServerRedundancyNode implements T
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
+    @Override
     public String getCurrentServerId() {
-        Optional<String> currentServerId = getProperty("CurrentServerId");
+        Optional<String> property = getProperty(TransparentRedundancyType.CURRENT_SERVER_ID);
 
-        return currentServerId.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getCurrentServerIdNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(TransparentRedundancyType.CURRENT_SERVER_ID.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setCurrentServerId(String value) {
+        setProperty(TransparentRedundancyType.CURRENT_SERVER_ID, value);
+    }
+
+    @Override
     public RedundantServerDataType[] getRedundantServerArray() {
-        Optional<RedundantServerDataType[]> redundantServerArray = getProperty("RedundantServerArray");
+        Optional<RedundantServerDataType[]> property = getProperty(TransparentRedundancyType.REDUNDANT_SERVER_ARRAY);
 
-        return redundantServerArray.orElse(null);
+        return property.orElse(null);
     }
 
-    public synchronized void setCurrentServerId(String currentServerId) {
-        getPropertyNode("CurrentServerId").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(currentServerId)));
-        });
+    @Override
+    public PropertyNode getRedundantServerArrayNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(TransparentRedundancyType.REDUNDANT_SERVER_ARRAY.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
     }
 
-    public synchronized void setRedundantServerArray(RedundantServerDataType[] redundantServerArray) {
-        getPropertyNode("RedundantServerArray").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(redundantServerArray)));
-        });
+    @Override
+    public void setRedundantServerArray(RedundantServerDataType[] value) {
+        setProperty(TransparentRedundancyType.REDUNDANT_SERVER_ARRAY, value);
     }
+
 }

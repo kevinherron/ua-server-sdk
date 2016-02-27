@@ -19,22 +19,62 @@
 
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
+import com.digitalpetri.opcua.sdk.core.model.variables.PropertyType;
+import com.digitalpetri.opcua.sdk.server.model.Property;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
+
 public interface LimitAlarmType extends AlarmConditionType {
+
+    Property<Double> HIGH_HIGH_LIMIT = new Property.BasicProperty<>(
+            QualifiedName.parse("0:HighHighLimit"),
+            NodeId.parse("ns=0;i=11"),
+            -1,
+            Double.class
+    );
+
+    Property<Double> HIGH_LIMIT = new Property.BasicProperty<>(
+            QualifiedName.parse("0:HighLimit"),
+            NodeId.parse("ns=0;i=11"),
+            -1,
+            Double.class
+    );
+
+    Property<Double> LOW_LIMIT = new Property.BasicProperty<>(
+            QualifiedName.parse("0:LowLimit"),
+            NodeId.parse("ns=0;i=11"),
+            -1,
+            Double.class
+    );
+
+    Property<Double> LOW_LOW_LIMIT = new Property.BasicProperty<>(
+            QualifiedName.parse("0:LowLowLimit"),
+            NodeId.parse("ns=0;i=11"),
+            -1,
+            Double.class
+    );
 
     Double getHighHighLimit();
 
+    PropertyType getHighHighLimitNode();
+
+    void setHighHighLimit(Double value);
+
     Double getHighLimit();
+
+    PropertyType getHighLimitNode();
+
+    void setHighLimit(Double value);
 
     Double getLowLimit();
 
+    PropertyType getLowLimitNode();
+
+    void setLowLimit(Double value);
+
     Double getLowLowLimit();
 
-    void setHighHighLimit(Double highHighLimit);
+    PropertyType getLowLowLimitNode();
 
-    void setHighLimit(Double highLimit);
-
-    void setLowLimit(Double lowLimit);
-
-    void setLowLowLimit(Double lowLowLimit);
-
+    void setLowLowLimit(Double value);
 }

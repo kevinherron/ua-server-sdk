@@ -40,11 +40,24 @@ public interface MethodInvocationHandler {
      */
     void invoke(CallMethodRequest request, CompletableFuture<CallMethodResult> future);
 
-    public static final class NodeIdUnknownHandler implements MethodInvocationHandler {
+    final class NodeIdUnknownHandler implements MethodInvocationHandler {
         @Override
         public void invoke(CallMethodRequest request, CompletableFuture<CallMethodResult> future) {
             CallMethodResult nodeIdUnknown = new CallMethodResult(
                     new StatusCode(StatusCodes.Bad_NodeIdUnknown),
+                    new StatusCode[0],
+                    new DiagnosticInfo[0],
+                    new Variant[0]);
+
+            future.complete(nodeIdUnknown);
+        }
+    }
+
+    final class NotImplementedHandler implements MethodInvocationHandler {
+        @Override
+        public void invoke(CallMethodRequest request, CompletableFuture<CallMethodResult> future) {
+            CallMethodResult nodeIdUnknown = new CallMethodResult(
+                    new StatusCode(StatusCodes.Bad_NotImplemented),
                     new StatusCode[0],
                     new DiagnosticInfo[0],
                     new Variant[0]);

@@ -19,29 +19,71 @@
 
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
+import com.digitalpetri.opcua.sdk.core.model.variables.PropertyType;
 import com.digitalpetri.opcua.sdk.core.model.variables.TwoStateVariableType;
+import com.digitalpetri.opcua.sdk.server.model.Property;
+import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 
 public interface AlarmConditionType extends AcknowledgeableConditionType {
 
-    TwoStateVariableType getEnabledState();
+    Property<NodeId> INPUT_NODE = new Property.BasicProperty<>(
+            QualifiedName.parse("0:InputNode"),
+            NodeId.parse("ns=0;i=17"),
+            -1,
+            NodeId.class
+    );
 
-    TwoStateVariableType getActiveState();
+    Property<Boolean> SUPPRESSED_OR_SHELVED = new Property.BasicProperty<>(
+            QualifiedName.parse("0:SuppressedOrShelved"),
+            NodeId.parse("ns=0;i=1"),
+            -1,
+            Boolean.class
+    );
+
+    Property<Double> MAX_TIME_SHELVED = new Property.BasicProperty<>(
+            QualifiedName.parse("0:MaxTimeShelved"),
+            NodeId.parse("ns=0;i=290"),
+            -1,
+            Double.class
+    );
 
     NodeId getInputNode();
 
-    TwoStateVariableType getSuppressedState();
+    PropertyType getInputNodeNode();
 
-    ShelvedStateMachineType getShelvingState();
+    void setInputNode(NodeId value);
 
     Boolean getSuppressedOrShelved();
 
+    PropertyType getSuppressedOrShelvedNode();
+
+    void setSuppressedOrShelved(Boolean value);
+
     Double getMaxTimeShelved();
 
-    void setInputNode(NodeId inputNode);
+    PropertyType getMaxTimeShelvedNode();
 
-    void setSuppressedOrShelved(Boolean suppressedOrShelved);
+    void setMaxTimeShelved(Double value);
 
-    void setMaxTimeShelved(Double maxTimeShelved);
+    ShelvedStateMachineType getShelvingStateNode();
 
+    LocalizedText getEnabledState();
+
+    TwoStateVariableType getEnabledStateNode();
+
+    void setEnabledState(LocalizedText value);
+
+    LocalizedText getActiveState();
+
+    TwoStateVariableType getActiveStateNode();
+
+    void setActiveState(LocalizedText value);
+
+    LocalizedText getSuppressedState();
+
+    TwoStateVariableType getSuppressedStateNode();
+
+    void setSuppressedState(LocalizedText value);
 }

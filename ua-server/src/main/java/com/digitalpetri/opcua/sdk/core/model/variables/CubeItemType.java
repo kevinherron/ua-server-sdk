@@ -19,24 +19,52 @@
 
 package com.digitalpetri.opcua.sdk.core.model.variables;
 
-import com.digitalpetri.opcua.sdk.core.model.UaMandatory;
+import com.digitalpetri.opcua.sdk.server.model.Property;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 import com.digitalpetri.opcua.stack.core.types.structured.AxisInformation;
+
 
 public interface CubeItemType extends ArrayItemType {
 
-    @UaMandatory("XAxisDefinition")
+    Property<AxisInformation> X_AXIS_DEFINITION = new Property.BasicProperty<>(
+            QualifiedName.parse("0:XAxisDefinition"),
+            NodeId.parse("ns=0;i=12079"),
+            -1,
+            AxisInformation.class
+    );
+
+    Property<AxisInformation> Y_AXIS_DEFINITION = new Property.BasicProperty<>(
+            QualifiedName.parse("0:YAxisDefinition"),
+            NodeId.parse("ns=0;i=12079"),
+            -1,
+            AxisInformation.class
+    );
+
+    Property<AxisInformation> Z_AXIS_DEFINITION = new Property.BasicProperty<>(
+            QualifiedName.parse("0:ZAxisDefinition"),
+            NodeId.parse("ns=0;i=12079"),
+            -1,
+            AxisInformation.class
+    );
+
+
     AxisInformation getXAxisDefinition();
 
-    @UaMandatory("YAxisDefinition")
+    PropertyType getXAxisDefinitionNode();
+
+    void setXAxisDefinition(AxisInformation value);
+
     AxisInformation getYAxisDefinition();
 
-    @UaMandatory("ZAxisDefinition")
+    PropertyType getYAxisDefinitionNode();
+
+    void setYAxisDefinition(AxisInformation value);
+
     AxisInformation getZAxisDefinition();
 
-    void setXAxisDefinition(AxisInformation xAxisDefinition);
+    PropertyType getZAxisDefinitionNode();
 
-    void setYAxisDefinition(AxisInformation yAxisDefinition);
-
-    void setZAxisDefinition(AxisInformation zAxisDefinition);
+    void setZAxisDefinition(AxisInformation value);
 
 }

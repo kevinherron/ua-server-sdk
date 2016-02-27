@@ -21,12 +21,10 @@ package com.digitalpetri.opcua.sdk.server.model.variables;
 
 import java.util.Optional;
 
-import com.digitalpetri.opcua.sdk.core.AttributeIds;
-import com.digitalpetri.opcua.sdk.core.model.UaMandatory;
 import com.digitalpetri.opcua.sdk.core.model.variables.ServerDiagnosticsSummaryType;
 import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.util.UaVariableType;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableTypeNode;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
@@ -36,28 +34,36 @@ import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 import com.digitalpetri.opcua.stack.core.types.structured.ServerDiagnosticsSummaryDataType;
 
-@UaVariableType(name = "ServerDiagnosticsSummaryType")
+@com.digitalpetri.opcua.sdk.server.util.UaVariableNode(typeName = "0:ServerDiagnosticsSummaryType")
 public class ServerDiagnosticsSummaryNode extends BaseDataVariableNode implements ServerDiagnosticsSummaryType {
 
-    public ServerDiagnosticsSummaryNode(UaNamespace namespace,
-                                        NodeId nodeId,
-                                        QualifiedName browseName,
-                                        LocalizedText displayName,
-                                        Optional<LocalizedText> description,
-                                        Optional<UInteger> writeMask,
-                                        Optional<UInteger> userWriteMask,
-                                        DataValue value,
-                                        NodeId dataType,
-                                        Integer valueRank,
-                                        Optional<UInteger[]> arrayDimensions,
-                                        UByte accessLevel,
-                                        UByte userAccessLevel,
-                                        Optional<Double> minimumSamplingInterval,
-                                        boolean historizing) {
+    public ServerDiagnosticsSummaryNode(
+            UaNodeManager nodeManager,
+            NodeId nodeId,
+            VariableTypeNode variableTypeNode) {
 
-        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(nodeManager, nodeId, variableTypeNode);
+    }
+
+    public ServerDiagnosticsSummaryNode(
+            UaNodeManager nodeManager,
+            NodeId nodeId,
+            QualifiedName browseName,
+            LocalizedText displayName,
+            Optional<LocalizedText> description,
+            Optional<UInteger> writeMask,
+            Optional<UInteger> userWriteMask,
+            DataValue value,
+            NodeId dataType,
+            Integer valueRank,
+            Optional<UInteger[]> arrayDimensions,
+            UByte accessLevel,
+            UByte userAccessLevel,
+            Optional<Double> minimumSamplingInterval,
+            boolean historizing) {
+
+        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
-
     }
 
     @Override
@@ -81,227 +87,243 @@ public class ServerDiagnosticsSummaryNode extends BaseDataVariableNode implement
     }
 
     @Override
-    public synchronized void setValue(DataValue value) {
-        ServerDiagnosticsSummaryDataType v = (ServerDiagnosticsSummaryDataType) value.getValue().getValue();
-
-        setServerViewCount(v.getServerViewCount());
-        setCurrentSessionCount(v.getCurrentSessionCount());
-        setCumulatedSessionCount(v.getCumulatedSessionCount());
-        setSecurityRejectedSessionCount(v.getSecurityRejectedSessionCount());
-        setRejectedSessionCount(v.getRejectedSessionCount());
-        setSessionTimeoutCount(v.getSessionTimeoutCount());
-        setSessionAbortCount(v.getSessionAbortCount());
-        setPublishingIntervalCount(v.getPublishingIntervalCount());
-        setCurrentSubscriptionCount(v.getCurrentSubscriptionCount());
-        setCumulatedSubscriptionCount(v.getCumulatedSubscriptionCount());
-        setSecurityRejectedRequestsCount(v.getSecurityRejectedRequestsCount());
-        setRejectedRequestsCount(v.getRejectedRequestsCount());
-
-        fireAttributeChanged(AttributeIds.Value, value);
-    }
-
-    @Override
-    @UaMandatory("ServerViewCount")
     public UInteger getServerViewCount() {
-        Optional<VariableNode> node = getVariableComponent("ServerViewCount");
+        Optional<VariableNode> component = getVariableComponent("ServerViewCount");
 
-        return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
+        return component.map(node -> (UInteger) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    @UaMandatory("CurrentSessionCount")
+    public BaseDataVariableNode getServerViewCountNode() {
+        Optional<VariableNode> component = getVariableComponent("ServerViewCount");
+
+        return component.map(node -> (BaseDataVariableNode) node).orElse(null);
+    }
+
+    @Override
+    public void setServerViewCount(UInteger value) {
+        getVariableComponent("ServerViewCount")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
+    }
+
+    @Override
     public UInteger getCurrentSessionCount() {
-        Optional<VariableNode> node = getVariableComponent("CurrentSessionCount");
+        Optional<VariableNode> component = getVariableComponent("CurrentSessionCount");
 
-        return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
+        return component.map(node -> (UInteger) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    @UaMandatory("CumulatedSessionCount")
+    public BaseDataVariableNode getCurrentSessionCountNode() {
+        Optional<VariableNode> component = getVariableComponent("CurrentSessionCount");
+
+        return component.map(node -> (BaseDataVariableNode) node).orElse(null);
+    }
+
+    @Override
+    public void setCurrentSessionCount(UInteger value) {
+        getVariableComponent("CurrentSessionCount")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
+    }
+
+    @Override
     public UInteger getCumulatedSessionCount() {
-        Optional<VariableNode> node = getVariableComponent("CumulatedSessionCount");
+        Optional<VariableNode> component = getVariableComponent("CumulatedSessionCount");
 
-        return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
+        return component.map(node -> (UInteger) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    @UaMandatory("SecurityRejectedSessionCount")
+    public BaseDataVariableNode getCumulatedSessionCountNode() {
+        Optional<VariableNode> component = getVariableComponent("CumulatedSessionCount");
+
+        return component.map(node -> (BaseDataVariableNode) node).orElse(null);
+    }
+
+    @Override
+    public void setCumulatedSessionCount(UInteger value) {
+        getVariableComponent("CumulatedSessionCount")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
+    }
+
+    @Override
     public UInteger getSecurityRejectedSessionCount() {
-        Optional<VariableNode> node = getVariableComponent("SecurityRejectedSessionCount");
+        Optional<VariableNode> component = getVariableComponent("SecurityRejectedSessionCount");
 
-        return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
+        return component.map(node -> (UInteger) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    @UaMandatory("RejectedSessionCount")
+    public BaseDataVariableNode getSecurityRejectedSessionCountNode() {
+        Optional<VariableNode> component = getVariableComponent("SecurityRejectedSessionCount");
+
+        return component.map(node -> (BaseDataVariableNode) node).orElse(null);
+    }
+
+    @Override
+    public void setSecurityRejectedSessionCount(UInteger value) {
+        getVariableComponent("SecurityRejectedSessionCount")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
+    }
+
+    @Override
     public UInteger getRejectedSessionCount() {
-        Optional<VariableNode> node = getVariableComponent("RejectedSessionCount");
+        Optional<VariableNode> component = getVariableComponent("RejectedSessionCount");
 
-        return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
+        return component.map(node -> (UInteger) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    @UaMandatory("SessionTimeoutCount")
+    public BaseDataVariableNode getRejectedSessionCountNode() {
+        Optional<VariableNode> component = getVariableComponent("RejectedSessionCount");
+
+        return component.map(node -> (BaseDataVariableNode) node).orElse(null);
+    }
+
+    @Override
+    public void setRejectedSessionCount(UInteger value) {
+        getVariableComponent("RejectedSessionCount")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
+    }
+
+    @Override
     public UInteger getSessionTimeoutCount() {
-        Optional<VariableNode> node = getVariableComponent("SessionTimeoutCount");
+        Optional<VariableNode> component = getVariableComponent("SessionTimeoutCount");
 
-        return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
+        return component.map(node -> (UInteger) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    @UaMandatory("SessionAbortCount")
+    public BaseDataVariableNode getSessionTimeoutCountNode() {
+        Optional<VariableNode> component = getVariableComponent("SessionTimeoutCount");
+
+        return component.map(node -> (BaseDataVariableNode) node).orElse(null);
+    }
+
+    @Override
+    public void setSessionTimeoutCount(UInteger value) {
+        getVariableComponent("SessionTimeoutCount")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
+    }
+
+    @Override
     public UInteger getSessionAbortCount() {
-        Optional<VariableNode> node = getVariableComponent("SessionAbortCount");
+        Optional<VariableNode> component = getVariableComponent("SessionAbortCount");
 
-        return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
+        return component.map(node -> (UInteger) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    @UaMandatory("PublishingIntervalCount")
+    public BaseDataVariableNode getSessionAbortCountNode() {
+        Optional<VariableNode> component = getVariableComponent("SessionAbortCount");
+
+        return component.map(node -> (BaseDataVariableNode) node).orElse(null);
+    }
+
+    @Override
+    public void setSessionAbortCount(UInteger value) {
+        getVariableComponent("SessionAbortCount")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
+    }
+
+    @Override
     public UInteger getPublishingIntervalCount() {
-        Optional<VariableNode> node = getVariableComponent("PublishingIntervalCount");
+        Optional<VariableNode> component = getVariableComponent("PublishingIntervalCount");
 
-        return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
+        return component.map(node -> (UInteger) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    @UaMandatory("CurrentSubscriptionCount")
+    public BaseDataVariableNode getPublishingIntervalCountNode() {
+        Optional<VariableNode> component = getVariableComponent("PublishingIntervalCount");
+
+        return component.map(node -> (BaseDataVariableNode) node).orElse(null);
+    }
+
+    @Override
+    public void setPublishingIntervalCount(UInteger value) {
+        getVariableComponent("PublishingIntervalCount")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
+    }
+
+    @Override
     public UInteger getCurrentSubscriptionCount() {
-        Optional<VariableNode> node = getVariableComponent("CurrentSubscriptionCount");
+        Optional<VariableNode> component = getVariableComponent("CurrentSubscriptionCount");
 
-        return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
+        return component.map(node -> (UInteger) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    @UaMandatory("CumulatedSubscriptionCount")
+    public BaseDataVariableNode getCurrentSubscriptionCountNode() {
+        Optional<VariableNode> component = getVariableComponent("CurrentSubscriptionCount");
+
+        return component.map(node -> (BaseDataVariableNode) node).orElse(null);
+    }
+
+    @Override
+    public void setCurrentSubscriptionCount(UInteger value) {
+        getVariableComponent("CurrentSubscriptionCount")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
+    }
+
+    @Override
     public UInteger getCumulatedSubscriptionCount() {
-        Optional<VariableNode> node = getVariableComponent("CumulatedSubscriptionCount");
+        Optional<VariableNode> component = getVariableComponent("CumulatedSubscriptionCount");
 
-        return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
+        return component.map(node -> (UInteger) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    @UaMandatory("SecurityRejectedRequestsCount")
+    public BaseDataVariableNode getCumulatedSubscriptionCountNode() {
+        Optional<VariableNode> component = getVariableComponent("CumulatedSubscriptionCount");
+
+        return component.map(node -> (BaseDataVariableNode) node).orElse(null);
+    }
+
+    @Override
+    public void setCumulatedSubscriptionCount(UInteger value) {
+        getVariableComponent("CumulatedSubscriptionCount")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
+    }
+
+    @Override
     public UInteger getSecurityRejectedRequestsCount() {
-        Optional<VariableNode> node = getVariableComponent("SecurityRejectedRequestsCount");
+        Optional<VariableNode> component = getVariableComponent("SecurityRejectedRequestsCount");
 
-        return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
+        return component.map(node -> (UInteger) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    @UaMandatory("RejectedRequestsCount")
+    public BaseDataVariableNode getSecurityRejectedRequestsCountNode() {
+        Optional<VariableNode> component = getVariableComponent("SecurityRejectedRequestsCount");
+
+        return component.map(node -> (BaseDataVariableNode) node).orElse(null);
+    }
+
+    @Override
+    public void setSecurityRejectedRequestsCount(UInteger value) {
+        getVariableComponent("SecurityRejectedRequestsCount")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
+    }
+
+    @Override
     public UInteger getRejectedRequestsCount() {
-        Optional<VariableNode> node = getVariableComponent("RejectedRequestsCount");
+        Optional<VariableNode> component = getVariableComponent("RejectedRequestsCount");
 
-        return node.map(n -> (UInteger) n.getValue().getValue().getValue()).orElse(null);
+        return component.map(node -> (UInteger) node.getValue().getValue().getValue()).orElse(null);
     }
 
     @Override
-    public synchronized void setServerViewCount(UInteger serverViewCount) {
-        getVariableComponent("ServerViewCount").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(serverViewCount)));
+    public BaseDataVariableNode getRejectedRequestsCountNode() {
+        Optional<VariableNode> component = getVariableComponent("RejectedRequestsCount");
 
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
+        return component.map(node -> (BaseDataVariableNode) node).orElse(null);
     }
 
     @Override
-    public synchronized void setCurrentSessionCount(UInteger currentSessionCount) {
-        getVariableComponent("CurrentSessionCount").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(currentSessionCount)));
-
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
-    }
-
-    @Override
-    public synchronized void setCumulatedSessionCount(UInteger cumulatedSessionCount) {
-        getVariableComponent("CumulatedSessionCount").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(cumulatedSessionCount)));
-
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
-    }
-
-    @Override
-    public synchronized void setSecurityRejectedSessionCount(UInteger securityRejectedSessionCount) {
-        getVariableComponent("SecurityRejectedSessionCount").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(securityRejectedSessionCount)));
-
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
-    }
-
-    @Override
-    public synchronized void setRejectedSessionCount(UInteger rejectedSessionCount) {
-        getVariableComponent("RejectedSessionCount").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(rejectedSessionCount)));
-
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
-    }
-
-    @Override
-    public synchronized void setSessionTimeoutCount(UInteger sessionTimeoutCount) {
-        getVariableComponent("SessionTimeoutCount").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(sessionTimeoutCount)));
-
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
-    }
-
-    @Override
-    public synchronized void setSessionAbortCount(UInteger sessionAbortCount) {
-        getVariableComponent("SessionAbortCount").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(sessionAbortCount)));
-
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
-    }
-
-    @Override
-    public synchronized void setPublishingIntervalCount(UInteger publishingIntervalCount) {
-        getVariableComponent("PublishingIntervalCount").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(publishingIntervalCount)));
-
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
-    }
-
-    @Override
-    public synchronized void setCurrentSubscriptionCount(UInteger currentSubscriptionCount) {
-        getVariableComponent("CurrentSubscriptionCount").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(currentSubscriptionCount)));
-
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
-    }
-
-    @Override
-    public synchronized void setCumulatedSubscriptionCount(UInteger cumulatedSubscriptionCount) {
-        getVariableComponent("CumulatedSubscriptionCount").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(cumulatedSubscriptionCount)));
-
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
-    }
-
-    @Override
-    public synchronized void setSecurityRejectedRequestsCount(UInteger securityRejectedRequestsCount) {
-        getVariableComponent("SecurityRejectedRequestsCount").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(securityRejectedRequestsCount)));
-
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
-    }
-
-    @Override
-    public synchronized void setRejectedRequestsCount(UInteger rejectedRequestsCount) {
-        getVariableComponent("RejectedRequestsCount").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(rejectedRequestsCount)));
-
-            fireAttributeChanged(AttributeIds.Value, getValue());
-        });
+    public void setRejectedRequestsCount(UInteger value) {
+        getVariableComponent("RejectedRequestsCount")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
     }
 
 }

@@ -19,12 +19,24 @@
 
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
+import com.digitalpetri.opcua.sdk.core.model.variables.PropertyType;
+import com.digitalpetri.opcua.sdk.server.model.Property;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 
 public interface AuditCancelEventType extends AuditSessionEventType {
 
+    Property<UInteger> REQUEST_HANDLE = new Property.BasicProperty<>(
+            QualifiedName.parse("0:RequestHandle"),
+            NodeId.parse("ns=0;i=7"),
+            -1,
+            UInteger.class
+    );
+
     UInteger getRequestHandle();
 
-    void setRequestHandle(UInteger requestHandle);
+    PropertyType getRequestHandleNode();
 
+    void setRequestHandle(UInteger value);
 }

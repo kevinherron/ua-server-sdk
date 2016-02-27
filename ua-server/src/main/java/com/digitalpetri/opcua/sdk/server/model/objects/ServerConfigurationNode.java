@@ -22,24 +22,21 @@ package com.digitalpetri.opcua.sdk.server.model.objects;
 import java.util.Optional;
 
 import com.digitalpetri.opcua.sdk.core.model.objects.ServerConfigurationType;
-import com.digitalpetri.opcua.sdk.core.model.objects.TrustListType;
 import com.digitalpetri.opcua.sdk.core.nodes.ObjectNode;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.util.UaObjectType;
-import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
+import com.digitalpetri.opcua.sdk.server.model.variables.PropertyNode;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
-import com.digitalpetri.opcua.stack.core.types.builtin.Variant;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 
-
-@UaObjectType(name = "ServerConfigurationType")
+@com.digitalpetri.opcua.sdk.server.util.UaObjectNode(typeName = "0:ServerConfigurationType")
 public class ServerConfigurationNode extends BaseObjectNode implements ServerConfigurationType {
 
     public ServerConfigurationNode(
-            UaNamespace namespace,
+            UaNodeManager nodeManager,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -48,78 +45,90 @@ public class ServerConfigurationNode extends BaseObjectNode implements ServerCon
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
-    public String[] getSupportedCertificateFormats() {
-        Optional<String[]> supportedCertificateFormats = getProperty("SupportedCertificateFormats");
+    @Override
+    public String[] getServerCapabilities() {
+        Optional<String[]> property = getProperty(ServerConfigurationType.SERVER_CAPABILITIES);
 
-        return supportedCertificateFormats.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getServerCapabilitiesNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(ServerConfigurationType.SERVER_CAPABILITIES.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setServerCapabilities(String[] value) {
+        setProperty(ServerConfigurationType.SERVER_CAPABILITIES, value);
+    }
+
+    @Override
     public String[] getSupportedPrivateKeyFormats() {
-        Optional<String[]> supportedPrivateKeyFormats = getProperty("SupportedPrivateKeyFormats");
+        Optional<String[]> property = getProperty(ServerConfigurationType.SUPPORTED_PRIVATE_KEY_FORMATS);
 
-        return supportedPrivateKeyFormats.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getSupportedPrivateKeyFormatsNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(ServerConfigurationType.SUPPORTED_PRIVATE_KEY_FORMATS.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setSupportedPrivateKeyFormats(String[] value) {
+        setProperty(ServerConfigurationType.SUPPORTED_PRIVATE_KEY_FORMATS, value);
+    }
+
+    @Override
     public UInteger getMaxTrustListSize() {
-        Optional<UInteger> maxTrustListSize = getProperty("MaxTrustListSize");
+        Optional<UInteger> property = getProperty(ServerConfigurationType.MAX_TRUST_LIST_SIZE);
 
-        return maxTrustListSize.orElse(null);
+        return property.orElse(null);
     }
 
-    public Boolean getNoSupportForLocalCRLs() {
-        Optional<Boolean> noSupportForLocalCRLs = getProperty("NoSupportForLocalCRLs");
+    @Override
+    public PropertyNode getMaxTrustListSizeNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(ServerConfigurationType.MAX_TRUST_LIST_SIZE.getBrowseName());
 
-        return noSupportForLocalCRLs.orElse(null);
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
     }
 
+    @Override
+    public void setMaxTrustListSize(UInteger value) {
+        setProperty(ServerConfigurationType.MAX_TRUST_LIST_SIZE, value);
+    }
+
+    @Override
     public Boolean getMulticastDnsEnabled() {
-        Optional<Boolean> multicastDnsEnabled = getProperty("MulticastDnsEnabled");
+        Optional<Boolean> property = getProperty(ServerConfigurationType.MULTICAST_DNS_ENABLED);
 
-        return multicastDnsEnabled.orElse(null);
+        return property.orElse(null);
     }
 
-    public TrustListType getTrustList() {
-        Optional<ObjectNode> trustList = getObjectComponent("TrustList");
+    @Override
+    public PropertyNode getMulticastDnsEnabledNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(ServerConfigurationType.MULTICAST_DNS_ENABLED.getBrowseName());
 
-        return trustList.map(node -> (TrustListType) node).orElse(null);
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
     }
 
-    public TrustListType getHttpsTrustList() {
-        Optional<ObjectNode> httpsTrustList = getObjectComponent("HttpsTrustList");
-
-        return httpsTrustList.map(node -> (TrustListType) node).orElse(null);
+    @Override
+    public void setMulticastDnsEnabled(Boolean value) {
+        setProperty(ServerConfigurationType.MULTICAST_DNS_ENABLED, value);
     }
 
-    public synchronized void setSupportedCertificateFormats(String[] supportedCertificateFormats) {
-        getPropertyNode("SupportedCertificateFormats").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(supportedCertificateFormats)));
-        });
+    @Override
+    public CertificateGroupFolderNode getCertificateGroupsNode() {
+        Optional<ObjectNode> component = getObjectComponent("CertificateGroups");
+
+        return component.map(node -> (CertificateGroupFolderNode) node).orElse(null);
     }
 
-    public synchronized void setSupportedPrivateKeyFormats(String[] supportedPrivateKeyFormats) {
-        getPropertyNode("SupportedPrivateKeyFormats").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(supportedPrivateKeyFormats)));
-        });
-    }
-
-    public synchronized void setMaxTrustListSize(UInteger maxTrustListSize) {
-        getPropertyNode("MaxTrustListSize").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(maxTrustListSize)));
-        });
-    }
-
-    public synchronized void setNoSupportForLocalCRLs(Boolean noSupportForLocalCRLs) {
-        getPropertyNode("NoSupportForLocalCRLs").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(noSupportForLocalCRLs)));
-        });
-    }
-
-    public synchronized void setMulticastDnsEnabled(Boolean multicastDnsEnabled) {
-        getPropertyNode("MulticastDnsEnabled").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(multicastDnsEnabled)));
-        });
-    }
 }

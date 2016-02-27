@@ -23,10 +23,10 @@ import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
 
 public class UaViewLoader {
 
-    private final UaNamespace namespace;
+    private final UaNamespace nodeManager;
 
-    public UaViewLoader(UaNamespace namespace) {
-        this.namespace = namespace;
+    public UaViewLoader(UaNamespace nodeManager) {
+        this.nodeManager = nodeManager;
     }
 
     public void buildNodes() {

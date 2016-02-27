@@ -19,12 +19,24 @@
 
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
+import com.digitalpetri.opcua.sdk.core.model.variables.PropertyType;
+import com.digitalpetri.opcua.sdk.server.model.Property;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 import com.digitalpetri.opcua.stack.core.types.structured.AddReferencesItem;
 
 public interface AuditAddReferencesEventType extends AuditNodeManagementEventType {
 
+    Property<AddReferencesItem[]> REFERENCES_TO_ADD = new Property.BasicProperty<>(
+            QualifiedName.parse("0:ReferencesToAdd"),
+            NodeId.parse("ns=0;i=379"),
+            1,
+            AddReferencesItem[].class
+    );
+
     AddReferencesItem[] getReferencesToAdd();
 
-    void setReferencesToAdd(AddReferencesItem[] referencesToAdd);
+    PropertyType getReferencesToAddNode();
 
+    void setReferencesToAdd(AddReferencesItem[] value);
 }

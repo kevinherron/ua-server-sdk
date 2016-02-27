@@ -21,117 +21,144 @@ package com.digitalpetri.opcua.sdk.server.model.variables;
 
 import java.util.Optional;
 
-import com.digitalpetri.opcua.sdk.core.model.UaMandatory;
-import com.digitalpetri.opcua.sdk.core.model.UaOptional;
 import com.digitalpetri.opcua.sdk.core.model.variables.TransitionVariableType;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.util.UaVariableType;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableTypeNode;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.DateTime;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
-import com.digitalpetri.opcua.stack.core.types.builtin.Variant;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 
-@UaVariableType(name = "TransitionVariableType")
+@com.digitalpetri.opcua.sdk.server.util.UaVariableNode(typeName = "0:TransitionVariableType")
 public class TransitionVariableNode extends BaseDataVariableNode implements TransitionVariableType {
 
-    public TransitionVariableNode(UaNamespace namespace,
-                                  NodeId nodeId,
-                                  QualifiedName browseName,
-                                  LocalizedText displayName,
-                                  Optional<LocalizedText> description,
-                                  Optional<UInteger> writeMask,
-                                  Optional<UInteger> userWriteMask,
-                                  DataValue value,
-                                  NodeId dataType,
-                                  Integer valueRank,
-                                  Optional<UInteger[]> arrayDimensions,
-                                  UByte accessLevel,
-                                  UByte userAccessLevel,
-                                  Optional<Double> minimumSamplingInterval,
-                                  boolean historizing) {
+    public TransitionVariableNode(
+            UaNodeManager nodeManager,
+            NodeId nodeId,
+            VariableTypeNode variableTypeNode) {
 
-        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(nodeManager, nodeId, variableTypeNode);
+    }
+
+    public TransitionVariableNode(
+            UaNodeManager nodeManager,
+            NodeId nodeId,
+            QualifiedName browseName,
+            LocalizedText displayName,
+            Optional<LocalizedText> description,
+            Optional<UInteger> writeMask,
+            Optional<UInteger> userWriteMask,
+            DataValue value,
+            NodeId dataType,
+            Integer valueRank,
+            Optional<UInteger[]> arrayDimensions,
+            UByte accessLevel,
+            UByte userAccessLevel,
+            Optional<Double> minimumSamplingInterval,
+            boolean historizing) {
+
+        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
-
     }
 
+
     @Override
-    @UaMandatory("Id")
     public Object getId() {
-        Optional<Object> id = getProperty("Id");
+        Optional<Object> property = getProperty(TransitionVariableType.ID);
 
-        return id.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    @UaOptional("Name")
+    public PropertyNode getIdNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(TransitionVariableType.ID.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setId(Object value) {
+        setProperty(TransitionVariableType.ID, value);
+    }
+
+    @Override
     public QualifiedName getName() {
-        Optional<QualifiedName> name = getProperty("Name");
+        Optional<QualifiedName> property = getProperty(TransitionVariableType.NAME);
 
-        return name.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    @UaOptional("Number")
+    public PropertyNode getNameNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(TransitionVariableType.NAME.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setName(QualifiedName value) {
+        setProperty(TransitionVariableType.NAME, value);
+    }
+
+    @Override
     public UInteger getNumber() {
-        Optional<UInteger> number = getProperty("Number");
+        Optional<UInteger> property = getProperty(TransitionVariableType.NUMBER);
 
-        return number.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    @UaOptional("TransitionTime")
+    public PropertyNode getNumberNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(TransitionVariableType.NUMBER.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setNumber(UInteger value) {
+        setProperty(TransitionVariableType.NUMBER, value);
+    }
+
+    @Override
     public DateTime getTransitionTime() {
-        Optional<DateTime> transitionTime = getProperty("TransitionTime");
+        Optional<DateTime> property = getProperty(TransitionVariableType.TRANSITION_TIME);
 
-        return transitionTime.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    @UaOptional("EffectiveTransitionTime")
+    public PropertyNode getTransitionTimeNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(TransitionVariableType.TRANSITION_TIME.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setTransitionTime(DateTime value) {
+        setProperty(TransitionVariableType.TRANSITION_TIME, value);
+    }
+
+    @Override
     public DateTime getEffectiveTransitionTime() {
-        Optional<DateTime> effectiveTransitionTime = getProperty("EffectiveTransitionTime");
+        Optional<DateTime> property = getProperty(TransitionVariableType.EFFECTIVE_TRANSITION_TIME);
 
-        return effectiveTransitionTime.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    public synchronized void setId(Object id) {
-        getPropertyNode("Id").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(id)));
-        });
+    public PropertyNode getEffectiveTransitionTimeNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(TransitionVariableType.EFFECTIVE_TRANSITION_TIME.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
     }
 
     @Override
-    public synchronized void setName(QualifiedName name) {
-        getPropertyNode("Name").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(name)));
-        });
-    }
-
-    @Override
-    public synchronized void setNumber(UInteger number) {
-        getPropertyNode("Number").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(number)));
-        });
-    }
-
-    @Override
-    public synchronized void setTransitionTime(DateTime transitionTime) {
-        getPropertyNode("TransitionTime").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(transitionTime)));
-        });
-    }
-
-    @Override
-    public synchronized void setEffectiveTransitionTime(DateTime effectiveTransitionTime) {
-        getPropertyNode("EffectiveTransitionTime").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(effectiveTransitionTime)));
-        });
+    public void setEffectiveTransitionTime(DateTime value) {
+        setProperty(TransitionVariableType.EFFECTIVE_TRANSITION_TIME, value);
     }
 
 }

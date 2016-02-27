@@ -19,31 +19,78 @@
 
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
+import com.digitalpetri.opcua.sdk.core.model.variables.PropertyType;
+import com.digitalpetri.opcua.sdk.server.model.Property;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 import com.digitalpetri.opcua.stack.core.types.enumerated.PerformUpdateType;
 import com.digitalpetri.opcua.stack.core.types.structured.EventFilter;
 import com.digitalpetri.opcua.stack.core.types.structured.HistoryEventFieldList;
 
 public interface AuditHistoryEventUpdateEventType extends AuditHistoryUpdateEventType {
 
+    Property<NodeId> UPDATED_NODE = new Property.BasicProperty<>(
+            QualifiedName.parse("0:UpdatedNode"),
+            NodeId.parse("ns=0;i=17"),
+            -1,
+            NodeId.class
+    );
+
+    Property<PerformUpdateType> PERFORM_INSERT_REPLACE = new Property.BasicProperty<>(
+            QualifiedName.parse("0:PerformInsertReplace"),
+            NodeId.parse("ns=0;i=11293"),
+            -1,
+            PerformUpdateType.class
+    );
+
+    Property<EventFilter> FILTER = new Property.BasicProperty<>(
+            QualifiedName.parse("0:Filter"),
+            NodeId.parse("ns=0;i=725"),
+            -1,
+            EventFilter.class
+    );
+
+    Property<HistoryEventFieldList[]> NEW_VALUES = new Property.BasicProperty<>(
+            QualifiedName.parse("0:NewValues"),
+            NodeId.parse("ns=0;i=920"),
+            1,
+            HistoryEventFieldList[].class
+    );
+
+    Property<HistoryEventFieldList[]> OLD_VALUES = new Property.BasicProperty<>(
+            QualifiedName.parse("0:OldValues"),
+            NodeId.parse("ns=0;i=920"),
+            1,
+            HistoryEventFieldList[].class
+    );
+
     NodeId getUpdatedNode();
+
+    PropertyType getUpdatedNodeNode();
+
+    void setUpdatedNode(NodeId value);
 
     PerformUpdateType getPerformInsertReplace();
 
+    PropertyType getPerformInsertReplaceNode();
+
+    void setPerformInsertReplace(PerformUpdateType value);
+
     EventFilter getFilter();
 
-    HistoryEventFieldList getNewValues();
+    PropertyType getFilterNode();
 
-    HistoryEventFieldList getOldValues();
+    void setFilter(EventFilter value);
 
-    void setUpdatedNode(NodeId updatedNode);
+    HistoryEventFieldList[] getNewValues();
 
-    void setPerformInsertReplace(PerformUpdateType performInsertReplace);
+    PropertyType getNewValuesNode();
 
-    void setFilter(EventFilter filter);
+    void setNewValues(HistoryEventFieldList[] value);
 
-    void setNewValues(HistoryEventFieldList newValues);
+    HistoryEventFieldList[] getOldValues();
 
-    void setOldValues(HistoryEventFieldList oldValues);
+    PropertyType getOldValuesNode();
 
+    void setOldValues(HistoryEventFieldList[] value);
 }

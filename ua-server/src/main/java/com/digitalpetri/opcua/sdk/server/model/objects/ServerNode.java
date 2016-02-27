@@ -21,31 +21,27 @@ package com.digitalpetri.opcua.sdk.server.model.objects;
 
 import java.util.Optional;
 
-import com.digitalpetri.opcua.sdk.core.model.objects.NamespacesType;
-import com.digitalpetri.opcua.sdk.core.model.objects.ServerCapabilitiesType;
-import com.digitalpetri.opcua.sdk.core.model.objects.ServerDiagnosticsType;
-import com.digitalpetri.opcua.sdk.core.model.objects.ServerRedundancyType;
 import com.digitalpetri.opcua.sdk.core.model.objects.ServerType;
-import com.digitalpetri.opcua.sdk.core.model.objects.VendorServerInfoType;
-import com.digitalpetri.opcua.sdk.core.model.variables.ServerStatusType;
 import com.digitalpetri.opcua.sdk.core.nodes.ObjectNode;
 import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.util.UaObjectType;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
+import com.digitalpetri.opcua.sdk.server.model.variables.PropertyNode;
+import com.digitalpetri.opcua.sdk.server.model.variables.ServerStatusNode;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
+import com.digitalpetri.opcua.stack.core.types.builtin.DateTime;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 import com.digitalpetri.opcua.stack.core.types.builtin.Variant;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
+import com.digitalpetri.opcua.stack.core.types.structured.ServerStatusDataType;
 
-
-@UaObjectType(name = "ServerType")
+@com.digitalpetri.opcua.sdk.server.util.UaObjectNode(typeName = "0:ServerType")
 public class ServerNode extends BaseObjectNode implements ServerType {
 
     public ServerNode(
-            UaNamespace namespace,
+            UaNodeManager nodeManager,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -54,96 +50,157 @@ public class ServerNode extends BaseObjectNode implements ServerType {
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
+    @Override
     public String[] getServerArray() {
-        Optional<String[]> serverArray = getProperty("ServerArray");
+        Optional<String[]> property = getProperty(ServerType.SERVER_ARRAY);
 
-        return serverArray.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getServerArrayNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(ServerType.SERVER_ARRAY.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setServerArray(String[] value) {
+        setProperty(ServerType.SERVER_ARRAY, value);
+    }
+
+    @Override
     public String[] getNamespaceArray() {
-        Optional<String[]> namespaceArray = getProperty("NamespaceArray");
+        Optional<String[]> property = getProperty(ServerType.NAMESPACE_ARRAY);
 
-        return namespaceArray.orElse(null);
+        return property.orElse(null);
     }
 
-    public ServerStatusType getServerStatus() {
-        Optional<VariableNode> serverStatus = getVariableComponent("ServerStatus");
+    @Override
+    public PropertyNode getNamespaceArrayNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(ServerType.NAMESPACE_ARRAY.getBrowseName());
 
-        return serverStatus.map(node -> (ServerStatusType) node).orElse(null);
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
     }
 
+    @Override
+    public void setNamespaceArray(String[] value) {
+        setProperty(ServerType.NAMESPACE_ARRAY, value);
+    }
+
+    @Override
     public UByte getServiceLevel() {
-        Optional<UByte> serviceLevel = getProperty("ServiceLevel");
+        Optional<UByte> property = getProperty(ServerType.SERVICE_LEVEL);
 
-        return serviceLevel.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getServiceLevelNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(ServerType.SERVICE_LEVEL.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setServiceLevel(UByte value) {
+        setProperty(ServerType.SERVICE_LEVEL, value);
+    }
+
+    @Override
     public Boolean getAuditing() {
-        Optional<Boolean> auditing = getProperty("Auditing");
+        Optional<Boolean> property = getProperty(ServerType.AUDITING);
 
-        return auditing.orElse(null);
+        return property.orElse(null);
     }
 
-    public ServerCapabilitiesType getServerCapabilities() {
-        Optional<ObjectNode> serverCapabilities = getObjectComponent("ServerCapabilities");
+    @Override
+    public PropertyNode getAuditingNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(ServerType.AUDITING.getBrowseName());
 
-        return serverCapabilities.map(node -> (ServerCapabilitiesType) node).orElse(null);
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
     }
 
-    public ServerDiagnosticsType getServerDiagnostics() {
-        Optional<ObjectNode> serverDiagnostics = getObjectComponent("ServerDiagnostics");
-
-        return serverDiagnostics.map(node -> (ServerDiagnosticsType) node).orElse(null);
+    @Override
+    public void setAuditing(Boolean value) {
+        setProperty(ServerType.AUDITING, value);
     }
 
-    public VendorServerInfoType getVendorServerInfo() {
-        Optional<ObjectNode> vendorServerInfo = getObjectComponent("VendorServerInfo");
+    @Override
+    public DateTime getEstimatedReturnTime() {
+        Optional<DateTime> property = getProperty(ServerType.ESTIMATED_RETURN_TIME);
 
-        return vendorServerInfo.map(node -> (VendorServerInfoType) node).orElse(null);
+        return property.orElse(null);
     }
 
-    public ServerRedundancyType getServerRedundancy() {
-        Optional<ObjectNode> serverRedundancy = getObjectComponent("ServerRedundancy");
+    @Override
+    public PropertyNode getEstimatedReturnTimeNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(ServerType.ESTIMATED_RETURN_TIME.getBrowseName());
 
-        return serverRedundancy.map(node -> (ServerRedundancyType) node).orElse(null);
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
     }
 
-    public NamespacesType getNamespaces() {
-        Optional<ObjectNode> namespaces = getObjectComponent("Namespaces");
-
-        return namespaces.map(node -> (NamespacesType) node).orElse(null);
+    @Override
+    public void setEstimatedReturnTime(DateTime value) {
+        setProperty(ServerType.ESTIMATED_RETURN_TIME, value);
     }
 
-    public synchronized void setServerArray(String[] serverArray) {
-        getPropertyNode("ServerArray").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(serverArray)));
-        });
+    @Override
+    public ServerCapabilitiesNode getServerCapabilitiesNode() {
+        Optional<ObjectNode> component = getObjectComponent("ServerCapabilities");
+
+        return component.map(node -> (ServerCapabilitiesNode) node).orElse(null);
     }
 
-    public synchronized void setNamespaceArray(String[] namespaceArray) {
-        getPropertyNode("NamespaceArray").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(namespaceArray)));
-        });
+    @Override
+    public ServerDiagnosticsNode getServerDiagnosticsNode() {
+        Optional<ObjectNode> component = getObjectComponent("ServerDiagnostics");
+
+        return component.map(node -> (ServerDiagnosticsNode) node).orElse(null);
     }
 
-    public synchronized void setServerStatus(ServerStatusType serverStatus) {
-        getVariableComponent("ServerStatus").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(serverStatus)));
-        });
+    @Override
+    public VendorServerInfoNode getVendorServerInfoNode() {
+        Optional<ObjectNode> component = getObjectComponent("VendorServerInfo");
+
+        return component.map(node -> (VendorServerInfoNode) node).orElse(null);
     }
 
-    public synchronized void setServiceLevel(UByte serviceLevel) {
-        getPropertyNode("ServiceLevel").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(serviceLevel)));
-        });
+    @Override
+    public ServerRedundancyNode getServerRedundancyNode() {
+        Optional<ObjectNode> component = getObjectComponent("ServerRedundancy");
+
+        return component.map(node -> (ServerRedundancyNode) node).orElse(null);
     }
 
-    public synchronized void setAuditing(Boolean auditing) {
-        getPropertyNode("Auditing").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(auditing)));
-        });
+    @Override
+    public NamespacesNode getNamespacesNode() {
+        Optional<ObjectNode> component = getObjectComponent("Namespaces");
+
+        return component.map(node -> (NamespacesNode) node).orElse(null);
     }
+
+    @Override
+    public ServerStatusDataType getServerStatus() {
+        Optional<VariableNode> component = getVariableComponent("ServerStatus");
+
+        return component.map(node -> (ServerStatusDataType) node.getValue().getValue().getValue()).orElse(null);
+    }
+
+    @Override
+    public ServerStatusNode getServerStatusNode() {
+        Optional<VariableNode> component = getVariableComponent("ServerStatus");
+
+        return component.map(node -> (ServerStatusNode) node).orElse(null);
+    }
+
+    @Override
+    public void setServerStatus(ServerStatusDataType value) {
+        getVariableComponent("ServerStatus")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
+    }
+
 }

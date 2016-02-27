@@ -19,25 +19,77 @@
 
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
+import com.digitalpetri.opcua.sdk.core.model.variables.PropertyType;
+import com.digitalpetri.opcua.sdk.server.model.Property;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.ULong;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UShort;
 
 public interface FileType extends BaseObjectType {
 
+    Property<ULong> SIZE = new Property.BasicProperty<>(
+            QualifiedName.parse("0:Size"),
+            NodeId.parse("ns=0;i=9"),
+            -1,
+            ULong.class
+    );
+
+    Property<Boolean> WRITABLE = new Property.BasicProperty<>(
+            QualifiedName.parse("0:Writable"),
+            NodeId.parse("ns=0;i=1"),
+            -1,
+            Boolean.class
+    );
+
+    Property<Boolean> USER_WRITABLE = new Property.BasicProperty<>(
+            QualifiedName.parse("0:UserWritable"),
+            NodeId.parse("ns=0;i=1"),
+            -1,
+            Boolean.class
+    );
+
+    Property<UShort> OPEN_COUNT = new Property.BasicProperty<>(
+            QualifiedName.parse("0:OpenCount"),
+            NodeId.parse("ns=0;i=5"),
+            -1,
+            UShort.class
+    );
+
+    Property<String> MIME_TYPE = new Property.BasicProperty<>(
+            QualifiedName.parse("0:MimeType"),
+            NodeId.parse("ns=0;i=12"),
+            -1,
+            String.class
+    );
+
     ULong getSize();
 
-    Boolean getWriteable();
+    PropertyType getSizeNode();
 
-    Boolean getUserWriteable();
+    void setSize(ULong value);
+
+    Boolean getWritable();
+
+    PropertyType getWritableNode();
+
+    void setWritable(Boolean value);
+
+    Boolean getUserWritable();
+
+    PropertyType getUserWritableNode();
+
+    void setUserWritable(Boolean value);
 
     UShort getOpenCount();
 
-    void setSize(ULong size);
+    PropertyType getOpenCountNode();
 
-    void setWriteable(Boolean writeable);
+    void setOpenCount(UShort value);
 
-    void setUserWriteable(Boolean userWriteable);
+    String getMimeType();
 
-    void setOpenCount(UShort openCount);
+    PropertyType getMimeTypeNode();
 
+    void setMimeType(String value);
 }

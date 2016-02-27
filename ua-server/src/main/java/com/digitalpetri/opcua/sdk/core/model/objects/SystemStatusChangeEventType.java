@@ -19,12 +19,24 @@
 
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
+import com.digitalpetri.opcua.sdk.core.model.variables.PropertyType;
+import com.digitalpetri.opcua.sdk.server.model.Property;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 import com.digitalpetri.opcua.stack.core.types.enumerated.ServerState;
 
 public interface SystemStatusChangeEventType extends SystemEventType {
 
+    Property<ServerState> SYSTEM_STATE = new Property.BasicProperty<>(
+            QualifiedName.parse("0:SystemState"),
+            NodeId.parse("ns=0;i=852"),
+            -1,
+            ServerState.class
+    );
+
     ServerState getSystemState();
 
-    void setSystemState(ServerState systemState);
+    PropertyType getSystemStateNode();
 
+    void setSystemState(ServerState value);
 }

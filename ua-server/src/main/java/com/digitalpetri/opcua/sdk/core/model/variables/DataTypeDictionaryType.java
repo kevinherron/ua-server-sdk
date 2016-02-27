@@ -19,18 +19,38 @@
 
 package com.digitalpetri.opcua.sdk.core.model.variables;
 
-import com.digitalpetri.opcua.sdk.core.model.UaOptional;
+import com.digitalpetri.opcua.sdk.server.model.Property;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
+
 
 public interface DataTypeDictionaryType extends BaseDataVariableType {
 
-    @UaOptional("DataTypeVersion")
+    Property<String> DATA_TYPE_VERSION = new Property.BasicProperty<>(
+            QualifiedName.parse("0:DataTypeVersion"),
+            NodeId.parse("ns=0;i=12"),
+            -1,
+            String.class
+    );
+
+    Property<String> NAMESPACE_URI = new Property.BasicProperty<>(
+            QualifiedName.parse("0:NamespaceUri"),
+            NodeId.parse("ns=0;i=12"),
+            -1,
+            String.class
+    );
+
+
     String getDataTypeVersion();
 
-    @UaOptional("NamespaceUri")
+    PropertyType getDataTypeVersionNode();
+
+    void setDataTypeVersion(String value);
+
     String getNamespaceUri();
 
-    void setDataTypeVersion(String dataTypeVersion);
+    PropertyType getNamespaceUriNode();
 
-    void setNamespaceUri(String namespaceUri);
+    void setNamespaceUri(String value);
 
 }

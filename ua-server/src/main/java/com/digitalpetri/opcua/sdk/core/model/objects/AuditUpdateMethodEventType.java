@@ -19,16 +19,36 @@
 
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
+import com.digitalpetri.opcua.sdk.core.model.variables.PropertyType;
+import com.digitalpetri.opcua.sdk.server.model.Property;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 
 public interface AuditUpdateMethodEventType extends AuditEventType {
 
+    Property<NodeId> METHOD_ID = new Property.BasicProperty<>(
+            QualifiedName.parse("0:MethodId"),
+            NodeId.parse("ns=0;i=17"),
+            -1,
+            NodeId.class
+    );
+
+    Property<Object[]> INPUT_ARGUMENTS = new Property.BasicProperty<>(
+            QualifiedName.parse("0:InputArguments"),
+            NodeId.parse("ns=0;i=24"),
+            1,
+            Object[].class
+    );
+
     NodeId getMethodId();
+
+    PropertyType getMethodIdNode();
+
+    void setMethodId(NodeId value);
 
     Object[] getInputArguments();
 
-    void setMethodId(NodeId methodId);
+    PropertyType getInputArgumentsNode();
 
-    void setInputArguments(Object[] inputArguments);
-
+    void setInputArguments(Object[] value);
 }

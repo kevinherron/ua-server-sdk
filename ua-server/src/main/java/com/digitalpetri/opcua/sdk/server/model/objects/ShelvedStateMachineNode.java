@@ -22,25 +22,21 @@ package com.digitalpetri.opcua.sdk.server.model.objects;
 import java.util.Optional;
 
 import com.digitalpetri.opcua.sdk.core.model.objects.ShelvedStateMachineType;
-import com.digitalpetri.opcua.sdk.core.model.objects.StateType;
-import com.digitalpetri.opcua.sdk.core.model.objects.TransitionType;
 import com.digitalpetri.opcua.sdk.core.nodes.ObjectNode;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.util.UaObjectType;
-import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
+import com.digitalpetri.opcua.sdk.server.model.variables.PropertyNode;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
-import com.digitalpetri.opcua.stack.core.types.builtin.Variant;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 
-
-@UaObjectType(name = "ShelvedStateMachineType")
+@com.digitalpetri.opcua.sdk.server.util.UaObjectNode(typeName = "0:ShelvedStateMachineType")
 public class ShelvedStateMachineNode extends FiniteStateMachineNode implements ShelvedStateMachineType {
 
     public ShelvedStateMachineNode(
-            UaNamespace namespace,
+            UaNodeManager nodeManager,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -49,72 +45,89 @@ public class ShelvedStateMachineNode extends FiniteStateMachineNode implements S
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
+    @Override
     public Double getUnshelveTime() {
-        Optional<Double> unshelveTime = getProperty("UnshelveTime");
+        Optional<Double> property = getProperty(ShelvedStateMachineType.UNSHELVE_TIME);
 
-        return unshelveTime.orElse(null);
+        return property.orElse(null);
     }
 
-    public StateType getUnshelved() {
-        Optional<ObjectNode> unshelved = getObjectComponent("Unshelved");
+    @Override
+    public PropertyNode getUnshelveTimeNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(ShelvedStateMachineType.UNSHELVE_TIME.getBrowseName());
 
-        return unshelved.map(node -> (StateType) node).orElse(null);
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
     }
 
-    public StateType getTimedShelved() {
-        Optional<ObjectNode> timedShelved = getObjectComponent("TimedShelved");
-
-        return timedShelved.map(node -> (StateType) node).orElse(null);
+    @Override
+    public void setUnshelveTime(Double value) {
+        setProperty(ShelvedStateMachineType.UNSHELVE_TIME, value);
     }
 
-    public StateType getOneShotShelved() {
-        Optional<ObjectNode> oneShotShelved = getObjectComponent("OneShotShelved");
+    @Override
+    public StateNode getUnshelvedNode() {
+        Optional<ObjectNode> component = getObjectComponent("Unshelved");
 
-        return oneShotShelved.map(node -> (StateType) node).orElse(null);
+        return component.map(node -> (StateNode) node).orElse(null);
     }
 
-    public TransitionType getUnshelvedToTimedShelved() {
-        Optional<ObjectNode> unshelvedToTimedShelved = getObjectComponent("UnshelvedToTimedShelved");
+    @Override
+    public StateNode getTimedShelvedNode() {
+        Optional<ObjectNode> component = getObjectComponent("TimedShelved");
 
-        return unshelvedToTimedShelved.map(node -> (TransitionType) node).orElse(null);
+        return component.map(node -> (StateNode) node).orElse(null);
     }
 
-    public TransitionType getUnshelvedToOneShotShelved() {
-        Optional<ObjectNode> unshelvedToOneShotShelved = getObjectComponent("UnshelvedToOneShotShelved");
+    @Override
+    public StateNode getOneShotShelvedNode() {
+        Optional<ObjectNode> component = getObjectComponent("OneShotShelved");
 
-        return unshelvedToOneShotShelved.map(node -> (TransitionType) node).orElse(null);
+        return component.map(node -> (StateNode) node).orElse(null);
     }
 
-    public TransitionType getTimedShelvedToUnshelved() {
-        Optional<ObjectNode> timedShelvedToUnshelved = getObjectComponent("TimedShelvedToUnshelved");
+    @Override
+    public TransitionNode getUnshelvedToTimedShelvedNode() {
+        Optional<ObjectNode> component = getObjectComponent("UnshelvedToTimedShelved");
 
-        return timedShelvedToUnshelved.map(node -> (TransitionType) node).orElse(null);
+        return component.map(node -> (TransitionNode) node).orElse(null);
     }
 
-    public TransitionType getTimedShelvedToOneShotShelved() {
-        Optional<ObjectNode> timedShelvedToOneShotShelved = getObjectComponent("TimedShelvedToOneShotShelved");
+    @Override
+    public TransitionNode getUnshelvedToOneShotShelvedNode() {
+        Optional<ObjectNode> component = getObjectComponent("UnshelvedToOneShotShelved");
 
-        return timedShelvedToOneShotShelved.map(node -> (TransitionType) node).orElse(null);
+        return component.map(node -> (TransitionNode) node).orElse(null);
     }
 
-    public TransitionType getOneShotShelvedToUnshelved() {
-        Optional<ObjectNode> oneShotShelvedToUnshelved = getObjectComponent("OneShotShelvedToUnshelved");
+    @Override
+    public TransitionNode getTimedShelvedToUnshelvedNode() {
+        Optional<ObjectNode> component = getObjectComponent("TimedShelvedToUnshelved");
 
-        return oneShotShelvedToUnshelved.map(node -> (TransitionType) node).orElse(null);
+        return component.map(node -> (TransitionNode) node).orElse(null);
     }
 
-    public TransitionType getOneShotShelvedToTimedShelved() {
-        Optional<ObjectNode> oneShotShelvedToTimedShelved = getObjectComponent("OneShotShelvedToTimedShelved");
+    @Override
+    public TransitionNode getTimedShelvedToOneShotShelvedNode() {
+        Optional<ObjectNode> component = getObjectComponent("TimedShelvedToOneShotShelved");
 
-        return oneShotShelvedToTimedShelved.map(node -> (TransitionType) node).orElse(null);
+        return component.map(node -> (TransitionNode) node).orElse(null);
     }
 
-    public synchronized void setUnshelveTime(Double unshelveTime) {
-        getPropertyNode("UnshelveTime").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(unshelveTime)));
-        });
+    @Override
+    public TransitionNode getOneShotShelvedToUnshelvedNode() {
+        Optional<ObjectNode> component = getObjectComponent("OneShotShelvedToUnshelved");
+
+        return component.map(node -> (TransitionNode) node).orElse(null);
     }
+
+    @Override
+    public TransitionNode getOneShotShelvedToTimedShelvedNode() {
+        Optional<ObjectNode> component = getObjectComponent("OneShotShelvedToTimedShelved");
+
+        return component.map(node -> (TransitionNode) node).orElse(null);
+    }
+
 }

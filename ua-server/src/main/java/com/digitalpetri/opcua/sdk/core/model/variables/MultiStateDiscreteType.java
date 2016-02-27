@@ -19,14 +19,26 @@
 
 package com.digitalpetri.opcua.sdk.core.model.variables;
 
-import com.digitalpetri.opcua.sdk.core.model.UaMandatory;
+import com.digitalpetri.opcua.sdk.server.model.Property;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
+
 
 public interface MultiStateDiscreteType extends DiscreteItemType {
 
-    @UaMandatory("EnumStrings")
+    Property<LocalizedText[]> ENUM_STRINGS = new Property.BasicProperty<>(
+            QualifiedName.parse("0:EnumStrings"),
+            NodeId.parse("ns=0;i=21"),
+            1,
+            LocalizedText[].class
+    );
+
+
     LocalizedText[] getEnumStrings();
 
-    void setEnumStrings(LocalizedText[] enumStrings);
+    PropertyType getEnumStringsNode();
+
+    void setEnumStrings(LocalizedText[] value);
 
 }

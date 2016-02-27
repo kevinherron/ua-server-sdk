@@ -33,6 +33,7 @@ import com.digitalpetri.opcua.sdk.core.nodes.Node;
 import com.digitalpetri.opcua.sdk.core.nodes.ObjectNode;
 import com.digitalpetri.opcua.sdk.core.nodes.ObjectTypeNode;
 import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.sdk.server.model.Property.BasicProperty;
 import com.digitalpetri.opcua.stack.core.Identifiers;
 import com.digitalpetri.opcua.stack.core.types.builtin.ByteString;
@@ -62,15 +63,15 @@ public class UaObjectNode extends UaNode implements ObjectNode {
 
     private volatile UByte eventNotifier = ubyte(0);
 
-    public UaObjectNode(UaNamespace namespace,
+    public UaObjectNode(UaNodeManager nodeManager,
                         NodeId nodeId,
                         QualifiedName browseName,
                         LocalizedText displayName) {
 
-        super(namespace, nodeId, NodeClass.Object, browseName, displayName);
+        super(nodeManager, nodeId, NodeClass.Object, browseName, displayName);
     }
 
-    public UaObjectNode(UaNamespace namespace,
+    public UaObjectNode(UaNodeManager nodeManager,
                         NodeId nodeId,
                         QualifiedName browseName,
                         LocalizedText displayName,
@@ -79,7 +80,7 @@ public class UaObjectNode extends UaNode implements ObjectNode {
                         Optional<UInteger> userWriteMask,
                         UByte eventNotifier) {
 
-        super(namespace, nodeId, NodeClass.Object, browseName, displayName, description, writeMask, userWriteMask);
+        super(nodeManager, nodeId, NodeClass.Object, browseName, displayName, description, writeMask, userWriteMask);
 
         this.eventNotifier = eventNotifier;
     }
@@ -246,7 +247,7 @@ public class UaObjectNode extends UaNode implements ObjectNode {
             NamingRuleType.class
     );
 
-    public static UaObjectNodeBuilder builder(UaNamespace nodeManager) {
+    public static UaObjectNodeBuilder builder(UaNodeManager nodeManager) {
         return new UaObjectNodeBuilder(nodeManager);
     }
 
@@ -262,9 +263,9 @@ public class UaObjectNode extends UaNode implements ObjectNode {
         private Optional<UInteger> userWriteMask = Optional.of(uint(0));
         private UByte eventNotifier = ubyte(0);
 
-        private final UaNamespace nodeManager;
+        private final UaNodeManager nodeManager;
 
-        public UaObjectNodeBuilder(UaNamespace nodeManager) {
+        public UaObjectNodeBuilder(UaNodeManager nodeManager) {
             this.nodeManager = nodeManager;
         }
 

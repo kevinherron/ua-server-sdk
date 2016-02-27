@@ -19,26 +19,64 @@
 
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
+import com.digitalpetri.opcua.sdk.core.model.variables.PropertyType;
+import com.digitalpetri.opcua.sdk.server.model.Property;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 import com.digitalpetri.opcua.stack.core.types.enumerated.PerformUpdateType;
 
 public interface AuditHistoryValueUpdateEventType extends AuditHistoryUpdateEventType {
 
+    Property<NodeId> UPDATED_NODE = new Property.BasicProperty<>(
+            QualifiedName.parse("0:UpdatedNode"),
+            NodeId.parse("ns=0;i=17"),
+            -1,
+            NodeId.class
+    );
+
+    Property<PerformUpdateType> PERFORM_INSERT_REPLACE = new Property.BasicProperty<>(
+            QualifiedName.parse("0:PerformInsertReplace"),
+            NodeId.parse("ns=0;i=11293"),
+            -1,
+            PerformUpdateType.class
+    );
+
+    Property<DataValue[]> NEW_VALUES = new Property.BasicProperty<>(
+            QualifiedName.parse("0:NewValues"),
+            NodeId.parse("ns=0;i=23"),
+            1,
+            DataValue[].class
+    );
+
+    Property<DataValue[]> OLD_VALUES = new Property.BasicProperty<>(
+            QualifiedName.parse("0:OldValues"),
+            NodeId.parse("ns=0;i=23"),
+            1,
+            DataValue[].class
+    );
+
     NodeId getUpdatedNode();
+
+    PropertyType getUpdatedNodeNode();
+
+    void setUpdatedNode(NodeId value);
 
     PerformUpdateType getPerformInsertReplace();
 
+    PropertyType getPerformInsertReplaceNode();
+
+    void setPerformInsertReplace(PerformUpdateType value);
+
     DataValue[] getNewValues();
+
+    PropertyType getNewValuesNode();
+
+    void setNewValues(DataValue[] value);
 
     DataValue[] getOldValues();
 
-    void setUpdatedNode(NodeId updatedNode);
+    PropertyType getOldValuesNode();
 
-    void setPerformInsertReplace(PerformUpdateType performInsertReplace);
-
-    void setNewValues(DataValue[] newValues);
-
-    void setOldValues(DataValue[] oldValues);
-
+    void setOldValues(DataValue[] value);
 }

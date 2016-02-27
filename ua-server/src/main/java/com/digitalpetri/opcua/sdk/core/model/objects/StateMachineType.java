@@ -21,12 +21,19 @@ package com.digitalpetri.opcua.sdk.core.model.objects;
 
 import com.digitalpetri.opcua.sdk.core.model.variables.StateVariableType;
 import com.digitalpetri.opcua.sdk.core.model.variables.TransitionVariableType;
+import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 
 public interface StateMachineType extends BaseObjectType {
 
-    StateVariableType getCurrentState();
+    LocalizedText getCurrentState();
 
-    TransitionVariableType getLastTransition();
+    StateVariableType getCurrentStateNode();
 
+    void setCurrentState(LocalizedText value);
 
+    LocalizedText getLastTransition();
+
+    TransitionVariableType getLastTransitionNode();
+
+    void setLastTransition(LocalizedText value);
 }

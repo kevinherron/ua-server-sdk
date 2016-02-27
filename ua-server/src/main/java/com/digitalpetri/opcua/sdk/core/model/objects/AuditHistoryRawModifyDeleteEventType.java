@@ -19,25 +19,64 @@
 
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
+import com.digitalpetri.opcua.sdk.core.model.variables.PropertyType;
+import com.digitalpetri.opcua.sdk.server.model.Property;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.DateTime;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 
 public interface AuditHistoryRawModifyDeleteEventType extends AuditHistoryDeleteEventType {
 
+    Property<Boolean> IS_DELETE_MODIFIED = new Property.BasicProperty<>(
+            QualifiedName.parse("0:IsDeleteModified"),
+            NodeId.parse("ns=0;i=1"),
+            -1,
+            Boolean.class
+    );
+
+    Property<DateTime> START_TIME = new Property.BasicProperty<>(
+            QualifiedName.parse("0:StartTime"),
+            NodeId.parse("ns=0;i=294"),
+            -1,
+            DateTime.class
+    );
+
+    Property<DateTime> END_TIME = new Property.BasicProperty<>(
+            QualifiedName.parse("0:EndTime"),
+            NodeId.parse("ns=0;i=294"),
+            -1,
+            DateTime.class
+    );
+
+    Property<DataValue[]> OLD_VALUES = new Property.BasicProperty<>(
+            QualifiedName.parse("0:OldValues"),
+            NodeId.parse("ns=0;i=23"),
+            1,
+            DataValue[].class
+    );
+
     Boolean getIsDeleteModified();
+
+    PropertyType getIsDeleteModifiedNode();
+
+    void setIsDeleteModified(Boolean value);
 
     DateTime getStartTime();
 
+    PropertyType getStartTimeNode();
+
+    void setStartTime(DateTime value);
+
     DateTime getEndTime();
+
+    PropertyType getEndTimeNode();
+
+    void setEndTime(DateTime value);
 
     DataValue[] getOldValues();
 
-    void setIsDeleteModified(Boolean isDeleteModified);
+    PropertyType getOldValuesNode();
 
-    void setStartTime(DateTime startTime);
-
-    void setEndTime(DateTime endTime);
-
-    void setOldValues(DataValue[] oldValues);
-
+    void setOldValues(DataValue[] value);
 }

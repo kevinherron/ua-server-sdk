@@ -19,10 +19,23 @@
 
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
+import com.digitalpetri.opcua.sdk.core.model.variables.PropertyType;
+import com.digitalpetri.opcua.sdk.server.model.Property;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
+
 public interface AuditConditionRespondEventType extends AuditConditionEventType {
+
+    Property<Integer> SELECTED_RESPONSE = new Property.BasicProperty<>(
+            QualifiedName.parse("0:SelectedResponse"),
+            NodeId.parse("ns=0;i=6"),
+            -1,
+            Integer.class
+    );
 
     Integer getSelectedResponse();
 
-    void setSelectedResponse(Integer selectedResponse);
+    PropertyType getSelectedResponseNode();
 
+    void setSelectedResponse(Integer value);
 }

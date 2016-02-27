@@ -19,69 +19,81 @@
 
 package com.digitalpetri.opcua.sdk.core.model.variables;
 
-import com.digitalpetri.opcua.sdk.core.model.UaMandatory;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
+
 
 public interface ServerDiagnosticsSummaryType extends BaseDataVariableType {
 
-    @UaMandatory("ServerViewCount")
+
     UInteger getServerViewCount();
 
-    @UaMandatory("CurrentSessionCount")
+    BaseDataVariableType getServerViewCountNode();
+
+    void setServerViewCount(UInteger value);
+
     UInteger getCurrentSessionCount();
 
-    @UaMandatory("CumulatedSessionCount")
+    BaseDataVariableType getCurrentSessionCountNode();
+
+    void setCurrentSessionCount(UInteger value);
+
     UInteger getCumulatedSessionCount();
 
-    @UaMandatory("SecurityRejectedSessionCount")
+    BaseDataVariableType getCumulatedSessionCountNode();
+
+    void setCumulatedSessionCount(UInteger value);
+
     UInteger getSecurityRejectedSessionCount();
 
-    @UaMandatory("RejectedSessionCount")
+    BaseDataVariableType getSecurityRejectedSessionCountNode();
+
+    void setSecurityRejectedSessionCount(UInteger value);
+
     UInteger getRejectedSessionCount();
 
-    @UaMandatory("SessionTimeoutCount")
+    BaseDataVariableType getRejectedSessionCountNode();
+
+    void setRejectedSessionCount(UInteger value);
+
     UInteger getSessionTimeoutCount();
 
-    @UaMandatory("SessionAbortCount")
+    BaseDataVariableType getSessionTimeoutCountNode();
+
+    void setSessionTimeoutCount(UInteger value);
+
     UInteger getSessionAbortCount();
 
-    @UaMandatory("PublishingIntervalCount")
+    BaseDataVariableType getSessionAbortCountNode();
+
+    void setSessionAbortCount(UInteger value);
+
     UInteger getPublishingIntervalCount();
 
-    @UaMandatory("CurrentSubscriptionCount")
+    BaseDataVariableType getPublishingIntervalCountNode();
+
+    void setPublishingIntervalCount(UInteger value);
+
     UInteger getCurrentSubscriptionCount();
 
-    @UaMandatory("CumulatedSubscriptionCount")
+    BaseDataVariableType getCurrentSubscriptionCountNode();
+
+    void setCurrentSubscriptionCount(UInteger value);
+
     UInteger getCumulatedSubscriptionCount();
 
-    @UaMandatory("SecurityRejectedRequestsCount")
+    BaseDataVariableType getCumulatedSubscriptionCountNode();
+
+    void setCumulatedSubscriptionCount(UInteger value);
+
     UInteger getSecurityRejectedRequestsCount();
 
-    @UaMandatory("RejectedRequestsCount")
+    BaseDataVariableType getSecurityRejectedRequestsCountNode();
+
+    void setSecurityRejectedRequestsCount(UInteger value);
+
     UInteger getRejectedRequestsCount();
 
-    void setServerViewCount(UInteger serverViewCount);
+    BaseDataVariableType getRejectedRequestsCountNode();
 
-    void setCurrentSessionCount(UInteger currentSessionCount);
-
-    void setCumulatedSessionCount(UInteger cumulatedSessionCount);
-
-    void setSecurityRejectedSessionCount(UInteger securityRejectedSessionCount);
-
-    void setRejectedSessionCount(UInteger rejectedSessionCount);
-
-    void setSessionTimeoutCount(UInteger sessionTimeoutCount);
-
-    void setSessionAbortCount(UInteger sessionAbortCount);
-
-    void setPublishingIntervalCount(UInteger publishingIntervalCount);
-
-    void setCurrentSubscriptionCount(UInteger currentSubscriptionCount);
-
-    void setCumulatedSubscriptionCount(UInteger cumulatedSubscriptionCount);
-
-    void setSecurityRejectedRequestsCount(UInteger securityRejectedRequestsCount);
-
-    void setRejectedRequestsCount(UInteger rejectedRequestsCount);
-
+    void setRejectedRequestsCount(UInteger value);
 }

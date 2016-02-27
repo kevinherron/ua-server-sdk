@@ -32,7 +32,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.digitalpetri.opcua.sdk.core.ValueRank;
 import com.digitalpetri.opcua.sdk.server.api.MethodInvocationHandler;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.sdk.server.model.UaObjectNode;
 import com.digitalpetri.opcua.stack.core.StatusCodes;
 import com.digitalpetri.opcua.stack.core.UaException;
@@ -54,12 +54,12 @@ public class AnnotationBasedInvocationHandler implements MethodInvocationHandler
 
     private final Method annotatedMethod;
 
-    private final UaNamespace nodeManager;
+    private final UaNodeManager nodeManager;
     private final List<Argument> inputArguments;
     private final List<Argument> outputArguments;
     private final Object annotatedObject;
 
-    public AnnotationBasedInvocationHandler(UaNamespace nodeManager,
+    public AnnotationBasedInvocationHandler(UaNodeManager nodeManager,
                                             Argument[] inputArguments,
                                             Argument[] outputArguments,
                                             Object annotatedObject) {
@@ -67,7 +67,7 @@ public class AnnotationBasedInvocationHandler implements MethodInvocationHandler
         this(nodeManager, Lists.newArrayList(inputArguments), Lists.newArrayList(outputArguments), annotatedObject);
     }
 
-    public AnnotationBasedInvocationHandler(UaNamespace nodeManager,
+    public AnnotationBasedInvocationHandler(UaNodeManager nodeManager,
                                             List<Argument> inputArguments,
                                             List<Argument> outputArguments,
                                             Object annotatedObject) {
@@ -189,7 +189,7 @@ public class AnnotationBasedInvocationHandler implements MethodInvocationHandler
     }
 
 
-    public static AnnotationBasedInvocationHandler fromAnnotatedObject(UaNamespace namespace, Object annotatedObject) throws Exception {
+    public static AnnotationBasedInvocationHandler fromAnnotatedObject(UaNodeManager nodeManager, Object annotatedObject) throws Exception {
         // TODO Make this work when parameter types are not built-in types
 
         Method annotatedMethod = Arrays.stream(annotatedObject.getClass().getMethods())
@@ -256,7 +256,7 @@ public class AnnotationBasedInvocationHandler implements MethodInvocationHandler
         }
 
         return new AnnotationBasedInvocationHandler(
-                namespace,
+                nodeManager,
                 inputArguments,
                 outputArguments,
                 annotatedObject

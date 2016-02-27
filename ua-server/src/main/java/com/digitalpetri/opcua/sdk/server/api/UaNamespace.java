@@ -19,20 +19,8 @@
 
 package com.digitalpetri.opcua.sdk.server.api;
 
-import java.util.Optional;
+public interface UaNamespace extends Namespace, UaNodeManager {
 
-import com.digitalpetri.opcua.sdk.server.model.UaNode;
-import com.digitalpetri.opcua.stack.core.types.builtin.ExpandedNodeId;
-import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 
-public interface UaNamespace extends Namespace {
-
-    void addNode(UaNode node);
-
-    Optional<UaNode> getNode(NodeId nodeId);
-
-    Optional<UaNode> getNode(ExpandedNodeId nodeId);
-
-    Optional<UaNode> removeNode(NodeId nodeId);
 
 }

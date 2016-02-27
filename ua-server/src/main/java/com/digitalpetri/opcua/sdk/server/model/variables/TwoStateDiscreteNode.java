@@ -21,70 +21,86 @@ package com.digitalpetri.opcua.sdk.server.model.variables;
 
 import java.util.Optional;
 
-import com.digitalpetri.opcua.sdk.core.model.UaMandatory;
 import com.digitalpetri.opcua.sdk.core.model.variables.TwoStateDiscreteType;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.util.UaVariableType;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableTypeNode;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
-import com.digitalpetri.opcua.stack.core.types.builtin.Variant;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 
-@UaVariableType(name = "TwoStateDiscreteType")
+@com.digitalpetri.opcua.sdk.server.util.UaVariableNode(typeName = "0:TwoStateDiscreteType")
 public class TwoStateDiscreteNode extends DiscreteItemNode implements TwoStateDiscreteType {
 
-    public TwoStateDiscreteNode(UaNamespace namespace,
-                                NodeId nodeId,
-                                QualifiedName browseName,
-                                LocalizedText displayName,
-                                Optional<LocalizedText> description,
-                                Optional<UInteger> writeMask,
-                                Optional<UInteger> userWriteMask,
-                                DataValue value,
-                                NodeId dataType,
-                                Integer valueRank,
-                                Optional<UInteger[]> arrayDimensions,
-                                UByte accessLevel,
-                                UByte userAccessLevel,
-                                Optional<Double> minimumSamplingInterval,
-                                boolean historizing) {
+    public TwoStateDiscreteNode(
+            UaNodeManager nodeManager,
+            NodeId nodeId,
+            VariableTypeNode variableTypeNode) {
 
-        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask,
+        super(nodeManager, nodeId, variableTypeNode);
+    }
+
+    public TwoStateDiscreteNode(
+            UaNodeManager nodeManager,
+            NodeId nodeId,
+            QualifiedName browseName,
+            LocalizedText displayName,
+            Optional<LocalizedText> description,
+            Optional<UInteger> writeMask,
+            Optional<UInteger> userWriteMask,
+            DataValue value,
+            NodeId dataType,
+            Integer valueRank,
+            Optional<UInteger[]> arrayDimensions,
+            UByte accessLevel,
+            UByte userAccessLevel,
+            Optional<Double> minimumSamplingInterval,
+            boolean historizing) {
+
+        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask,
                 value, dataType, valueRank, arrayDimensions, accessLevel, userAccessLevel, minimumSamplingInterval, historizing);
-
     }
 
+
     @Override
-    @UaMandatory("FalseState")
     public LocalizedText getFalseState() {
-        Optional<LocalizedText> falseState = getProperty("FalseState");
+        Optional<LocalizedText> property = getProperty(TwoStateDiscreteType.FALSE_STATE);
 
-        return falseState.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    @UaMandatory("TrueState")
+    public PropertyNode getFalseStateNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(TwoStateDiscreteType.FALSE_STATE.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setFalseState(LocalizedText value) {
+        setProperty(TwoStateDiscreteType.FALSE_STATE, value);
+    }
+
+    @Override
     public LocalizedText getTrueState() {
-        Optional<LocalizedText> trueState = getProperty("TrueState");
+        Optional<LocalizedText> property = getProperty(TwoStateDiscreteType.TRUE_STATE);
 
-        return trueState.orElse(null);
+        return property.orElse(null);
     }
 
     @Override
-    public synchronized void setFalseState(LocalizedText falseState) {
-        getPropertyNode("FalseState").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(falseState)));
-        });
+    public PropertyNode getTrueStateNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(TwoStateDiscreteType.TRUE_STATE.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
     }
 
     @Override
-    public synchronized void setTrueState(LocalizedText trueState) {
-        getPropertyNode("TrueState").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(trueState)));
-        });
+    public void setTrueState(LocalizedText value) {
+        setProperty(TwoStateDiscreteType.TRUE_STATE, value);
     }
 
 }

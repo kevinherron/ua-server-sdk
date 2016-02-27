@@ -23,19 +23,19 @@ import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
 
 public class UaNodeLoader {
 
-    private final UaNamespace namespace;
+    private final UaNamespace nodeManager;
 
-    public UaNodeLoader(UaNamespace namespace)
+    public UaNodeLoader(UaNamespace nodeManager)
             throws Exception {
-        this.namespace = namespace;
-        new UaDataTypeLoader(namespace).buildNodes();
-        new UaMethodLoader(namespace).buildNodes();
-        new UaObjectLoader(namespace).buildNodes();
-        new UaObjectTypeLoader(namespace).buildNodes();
-        new UaReferenceTypeLoader(namespace).buildNodes();
-        new UaVariableLoader(namespace).buildNodes();
-        new UaVariableTypeLoader(namespace).buildNodes();
-        new UaViewLoader(namespace).buildNodes();
+        this.nodeManager = nodeManager;
+        new UaDataTypeLoader(nodeManager).buildNodes();
+        new UaMethodLoader(nodeManager).buildNodes();
+        new UaObjectLoader(nodeManager).buildNodes();
+        new UaObjectTypeLoader(nodeManager).buildNodes();
+        new UaReferenceTypeLoader(nodeManager).buildNodes();
+        new UaVariableLoader(nodeManager).buildNodes();
+        new UaVariableTypeLoader(nodeManager).buildNodes();
+        new UaViewLoader(nodeManager).buildNodes();
     }
 
 }

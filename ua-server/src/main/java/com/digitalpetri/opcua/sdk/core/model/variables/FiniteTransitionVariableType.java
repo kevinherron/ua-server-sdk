@@ -19,14 +19,25 @@
 
 package com.digitalpetri.opcua.sdk.core.model.variables;
 
-import com.digitalpetri.opcua.sdk.core.model.UaMandatory;
+import com.digitalpetri.opcua.sdk.server.model.Property;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
+
 
 public interface FiniteTransitionVariableType extends TransitionVariableType {
 
-    @UaMandatory("Id")
+    Property<NodeId> ID = new Property.BasicProperty<>(
+            QualifiedName.parse("0:Id"),
+            NodeId.parse("ns=0;i=17"),
+            -1,
+            NodeId.class
+    );
+
+
     NodeId getId();
 
-    void setId(NodeId id);
+    PropertyType getIdNode();
+
+    void setId(NodeId value);
 
 }

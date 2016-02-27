@@ -19,36 +19,79 @@
 
 package com.digitalpetri.opcua.sdk.core.model.variables;
 
-import com.digitalpetri.opcua.sdk.core.model.UaMandatory;
-import com.digitalpetri.opcua.sdk.core.model.UaOptional;
+import com.digitalpetri.opcua.sdk.server.model.Property;
 import com.digitalpetri.opcua.stack.core.types.builtin.DateTime;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
+
 
 public interface TwoStateVariableType extends StateVariableType {
 
-    @UaMandatory("Id")
+    Property<Boolean> ID = new Property.BasicProperty<>(
+            QualifiedName.parse("0:Id"),
+            NodeId.parse("ns=0;i=1"),
+            -1,
+            Boolean.class
+    );
+
+    Property<DateTime> TRANSITION_TIME = new Property.BasicProperty<>(
+            QualifiedName.parse("0:TransitionTime"),
+            NodeId.parse("ns=0;i=294"),
+            -1,
+            DateTime.class
+    );
+
+    Property<DateTime> EFFECTIVE_TRANSITION_TIME = new Property.BasicProperty<>(
+            QualifiedName.parse("0:EffectiveTransitionTime"),
+            NodeId.parse("ns=0;i=294"),
+            -1,
+            DateTime.class
+    );
+
+    Property<LocalizedText> TRUE_STATE = new Property.BasicProperty<>(
+            QualifiedName.parse("0:TrueState"),
+            NodeId.parse("ns=0;i=21"),
+            -1,
+            LocalizedText.class
+    );
+
+    Property<LocalizedText> FALSE_STATE = new Property.BasicProperty<>(
+            QualifiedName.parse("0:FalseState"),
+            NodeId.parse("ns=0;i=21"),
+            -1,
+            LocalizedText.class
+    );
+
+
     Boolean getId();
 
-    @UaOptional("TransitionTime")
+    PropertyType getIdNode();
+
+    void setId(Boolean value);
+
     DateTime getTransitionTime();
 
-    @UaOptional("EffectiveTransitionTime")
+    PropertyType getTransitionTimeNode();
+
+    void setTransitionTime(DateTime value);
+
     DateTime getEffectiveTransitionTime();
 
-    @UaOptional("TrueState")
+    PropertyType getEffectiveTransitionTimeNode();
+
+    void setEffectiveTransitionTime(DateTime value);
+
     LocalizedText getTrueState();
 
-    @UaOptional("FalseState")
+    PropertyType getTrueStateNode();
+
+    void setTrueState(LocalizedText value);
+
     LocalizedText getFalseState();
 
-    void setId(Boolean id);
+    PropertyType getFalseStateNode();
 
-    void setTransitionTime(DateTime transitionTime);
-
-    void setEffectiveTransitionTime(DateTime effectiveTransitionTime);
-
-    void setTrueState(LocalizedText trueState);
-
-    void setFalseState(LocalizedText falseState);
+    void setFalseState(LocalizedText value);
 
 }

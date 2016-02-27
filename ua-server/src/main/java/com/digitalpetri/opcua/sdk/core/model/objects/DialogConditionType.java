@@ -19,37 +19,102 @@
 
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
+import com.digitalpetri.opcua.sdk.core.model.variables.PropertyType;
 import com.digitalpetri.opcua.sdk.core.model.variables.TwoStateVariableType;
+import com.digitalpetri.opcua.sdk.server.model.Property;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 
 public interface DialogConditionType extends ConditionType {
 
-    TwoStateVariableType getEnabledState();
+    Property<LocalizedText> PROMPT = new Property.BasicProperty<>(
+            QualifiedName.parse("0:Prompt"),
+            NodeId.parse("ns=0;i=21"),
+            -1,
+            LocalizedText.class
+    );
 
-    TwoStateVariableType getDialogState();
+    Property<LocalizedText[]> RESPONSE_OPTION_SET = new Property.BasicProperty<>(
+            QualifiedName.parse("0:ResponseOptionSet"),
+            NodeId.parse("ns=0;i=21"),
+            1,
+            LocalizedText[].class
+    );
+
+    Property<Integer> DEFAULT_RESPONSE = new Property.BasicProperty<>(
+            QualifiedName.parse("0:DefaultResponse"),
+            NodeId.parse("ns=0;i=6"),
+            -1,
+            Integer.class
+    );
+
+    Property<Integer> OK_RESPONSE = new Property.BasicProperty<>(
+            QualifiedName.parse("0:OkResponse"),
+            NodeId.parse("ns=0;i=6"),
+            -1,
+            Integer.class
+    );
+
+    Property<Integer> CANCEL_RESPONSE = new Property.BasicProperty<>(
+            QualifiedName.parse("0:CancelResponse"),
+            NodeId.parse("ns=0;i=6"),
+            -1,
+            Integer.class
+    );
+
+    Property<Integer> LAST_RESPONSE = new Property.BasicProperty<>(
+            QualifiedName.parse("0:LastResponse"),
+            NodeId.parse("ns=0;i=6"),
+            -1,
+            Integer.class
+    );
 
     LocalizedText getPrompt();
 
+    PropertyType getPromptNode();
+
+    void setPrompt(LocalizedText value);
+
     LocalizedText[] getResponseOptionSet();
+
+    PropertyType getResponseOptionSetNode();
+
+    void setResponseOptionSet(LocalizedText[] value);
 
     Integer getDefaultResponse();
 
+    PropertyType getDefaultResponseNode();
+
+    void setDefaultResponse(Integer value);
+
     Integer getOkResponse();
+
+    PropertyType getOkResponseNode();
+
+    void setOkResponse(Integer value);
 
     Integer getCancelResponse();
 
+    PropertyType getCancelResponseNode();
+
+    void setCancelResponse(Integer value);
+
     Integer getLastResponse();
 
-    void setPrompt(LocalizedText prompt);
+    PropertyType getLastResponseNode();
 
-    void setResponseOptionSet(LocalizedText[] responseOptionSet);
+    void setLastResponse(Integer value);
 
-    void setDefaultResponse(Integer defaultResponse);
+    LocalizedText getEnabledState();
 
-    void setOkResponse(Integer okResponse);
+    TwoStateVariableType getEnabledStateNode();
 
-    void setCancelResponse(Integer cancelResponse);
+    void setEnabledState(LocalizedText value);
 
-    void setLastResponse(Integer lastResponse);
+    LocalizedText getDialogState();
 
+    TwoStateVariableType getDialogStateNode();
+
+    void setDialogState(LocalizedText value);
 }

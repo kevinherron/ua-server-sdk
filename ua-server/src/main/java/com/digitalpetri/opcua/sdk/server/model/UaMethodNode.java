@@ -31,7 +31,7 @@ import com.digitalpetri.opcua.sdk.core.nodes.MethodNode;
 import com.digitalpetri.opcua.sdk.core.nodes.Node;
 import com.digitalpetri.opcua.sdk.core.nodes.ObjectNode;
 import com.digitalpetri.opcua.sdk.server.api.MethodInvocationHandler;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.sdk.server.model.Property.BasicProperty;
 import com.digitalpetri.opcua.stack.core.Identifiers;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
@@ -55,7 +55,7 @@ public class UaMethodNode extends UaNode implements MethodNode {
     private volatile boolean executable;
     private volatile boolean userExecutable;
 
-    public UaMethodNode(UaNamespace namespace,
+    public UaMethodNode(UaNodeManager nodeManager,
                         NodeId nodeId,
                         QualifiedName browseName,
                         LocalizedText displayName,
@@ -65,7 +65,7 @@ public class UaMethodNode extends UaNode implements MethodNode {
                         boolean executable,
                         boolean userExecutable) {
 
-        super(namespace, nodeId, NodeClass.Method, browseName, displayName, description, writeMask, userWriteMask);
+        super(nodeManager, nodeId, NodeClass.Method, browseName, displayName, description, writeMask, userWriteMask);
 
         this.executable = executable;
         this.userExecutable = userExecutable;
@@ -180,7 +180,7 @@ public class UaMethodNode extends UaNode implements MethodNode {
     /**
      * @return a new {@link UaMethodNodeBuilder}.
      */
-    public static UaMethodNodeBuilder builder(UaNamespace nodeManager) {
+    public static UaMethodNodeBuilder builder(UaNodeManager nodeManager) {
         return new UaMethodNodeBuilder(nodeManager);
     }
 
@@ -196,9 +196,9 @@ public class UaMethodNode extends UaNode implements MethodNode {
         private boolean executable = true;
         private boolean userExecutable = true;
 
-        private final UaNamespace nodeManager;
+        private final UaNodeManager nodeManager;
 
-        public UaMethodNodeBuilder(UaNamespace nodeManager) {
+        public UaMethodNodeBuilder(UaNodeManager nodeManager) {
             this.nodeManager = nodeManager;
         }
 

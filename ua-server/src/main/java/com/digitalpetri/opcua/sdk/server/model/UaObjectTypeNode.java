@@ -25,7 +25,7 @@ import com.digitalpetri.opcua.sdk.core.AttributeIds;
 import com.digitalpetri.opcua.sdk.core.ValueRank;
 import com.digitalpetri.opcua.sdk.core.model.UaOptional;
 import com.digitalpetri.opcua.sdk.core.nodes.ObjectTypeNode;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.sdk.server.model.Property.BasicProperty;
 import com.digitalpetri.opcua.stack.core.Identifiers;
 import com.digitalpetri.opcua.stack.core.types.builtin.ByteString;
@@ -39,7 +39,7 @@ public class UaObjectTypeNode extends UaNode implements ObjectTypeNode {
 
     private volatile boolean isAbstract;
 
-    public UaObjectTypeNode(UaNamespace namespace,
+    public UaObjectTypeNode(UaNodeManager nodeManager,
                             NodeId nodeId,
                             QualifiedName browseName,
                             LocalizedText displayName,
@@ -48,7 +48,7 @@ public class UaObjectTypeNode extends UaNode implements ObjectTypeNode {
                             Optional<UInteger> userWriteMask,
                             boolean isAbstract) {
 
-        super(namespace, nodeId, NodeClass.ObjectType, browseName, displayName, description, writeMask, userWriteMask);
+        super(nodeManager, nodeId, NodeClass.ObjectType, browseName, displayName, description, writeMask, userWriteMask);
 
         this.isAbstract = isAbstract;
     }

@@ -34,7 +34,7 @@ import com.digitalpetri.opcua.sdk.core.Reference;
 import com.digitalpetri.opcua.sdk.core.nodes.Node;
 import com.digitalpetri.opcua.sdk.core.nodes.ObjectNode;
 import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.stack.core.Identifiers;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.ExpandedNodeId;
@@ -60,7 +60,7 @@ public abstract class UaNode implements Node {
 
     private List<WeakReference<AttributeObserver>> observers;
 
-    private final UaNamespace namespace;
+    private final UaNodeManager nodeManager;
 
     private volatile NodeId nodeId;
     private volatile NodeClass nodeClass;
@@ -70,17 +70,17 @@ public abstract class UaNode implements Node {
     private volatile Optional<UInteger> writeMask;
     private volatile Optional<UInteger> userWriteMask;
 
-    protected UaNode(UaNamespace namespace,
+    protected UaNode(UaNodeManager nodeManager,
                      NodeId nodeId,
                      NodeClass nodeClass,
                      QualifiedName browseName,
                      LocalizedText displayName) {
 
-        this(namespace, nodeId, nodeClass, browseName, displayName,
+        this(nodeManager, nodeId, nodeClass, browseName, displayName,
                 Optional.empty(), Optional.empty(), Optional.empty());
     }
 
-    protected UaNode(UaNamespace namespace,
+    protected UaNode(UaNodeManager nodeManager,
                      NodeId nodeId,
                      NodeClass nodeClass,
                      QualifiedName browseName,
@@ -89,7 +89,7 @@ public abstract class UaNode implements Node {
                      Optional<UInteger> writeMask,
                      Optional<UInteger> userWriteMask) {
 
-        this.namespace = namespace;
+        this.nodeManager = nodeManager;
 
         this.nodeId = nodeId;
         this.nodeClass = nodeClass;
@@ -184,16 +184,16 @@ public abstract class UaNode implements Node {
         userWriteMask.ifPresent(v -> fireAttributeChanged(AttributeIds.UserWriteMask, v));
     }
 
-    public UaNamespace getNamespace() {
-        return namespace;
+    public UaNodeManager getNodeManager() {
+        return nodeManager;
     }
 
     protected Optional<UaNode> getNode(NodeId nodeId) {
-        return namespace.getNode(nodeId);
+        return nodeManager.getNode(nodeId);
     }
 
     protected Optional<UaNode> getNode(ExpandedNodeId nodeId) {
-        return namespace.getNode(nodeId);
+        return nodeManager.getNode(nodeId);
     }
 
     public ImmutableList<Reference> getReferences() {
@@ -208,7 +208,7 @@ public abstract class UaNode implements Node {
             LOGGER.trace("{} refCount={}", getNodeId(), count);
 
             if (count == 1) {
-                namespace.addNode(this);
+                nodeManager.addNode(this);
             }
         }
     }
@@ -253,7 +253,7 @@ public abstract class UaNode implements Node {
             node.removeReferences(inverseReferences);
         }
 
-        namespace.removeNode(getNodeId());
+        nodeManager.removeNode(getNodeId());
     }
 
     public <T> Optional<T> getProperty(Property<T> property) {
@@ -284,7 +284,7 @@ public abstract class UaNode implements Node {
             );
 
             UaPropertyNode propertyNode = new UaPropertyNode(
-                    getNamespace(),
+                    getNodeManager(),
                     propertyNodeId,
                     browseName,
                     LocalizedText.english(browseName.getName())
@@ -320,7 +320,7 @@ public abstract class UaNode implements Node {
         }
     }
 
-    public void addProperty(UaPropertyNode node) {
+    public void addProperty(UaVariableNode node) {
         addReference(new Reference(
                 getNodeId(),
                 Identifiers.HasProperty,
@@ -338,7 +338,7 @@ public abstract class UaNode implements Node {
         ));
     }
 
-    public void removeProperty(UaPropertyNode node) {
+    public void removeProperty(UaVariableNode node) {
         removeReference(new Reference(
                 getNodeId(),
                 Identifiers.HasProperty,

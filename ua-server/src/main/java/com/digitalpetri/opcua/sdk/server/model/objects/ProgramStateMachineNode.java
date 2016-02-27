@@ -21,17 +21,14 @@ package com.digitalpetri.opcua.sdk.server.model.objects;
 
 import java.util.Optional;
 
-import com.digitalpetri.opcua.sdk.core.model.objects.BaseObjectType;
 import com.digitalpetri.opcua.sdk.core.model.objects.ProgramStateMachineType;
-import com.digitalpetri.opcua.sdk.core.model.objects.StateType;
-import com.digitalpetri.opcua.sdk.core.model.objects.TransitionType;
-import com.digitalpetri.opcua.sdk.core.model.variables.FiniteStateVariableType;
-import com.digitalpetri.opcua.sdk.core.model.variables.FiniteTransitionVariableType;
-import com.digitalpetri.opcua.sdk.core.model.variables.ProgramDiagnosticType;
 import com.digitalpetri.opcua.sdk.core.nodes.ObjectNode;
 import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.util.UaObjectType;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
+import com.digitalpetri.opcua.sdk.server.model.variables.FiniteStateVariableNode;
+import com.digitalpetri.opcua.sdk.server.model.variables.FiniteTransitionVariableNode;
+import com.digitalpetri.opcua.sdk.server.model.variables.ProgramDiagnosticNode;
+import com.digitalpetri.opcua.sdk.server.model.variables.PropertyNode;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
@@ -39,13 +36,13 @@ import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
 import com.digitalpetri.opcua.stack.core.types.builtin.Variant;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
+import com.digitalpetri.opcua.stack.core.types.structured.ProgramDiagnosticDataType;
 
-
-@UaObjectType(name = "ProgramStateMachineType")
+@com.digitalpetri.opcua.sdk.server.util.UaObjectNode(typeName = "0:ProgramStateMachineType")
 public class ProgramStateMachineNode extends FiniteStateMachineNode implements ProgramStateMachineType {
 
     public ProgramStateMachineNode(
-            UaNamespace namespace,
+            UaNodeManager nodeManager,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -54,210 +51,298 @@ public class ProgramStateMachineNode extends FiniteStateMachineNode implements P
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
-    public FiniteStateVariableType getCurrentState() {
-        Optional<VariableNode> currentState = getVariableComponent("CurrentState");
-
-        return currentState.map(node -> (FiniteStateVariableType) node).orElse(null);
-    }
-
-    public FiniteTransitionVariableType getLastTransition() {
-        Optional<VariableNode> lastTransition = getVariableComponent("LastTransition");
-
-        return lastTransition.map(node -> (FiniteTransitionVariableType) node).orElse(null);
-    }
-
+    @Override
     public Boolean getCreatable() {
-        Optional<Boolean> creatable = getProperty("Creatable");
+        Optional<Boolean> property = getProperty(ProgramStateMachineType.CREATABLE);
 
-        return creatable.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getCreatableNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(ProgramStateMachineType.CREATABLE.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setCreatable(Boolean value) {
+        setProperty(ProgramStateMachineType.CREATABLE, value);
+    }
+
+    @Override
     public Boolean getDeletable() {
-        Optional<Boolean> deletable = getProperty("Deletable");
+        Optional<Boolean> property = getProperty(ProgramStateMachineType.DELETABLE);
 
-        return deletable.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getDeletableNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(ProgramStateMachineType.DELETABLE.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setDeletable(Boolean value) {
+        setProperty(ProgramStateMachineType.DELETABLE, value);
+    }
+
+    @Override
     public Boolean getAutoDelete() {
-        Optional<Boolean> autoDelete = getProperty("AutoDelete");
+        Optional<Boolean> property = getProperty(ProgramStateMachineType.AUTO_DELETE);
 
-        return autoDelete.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getAutoDeleteNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(ProgramStateMachineType.AUTO_DELETE.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setAutoDelete(Boolean value) {
+        setProperty(ProgramStateMachineType.AUTO_DELETE, value);
+    }
+
+    @Override
     public Integer getRecycleCount() {
-        Optional<Integer> recycleCount = getProperty("RecycleCount");
+        Optional<Integer> property = getProperty(ProgramStateMachineType.RECYCLE_COUNT);
 
-        return recycleCount.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getRecycleCountNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(ProgramStateMachineType.RECYCLE_COUNT.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setRecycleCount(Integer value) {
+        setProperty(ProgramStateMachineType.RECYCLE_COUNT, value);
+    }
+
+    @Override
     public UInteger getInstanceCount() {
-        Optional<UInteger> instanceCount = getProperty("InstanceCount");
+        Optional<UInteger> property = getProperty(ProgramStateMachineType.INSTANCE_COUNT);
 
-        return instanceCount.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getInstanceCountNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(ProgramStateMachineType.INSTANCE_COUNT.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setInstanceCount(UInteger value) {
+        setProperty(ProgramStateMachineType.INSTANCE_COUNT, value);
+    }
+
+    @Override
     public UInteger getMaxInstanceCount() {
-        Optional<UInteger> maxInstanceCount = getProperty("MaxInstanceCount");
+        Optional<UInteger> property = getProperty(ProgramStateMachineType.MAX_INSTANCE_COUNT);
 
-        return maxInstanceCount.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getMaxInstanceCountNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(ProgramStateMachineType.MAX_INSTANCE_COUNT.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setMaxInstanceCount(UInteger value) {
+        setProperty(ProgramStateMachineType.MAX_INSTANCE_COUNT, value);
+    }
+
+    @Override
     public UInteger getMaxRecycleCount() {
-        Optional<UInteger> maxRecycleCount = getProperty("MaxRecycleCount");
+        Optional<UInteger> property = getProperty(ProgramStateMachineType.MAX_RECYCLE_COUNT);
 
-        return maxRecycleCount.orElse(null);
+        return property.orElse(null);
     }
 
-    public ProgramDiagnosticType getProgramDiagnostics() {
-        Optional<VariableNode> programDiagnostics = getVariableComponent("ProgramDiagnostics");
+    @Override
+    public PropertyNode getMaxRecycleCountNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(ProgramStateMachineType.MAX_RECYCLE_COUNT.getBrowseName());
 
-        return programDiagnostics.map(node -> (ProgramDiagnosticType) node).orElse(null);
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
     }
 
-    public BaseObjectType getFinalResultData() {
-        Optional<ObjectNode> finalResultData = getObjectComponent("FinalResultData");
-
-        return finalResultData.map(node -> (BaseObjectType) node).orElse(null);
+    @Override
+    public void setMaxRecycleCount(UInteger value) {
+        setProperty(ProgramStateMachineType.MAX_RECYCLE_COUNT, value);
     }
 
-    public StateType getReady() {
-        Optional<ObjectNode> ready = getObjectComponent("Ready");
+    @Override
+    public BaseObjectNode getFinalResultDataNode() {
+        Optional<ObjectNode> component = getObjectComponent("FinalResultData");
 
-        return ready.map(node -> (StateType) node).orElse(null);
+        return component.map(node -> (BaseObjectNode) node).orElse(null);
     }
 
-    public StateType getRunning() {
-        Optional<ObjectNode> running = getObjectComponent("Running");
+    @Override
+    public StateNode getReadyNode() {
+        Optional<ObjectNode> component = getObjectComponent("Ready");
 
-        return running.map(node -> (StateType) node).orElse(null);
+        return component.map(node -> (StateNode) node).orElse(null);
     }
 
-    public StateType getSuspended() {
-        Optional<ObjectNode> suspended = getObjectComponent("Suspended");
+    @Override
+    public StateNode getRunningNode() {
+        Optional<ObjectNode> component = getObjectComponent("Running");
 
-        return suspended.map(node -> (StateType) node).orElse(null);
+        return component.map(node -> (StateNode) node).orElse(null);
     }
 
-    public StateType getHalted() {
-        Optional<ObjectNode> halted = getObjectComponent("Halted");
+    @Override
+    public StateNode getSuspendedNode() {
+        Optional<ObjectNode> component = getObjectComponent("Suspended");
 
-        return halted.map(node -> (StateType) node).orElse(null);
+        return component.map(node -> (StateNode) node).orElse(null);
     }
 
-    public TransitionType getHaltedToReady() {
-        Optional<ObjectNode> haltedToReady = getObjectComponent("HaltedToReady");
+    @Override
+    public StateNode getHaltedNode() {
+        Optional<ObjectNode> component = getObjectComponent("Halted");
 
-        return haltedToReady.map(node -> (TransitionType) node).orElse(null);
+        return component.map(node -> (StateNode) node).orElse(null);
     }
 
-    public TransitionType getReadyToRunning() {
-        Optional<ObjectNode> readyToRunning = getObjectComponent("ReadyToRunning");
+    @Override
+    public TransitionNode getHaltedToReadyNode() {
+        Optional<ObjectNode> component = getObjectComponent("HaltedToReady");
 
-        return readyToRunning.map(node -> (TransitionType) node).orElse(null);
+        return component.map(node -> (TransitionNode) node).orElse(null);
     }
 
-    public TransitionType getRunningToHalted() {
-        Optional<ObjectNode> runningToHalted = getObjectComponent("RunningToHalted");
+    @Override
+    public TransitionNode getReadyToRunningNode() {
+        Optional<ObjectNode> component = getObjectComponent("ReadyToRunning");
 
-        return runningToHalted.map(node -> (TransitionType) node).orElse(null);
+        return component.map(node -> (TransitionNode) node).orElse(null);
     }
 
-    public TransitionType getRunningToReady() {
-        Optional<ObjectNode> runningToReady = getObjectComponent("RunningToReady");
+    @Override
+    public TransitionNode getRunningToHaltedNode() {
+        Optional<ObjectNode> component = getObjectComponent("RunningToHalted");
 
-        return runningToReady.map(node -> (TransitionType) node).orElse(null);
+        return component.map(node -> (TransitionNode) node).orElse(null);
     }
 
-    public TransitionType getRunningToSuspended() {
-        Optional<ObjectNode> runningToSuspended = getObjectComponent("RunningToSuspended");
+    @Override
+    public TransitionNode getRunningToReadyNode() {
+        Optional<ObjectNode> component = getObjectComponent("RunningToReady");
 
-        return runningToSuspended.map(node -> (TransitionType) node).orElse(null);
+        return component.map(node -> (TransitionNode) node).orElse(null);
     }
 
-    public TransitionType getSuspendedToRunning() {
-        Optional<ObjectNode> suspendedToRunning = getObjectComponent("SuspendedToRunning");
+    @Override
+    public TransitionNode getRunningToSuspendedNode() {
+        Optional<ObjectNode> component = getObjectComponent("RunningToSuspended");
 
-        return suspendedToRunning.map(node -> (TransitionType) node).orElse(null);
+        return component.map(node -> (TransitionNode) node).orElse(null);
     }
 
-    public TransitionType getSuspendedToHalted() {
-        Optional<ObjectNode> suspendedToHalted = getObjectComponent("SuspendedToHalted");
+    @Override
+    public TransitionNode getSuspendedToRunningNode() {
+        Optional<ObjectNode> component = getObjectComponent("SuspendedToRunning");
 
-        return suspendedToHalted.map(node -> (TransitionType) node).orElse(null);
+        return component.map(node -> (TransitionNode) node).orElse(null);
     }
 
-    public TransitionType getSuspendedToReady() {
-        Optional<ObjectNode> suspendedToReady = getObjectComponent("SuspendedToReady");
+    @Override
+    public TransitionNode getSuspendedToHaltedNode() {
+        Optional<ObjectNode> component = getObjectComponent("SuspendedToHalted");
 
-        return suspendedToReady.map(node -> (TransitionType) node).orElse(null);
+        return component.map(node -> (TransitionNode) node).orElse(null);
     }
 
-    public TransitionType getReadyToHalted() {
-        Optional<ObjectNode> readyToHalted = getObjectComponent("ReadyToHalted");
+    @Override
+    public TransitionNode getSuspendedToReadyNode() {
+        Optional<ObjectNode> component = getObjectComponent("SuspendedToReady");
 
-        return readyToHalted.map(node -> (TransitionType) node).orElse(null);
+        return component.map(node -> (TransitionNode) node).orElse(null);
     }
 
-    public synchronized void setCurrentState(FiniteStateVariableType currentState) {
-        getVariableComponent("CurrentState").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(currentState)));
-        });
+    @Override
+    public TransitionNode getReadyToHaltedNode() {
+        Optional<ObjectNode> component = getObjectComponent("ReadyToHalted");
+
+        return component.map(node -> (TransitionNode) node).orElse(null);
     }
 
-    public synchronized void setLastTransition(FiniteTransitionVariableType lastTransition) {
-        getVariableComponent("LastTransition").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(lastTransition)));
-        });
+    @Override
+    public LocalizedText getCurrentState() {
+        Optional<VariableNode> component = getVariableComponent("CurrentState");
+
+        return component.map(node -> (LocalizedText) node.getValue().getValue().getValue()).orElse(null);
     }
 
-    public synchronized void setCreatable(Boolean creatable) {
-        getPropertyNode("Creatable").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(creatable)));
-        });
+    @Override
+    public FiniteStateVariableNode getCurrentStateNode() {
+        Optional<VariableNode> component = getVariableComponent("CurrentState");
+
+        return component.map(node -> (FiniteStateVariableNode) node).orElse(null);
     }
 
-    public synchronized void setDeletable(Boolean deletable) {
-        getPropertyNode("Deletable").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(deletable)));
-        });
+    @Override
+    public void setCurrentState(LocalizedText value) {
+        getVariableComponent("CurrentState")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
     }
 
-    public synchronized void setAutoDelete(Boolean autoDelete) {
-        getPropertyNode("AutoDelete").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(autoDelete)));
-        });
+    @Override
+    public LocalizedText getLastTransition() {
+        Optional<VariableNode> component = getVariableComponent("LastTransition");
+
+        return component.map(node -> (LocalizedText) node.getValue().getValue().getValue()).orElse(null);
     }
 
-    public synchronized void setRecycleCount(Integer recycleCount) {
-        getPropertyNode("RecycleCount").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(recycleCount)));
-        });
+    @Override
+    public FiniteTransitionVariableNode getLastTransitionNode() {
+        Optional<VariableNode> component = getVariableComponent("LastTransition");
+
+        return component.map(node -> (FiniteTransitionVariableNode) node).orElse(null);
     }
 
-    public synchronized void setInstanceCount(UInteger instanceCount) {
-        getPropertyNode("InstanceCount").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(instanceCount)));
-        });
+    @Override
+    public void setLastTransition(LocalizedText value) {
+        getVariableComponent("LastTransition")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
     }
 
-    public synchronized void setMaxInstanceCount(UInteger maxInstanceCount) {
-        getPropertyNode("MaxInstanceCount").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(maxInstanceCount)));
-        });
+    @Override
+    public ProgramDiagnosticDataType getProgramDiagnostics() {
+        Optional<VariableNode> component = getVariableComponent("ProgramDiagnostics");
+
+        return component.map(node -> (ProgramDiagnosticDataType) node.getValue().getValue().getValue()).orElse(null);
     }
 
-    public synchronized void setMaxRecycleCount(UInteger maxRecycleCount) {
-        getPropertyNode("MaxRecycleCount").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(maxRecycleCount)));
-        });
+    @Override
+    public ProgramDiagnosticNode getProgramDiagnosticsNode() {
+        Optional<VariableNode> component = getVariableComponent("ProgramDiagnostics");
+
+        return component.map(node -> (ProgramDiagnosticNode) node).orElse(null);
     }
 
-    public synchronized void setProgramDiagnostics(ProgramDiagnosticType programDiagnostics) {
-        getVariableComponent("ProgramDiagnostics").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(programDiagnostics)));
-        });
+    @Override
+    public void setProgramDiagnostics(ProgramDiagnosticDataType value) {
+        getVariableComponent("ProgramDiagnostics")
+                .ifPresent(n -> n.setValue(new DataValue(new Variant(value))));
     }
+
 }

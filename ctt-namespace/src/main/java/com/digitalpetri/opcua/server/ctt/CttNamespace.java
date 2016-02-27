@@ -116,11 +116,13 @@ public class CttNamespace implements UaNamespace {
 
         subscriptionModel = new SubscriptionModel(server, this);
 
+    }
+
+    public void initializeNodes() {
         addStaticScalarNodes();
         addStaticArrayNodes();
         addMethodNodes();
     }
-
 
     private static final Object[][] STATIC_SCALAR_NODES = new Object[][]{
             {"Bool", Identifiers.Boolean, new Variant(false)},

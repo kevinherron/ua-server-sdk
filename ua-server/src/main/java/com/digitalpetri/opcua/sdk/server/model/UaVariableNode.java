@@ -34,7 +34,7 @@ import com.digitalpetri.opcua.sdk.core.nodes.Node;
 import com.digitalpetri.opcua.sdk.core.nodes.ObjectNode;
 import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
 import com.digitalpetri.opcua.sdk.core.nodes.VariableTypeNode;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.sdk.server.model.Property.BasicProperty;
 import com.digitalpetri.opcua.stack.core.Identifiers;
 import com.digitalpetri.opcua.stack.core.StatusCodes;
@@ -76,15 +76,31 @@ public class UaVariableNode extends UaNode implements VariableNode {
     private volatile Optional<Double> minimumSamplingInterval = Optional.empty();
     private volatile boolean historizing = false;
 
-    public UaVariableNode(UaNamespace namespace,
+    public UaVariableNode(
+            UaNodeManager nodeManager,
+            NodeId nodeId,
+            VariableTypeNode variableTypeNode) {
+
+        this(nodeManager, nodeId, variableTypeNode.getBrowseName(), variableTypeNode.getDisplayName());
+
+        setDescription(variableTypeNode.getDescription());
+        setWriteMask(variableTypeNode.getWriteMask());
+        setUserWriteMask(variableTypeNode.getUserWriteMask());
+        setValue(variableTypeNode.getValue().orElse(INITIAL_VALUE));
+        setDataType(variableTypeNode.getDataType());
+        setValueRank(variableTypeNode.getValueRank());
+        setArrayDimensions(variableTypeNode.getArrayDimensions());
+    }
+
+    public UaVariableNode(UaNodeManager nodeManager,
                           NodeId nodeId,
                           QualifiedName browseName,
                           LocalizedText displayName) {
 
-        super(namespace, nodeId, NodeClass.Variable, browseName, displayName);
+        super(nodeManager, nodeId, NodeClass.Variable, browseName, displayName);
     }
 
-    public UaVariableNode(UaNamespace namespace,
+    public UaVariableNode(UaNodeManager nodeManager,
                           NodeId nodeId,
                           QualifiedName browseName,
                           LocalizedText displayName,
@@ -100,7 +116,7 @@ public class UaVariableNode extends UaNode implements VariableNode {
                           Optional<Double> minimumSamplingInterval,
                           boolean historizing) {
 
-        super(namespace, nodeId, NodeClass.Variable, browseName, displayName, description, writeMask, userWriteMask);
+        super(nodeManager, nodeId, NodeClass.Variable, browseName, displayName, description, writeMask, userWriteMask);
 
         this.value = value;
         this.dataType = dataType;
@@ -244,6 +260,54 @@ public class UaVariableNode extends UaNode implements VariableNode {
         return (node instanceof VariableTypeNode) ? (VariableTypeNode) node : null;
     }
 
+    /**
+     * Add a 'HasComponent' reference from this Object to {@code node} and an inverse 'ComponentOf' reference from
+     * {@code node} back to this Object.
+     *
+     * @param node the node to add as a component of this Object.
+     */
+    public void addComponent(UaNode node) {
+        addReference(new Reference(
+                getNodeId(),
+                Identifiers.HasComponent,
+                node.getNodeId().expanded(),
+                node.getNodeClass(),
+                true
+        ));
+
+        node.addReference(new Reference(
+                node.getNodeId(),
+                Identifiers.HasComponent,
+                getNodeId().expanded(),
+                getNodeClass(),
+                false
+        ));
+    }
+
+    /**
+     * Remove the 'HasComponent' reference from this Object to {@code node} and the inverse 'ComponentOf' reference
+     * from {@code node} back to this Object.
+     *
+     * @param node the node to remove as a component of this Object.
+     */
+    public void removeComponent(UaNode node) {
+        removeReference(new Reference(
+                getNodeId(),
+                Identifiers.HasComponent,
+                node.getNodeId().expanded(),
+                node.getNodeClass(),
+                true
+        ));
+
+        node.removeReference(new Reference(
+                node.getNodeId(),
+                Identifiers.HasComponent,
+                getNodeId().expanded(),
+                getNodeClass(),
+                false
+        ));
+    }
+
     @UaOptional("NodeVersion")
     public String getNodeVersion() {
         return getProperty(NodeVersion).orElse(null);
@@ -379,7 +443,7 @@ public class UaVariableNode extends UaNode implements VariableNode {
             EUInformation.class
     );
 
-    public static UaVariableNodeBuilder builder(UaNamespace nodeManager) {
+    public static UaVariableNodeBuilder builder(UaNodeManager nodeManager) {
         return new UaVariableNodeBuilder(nodeManager);
     }
 
@@ -407,9 +471,9 @@ public class UaVariableNode extends UaNode implements VariableNode {
         private Optional<Double> minimumSamplingInterval = Optional.empty();
         private boolean historizing = false;
 
-        private final UaNamespace nodeManager;
+        private final UaNodeManager nodeManager;
 
-        public UaVariableNodeBuilder(UaNamespace nodeManager) {
+        public UaVariableNodeBuilder(UaNodeManager nodeManager) {
             this.nodeManager = nodeManager;
         }
 
@@ -542,7 +606,7 @@ public class UaVariableNode extends UaNode implements VariableNode {
                     nodeId,
                     Identifiers.HasTypeDefinition,
                     new ExpandedNodeId(typeDefinition),
-                    NodeClass.ObjectType,
+                    NodeClass.VariableType,
                     true
             ));
 

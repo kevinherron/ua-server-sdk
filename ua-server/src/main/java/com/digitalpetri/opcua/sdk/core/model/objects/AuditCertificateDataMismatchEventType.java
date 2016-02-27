@@ -19,14 +19,36 @@
 
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
+import com.digitalpetri.opcua.sdk.core.model.variables.PropertyType;
+import com.digitalpetri.opcua.sdk.server.model.Property;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
+
 public interface AuditCertificateDataMismatchEventType extends AuditCertificateEventType {
+
+    Property<String> INVALID_HOSTNAME = new Property.BasicProperty<>(
+            QualifiedName.parse("0:InvalidHostname"),
+            NodeId.parse("ns=0;i=12"),
+            -1,
+            String.class
+    );
+
+    Property<String> INVALID_URI = new Property.BasicProperty<>(
+            QualifiedName.parse("0:InvalidUri"),
+            NodeId.parse("ns=0;i=12"),
+            -1,
+            String.class
+    );
 
     String getInvalidHostname();
 
+    PropertyType getInvalidHostnameNode();
+
+    void setInvalidHostname(String value);
+
     String getInvalidUri();
 
-    void setInvalidHostname(String invalidHostname);
+    PropertyType getInvalidUriNode();
 
-    void setInvalidUri(String invalidUri);
-
+    void setInvalidUri(String value);
 }

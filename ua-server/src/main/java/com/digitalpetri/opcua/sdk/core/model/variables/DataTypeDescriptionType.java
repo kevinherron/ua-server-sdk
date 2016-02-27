@@ -19,19 +19,39 @@
 
 package com.digitalpetri.opcua.sdk.core.model.variables;
 
-import com.digitalpetri.opcua.sdk.core.model.UaOptional;
+import com.digitalpetri.opcua.sdk.server.model.Property;
 import com.digitalpetri.opcua.stack.core.types.builtin.ByteString;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
+
 
 public interface DataTypeDescriptionType extends BaseDataVariableType {
 
-    @UaOptional("DataTypeVersion")
+    Property<String> DATA_TYPE_VERSION = new Property.BasicProperty<>(
+            QualifiedName.parse("0:DataTypeVersion"),
+            NodeId.parse("ns=0;i=12"),
+            -1,
+            String.class
+    );
+
+    Property<ByteString> DICTIONARY_FRAGMENT = new Property.BasicProperty<>(
+            QualifiedName.parse("0:DictionaryFragment"),
+            NodeId.parse("ns=0;i=15"),
+            -1,
+            ByteString.class
+    );
+
+
     String getDataTypeVersion();
 
-    @UaOptional("DictionaryFragment")
+    PropertyType getDataTypeVersionNode();
+
+    void setDataTypeVersion(String value);
+
     ByteString getDictionaryFragment();
 
-    void setDataTypeVersion(String dataTypeVersion);
+    PropertyType getDictionaryFragmentNode();
 
-    void setDictionaryFragment(ByteString dictionaryFragment);
+    void setDictionaryFragment(ByteString value);
 
 }

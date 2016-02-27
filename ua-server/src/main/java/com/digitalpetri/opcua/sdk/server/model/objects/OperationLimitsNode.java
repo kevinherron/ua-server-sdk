@@ -22,22 +22,20 @@ package com.digitalpetri.opcua.sdk.server.model.objects;
 import java.util.Optional;
 
 import com.digitalpetri.opcua.sdk.core.model.objects.OperationLimitsType;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.util.UaObjectType;
-import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
+import com.digitalpetri.opcua.sdk.server.model.variables.PropertyNode;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
-import com.digitalpetri.opcua.stack.core.types.builtin.Variant;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 
-
-@UaObjectType(name = "OperationLimitsType")
+@com.digitalpetri.opcua.sdk.server.util.UaObjectNode(typeName = "0:OperationLimitsType")
 public class OperationLimitsNode extends BaseObjectNode implements OperationLimitsType {
 
     public OperationLimitsNode(
-            UaNamespace namespace,
+            UaNodeManager nodeManager,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -46,150 +44,235 @@ public class OperationLimitsNode extends BaseObjectNode implements OperationLimi
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
+    @Override
     public UInteger getMaxNodesPerRead() {
-        Optional<UInteger> maxNodesPerRead = getProperty("MaxNodesPerRead");
+        Optional<UInteger> property = getProperty(OperationLimitsType.MAX_NODES_PER_READ);
 
-        return maxNodesPerRead.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getMaxNodesPerReadNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(OperationLimitsType.MAX_NODES_PER_READ.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setMaxNodesPerRead(UInteger value) {
+        setProperty(OperationLimitsType.MAX_NODES_PER_READ, value);
+    }
+
+    @Override
     public UInteger getMaxNodesPerHistoryReadData() {
-        Optional<UInteger> maxNodesPerHistoryReadData = getProperty("MaxNodesPerHistoryReadData");
+        Optional<UInteger> property = getProperty(OperationLimitsType.MAX_NODES_PER_HISTORY_READ_DATA);
 
-        return maxNodesPerHistoryReadData.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getMaxNodesPerHistoryReadDataNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(OperationLimitsType.MAX_NODES_PER_HISTORY_READ_DATA.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setMaxNodesPerHistoryReadData(UInteger value) {
+        setProperty(OperationLimitsType.MAX_NODES_PER_HISTORY_READ_DATA, value);
+    }
+
+    @Override
     public UInteger getMaxNodesPerHistoryReadEvents() {
-        Optional<UInteger> maxNodesPerHistoryReadEvents = getProperty("MaxNodesPerHistoryReadEvents");
+        Optional<UInteger> property = getProperty(OperationLimitsType.MAX_NODES_PER_HISTORY_READ_EVENTS);
 
-        return maxNodesPerHistoryReadEvents.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getMaxNodesPerHistoryReadEventsNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(OperationLimitsType.MAX_NODES_PER_HISTORY_READ_EVENTS.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setMaxNodesPerHistoryReadEvents(UInteger value) {
+        setProperty(OperationLimitsType.MAX_NODES_PER_HISTORY_READ_EVENTS, value);
+    }
+
+    @Override
     public UInteger getMaxNodesPerWrite() {
-        Optional<UInteger> maxNodesPerWrite = getProperty("MaxNodesPerWrite");
+        Optional<UInteger> property = getProperty(OperationLimitsType.MAX_NODES_PER_WRITE);
 
-        return maxNodesPerWrite.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getMaxNodesPerWriteNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(OperationLimitsType.MAX_NODES_PER_WRITE.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setMaxNodesPerWrite(UInteger value) {
+        setProperty(OperationLimitsType.MAX_NODES_PER_WRITE, value);
+    }
+
+    @Override
     public UInteger getMaxNodesPerHistoryUpdateData() {
-        Optional<UInteger> maxNodesPerHistoryUpdateData = getProperty("MaxNodesPerHistoryUpdateData");
+        Optional<UInteger> property = getProperty(OperationLimitsType.MAX_NODES_PER_HISTORY_UPDATE_DATA);
 
-        return maxNodesPerHistoryUpdateData.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getMaxNodesPerHistoryUpdateDataNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(OperationLimitsType.MAX_NODES_PER_HISTORY_UPDATE_DATA.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setMaxNodesPerHistoryUpdateData(UInteger value) {
+        setProperty(OperationLimitsType.MAX_NODES_PER_HISTORY_UPDATE_DATA, value);
+    }
+
+    @Override
     public UInteger getMaxNodesPerHistoryUpdateEvents() {
-        Optional<UInteger> maxNodesPerHistoryUpdateEvents = getProperty("MaxNodesPerHistoryUpdateEvents");
+        Optional<UInteger> property = getProperty(OperationLimitsType.MAX_NODES_PER_HISTORY_UPDATE_EVENTS);
 
-        return maxNodesPerHistoryUpdateEvents.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getMaxNodesPerHistoryUpdateEventsNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(OperationLimitsType.MAX_NODES_PER_HISTORY_UPDATE_EVENTS.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setMaxNodesPerHistoryUpdateEvents(UInteger value) {
+        setProperty(OperationLimitsType.MAX_NODES_PER_HISTORY_UPDATE_EVENTS, value);
+    }
+
+    @Override
     public UInteger getMaxNodesPerMethodCall() {
-        Optional<UInteger> maxNodesPerMethodCall = getProperty("MaxNodesPerMethodCall");
+        Optional<UInteger> property = getProperty(OperationLimitsType.MAX_NODES_PER_METHOD_CALL);
 
-        return maxNodesPerMethodCall.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getMaxNodesPerMethodCallNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(OperationLimitsType.MAX_NODES_PER_METHOD_CALL.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setMaxNodesPerMethodCall(UInteger value) {
+        setProperty(OperationLimitsType.MAX_NODES_PER_METHOD_CALL, value);
+    }
+
+    @Override
     public UInteger getMaxNodesPerBrowse() {
-        Optional<UInteger> maxNodesPerBrowse = getProperty("MaxNodesPerBrowse");
+        Optional<UInteger> property = getProperty(OperationLimitsType.MAX_NODES_PER_BROWSE);
 
-        return maxNodesPerBrowse.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getMaxNodesPerBrowseNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(OperationLimitsType.MAX_NODES_PER_BROWSE.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setMaxNodesPerBrowse(UInteger value) {
+        setProperty(OperationLimitsType.MAX_NODES_PER_BROWSE, value);
+    }
+
+    @Override
     public UInteger getMaxNodesPerRegisterNodes() {
-        Optional<UInteger> maxNodesPerRegisterNodes = getProperty("MaxNodesPerRegisterNodes");
+        Optional<UInteger> property = getProperty(OperationLimitsType.MAX_NODES_PER_REGISTER_NODES);
 
-        return maxNodesPerRegisterNodes.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getMaxNodesPerRegisterNodesNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(OperationLimitsType.MAX_NODES_PER_REGISTER_NODES.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setMaxNodesPerRegisterNodes(UInteger value) {
+        setProperty(OperationLimitsType.MAX_NODES_PER_REGISTER_NODES, value);
+    }
+
+    @Override
     public UInteger getMaxNodesPerTranslateBrowsePathsToNodeIds() {
-        Optional<UInteger> maxNodesPerTranslateBrowsePathsToNodeIds = getProperty("MaxNodesPerTranslateBrowsePathsToNodeIds");
+        Optional<UInteger> property = getProperty(OperationLimitsType.MAX_NODES_PER_TRANSLATE_BROWSE_PATHS_TO_NODE_IDS);
 
-        return maxNodesPerTranslateBrowsePathsToNodeIds.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getMaxNodesPerTranslateBrowsePathsToNodeIdsNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(OperationLimitsType.MAX_NODES_PER_TRANSLATE_BROWSE_PATHS_TO_NODE_IDS.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setMaxNodesPerTranslateBrowsePathsToNodeIds(UInteger value) {
+        setProperty(OperationLimitsType.MAX_NODES_PER_TRANSLATE_BROWSE_PATHS_TO_NODE_IDS, value);
+    }
+
+    @Override
     public UInteger getMaxNodesPerNodeManagement() {
-        Optional<UInteger> maxNodesPerNodeManagement = getProperty("MaxNodesPerNodeManagement");
+        Optional<UInteger> property = getProperty(OperationLimitsType.MAX_NODES_PER_NODE_MANAGEMENT);
 
-        return maxNodesPerNodeManagement.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getMaxNodesPerNodeManagementNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(OperationLimitsType.MAX_NODES_PER_NODE_MANAGEMENT.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setMaxNodesPerNodeManagement(UInteger value) {
+        setProperty(OperationLimitsType.MAX_NODES_PER_NODE_MANAGEMENT, value);
+    }
+
+    @Override
     public UInteger getMaxMonitoredItemsPerCall() {
-        Optional<UInteger> maxMonitoredItemsPerCall = getProperty("MaxMonitoredItemsPerCall");
+        Optional<UInteger> property = getProperty(OperationLimitsType.MAX_MONITORED_ITEMS_PER_CALL);
 
-        return maxMonitoredItemsPerCall.orElse(null);
+        return property.orElse(null);
     }
 
-    public synchronized void setMaxNodesPerRead(UInteger maxNodesPerRead) {
-        getPropertyNode("MaxNodesPerRead").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(maxNodesPerRead)));
-        });
+    @Override
+    public PropertyNode getMaxMonitoredItemsPerCallNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(OperationLimitsType.MAX_MONITORED_ITEMS_PER_CALL.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
     }
 
-    public synchronized void setMaxNodesPerHistoryReadData(UInteger maxNodesPerHistoryReadData) {
-        getPropertyNode("MaxNodesPerHistoryReadData").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(maxNodesPerHistoryReadData)));
-        });
+    @Override
+    public void setMaxMonitoredItemsPerCall(UInteger value) {
+        setProperty(OperationLimitsType.MAX_MONITORED_ITEMS_PER_CALL, value);
     }
 
-    public synchronized void setMaxNodesPerHistoryReadEvents(UInteger maxNodesPerHistoryReadEvents) {
-        getPropertyNode("MaxNodesPerHistoryReadEvents").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(maxNodesPerHistoryReadEvents)));
-        });
-    }
-
-    public synchronized void setMaxNodesPerWrite(UInteger maxNodesPerWrite) {
-        getPropertyNode("MaxNodesPerWrite").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(maxNodesPerWrite)));
-        });
-    }
-
-    public synchronized void setMaxNodesPerHistoryUpdateData(UInteger maxNodesPerHistoryUpdateData) {
-        getPropertyNode("MaxNodesPerHistoryUpdateData").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(maxNodesPerHistoryUpdateData)));
-        });
-    }
-
-    public synchronized void setMaxNodesPerHistoryUpdateEvents(UInteger maxNodesPerHistoryUpdateEvents) {
-        getPropertyNode("MaxNodesPerHistoryUpdateEvents").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(maxNodesPerHistoryUpdateEvents)));
-        });
-    }
-
-    public synchronized void setMaxNodesPerMethodCall(UInteger maxNodesPerMethodCall) {
-        getPropertyNode("MaxNodesPerMethodCall").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(maxNodesPerMethodCall)));
-        });
-    }
-
-    public synchronized void setMaxNodesPerBrowse(UInteger maxNodesPerBrowse) {
-        getPropertyNode("MaxNodesPerBrowse").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(maxNodesPerBrowse)));
-        });
-    }
-
-    public synchronized void setMaxNodesPerRegisterNodes(UInteger maxNodesPerRegisterNodes) {
-        getPropertyNode("MaxNodesPerRegisterNodes").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(maxNodesPerRegisterNodes)));
-        });
-    }
-
-    public synchronized void setMaxNodesPerTranslateBrowsePathsToNodeIds(UInteger maxNodesPerTranslateBrowsePathsToNodeIds) {
-        getPropertyNode("MaxNodesPerTranslateBrowsePathsToNodeIds").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(maxNodesPerTranslateBrowsePathsToNodeIds)));
-        });
-    }
-
-    public synchronized void setMaxNodesPerNodeManagement(UInteger maxNodesPerNodeManagement) {
-        getPropertyNode("MaxNodesPerNodeManagement").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(maxNodesPerNodeManagement)));
-        });
-    }
-
-    public synchronized void setMaxMonitoredItemsPerCall(UInteger maxMonitoredItemsPerCall) {
-        getPropertyNode("MaxMonitoredItemsPerCall").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(maxMonitoredItemsPerCall)));
-        });
-    }
 }

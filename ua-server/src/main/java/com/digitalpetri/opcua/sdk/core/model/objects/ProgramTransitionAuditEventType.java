@@ -20,10 +20,13 @@
 package com.digitalpetri.opcua.sdk.core.model.objects;
 
 import com.digitalpetri.opcua.sdk.core.model.variables.FiniteTransitionVariableType;
+import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 
 public interface ProgramTransitionAuditEventType extends AuditUpdateStateEventType {
 
-    FiniteTransitionVariableType getTransition();
+    LocalizedText getTransition();
 
+    FiniteTransitionVariableType getTransitionNode();
 
+    void setTransition(LocalizedText value);
 }

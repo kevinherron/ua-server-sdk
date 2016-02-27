@@ -19,19 +19,39 @@
 
 package com.digitalpetri.opcua.sdk.core.model.variables;
 
-import com.digitalpetri.opcua.sdk.core.model.UaMandatory;
+import com.digitalpetri.opcua.sdk.server.model.Property;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
+import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
+import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
+
 
 public interface TwoStateDiscreteType extends DiscreteItemType {
 
-    @UaMandatory("FalseState")
+    Property<LocalizedText> FALSE_STATE = new Property.BasicProperty<>(
+            QualifiedName.parse("0:FalseState"),
+            NodeId.parse("ns=0;i=21"),
+            -1,
+            LocalizedText.class
+    );
+
+    Property<LocalizedText> TRUE_STATE = new Property.BasicProperty<>(
+            QualifiedName.parse("0:TrueState"),
+            NodeId.parse("ns=0;i=21"),
+            -1,
+            LocalizedText.class
+    );
+
+
     LocalizedText getFalseState();
 
-    @UaMandatory("TrueState")
+    PropertyType getFalseStateNode();
+
+    void setFalseState(LocalizedText value);
+
     LocalizedText getTrueState();
 
-    void setFalseState(LocalizedText falseState);
+    PropertyType getTrueStateNode();
 
-    void setTrueState(LocalizedText trueState);
+    void setTrueState(LocalizedText value);
 
 }

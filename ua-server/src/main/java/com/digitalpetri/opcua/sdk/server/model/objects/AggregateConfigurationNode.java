@@ -22,22 +22,20 @@ package com.digitalpetri.opcua.sdk.server.model.objects;
 import java.util.Optional;
 
 import com.digitalpetri.opcua.sdk.core.model.objects.AggregateConfigurationType;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
-import com.digitalpetri.opcua.sdk.server.util.UaObjectType;
-import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
+import com.digitalpetri.opcua.sdk.core.nodes.VariableNode;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
+import com.digitalpetri.opcua.sdk.server.model.variables.PropertyNode;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
-import com.digitalpetri.opcua.stack.core.types.builtin.Variant;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UByte;
 import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 
-
-@UaObjectType(name = "AggregateConfigurationType")
+@com.digitalpetri.opcua.sdk.server.util.UaObjectNode(typeName = "0:AggregateConfigurationType")
 public class AggregateConfigurationNode extends BaseObjectNode implements AggregateConfigurationType {
 
     public AggregateConfigurationNode(
-            UaNamespace namespace,
+            UaNodeManager nodeManager,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -46,54 +44,83 @@ public class AggregateConfigurationNode extends BaseObjectNode implements Aggreg
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
+    @Override
     public Boolean getTreatUncertainAsBad() {
-        Optional<Boolean> treatUncertainAsBad = getProperty("TreatUncertainAsBad");
+        Optional<Boolean> property = getProperty(AggregateConfigurationType.TREAT_UNCERTAIN_AS_BAD);
 
-        return treatUncertainAsBad.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getTreatUncertainAsBadNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(AggregateConfigurationType.TREAT_UNCERTAIN_AS_BAD.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setTreatUncertainAsBad(Boolean value) {
+        setProperty(AggregateConfigurationType.TREAT_UNCERTAIN_AS_BAD, value);
+    }
+
+    @Override
     public UByte getPercentDataBad() {
-        Optional<UByte> percentDataBad = getProperty("PercentDataBad");
+        Optional<UByte> property = getProperty(AggregateConfigurationType.PERCENT_DATA_BAD);
 
-        return percentDataBad.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getPercentDataBadNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(AggregateConfigurationType.PERCENT_DATA_BAD.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setPercentDataBad(UByte value) {
+        setProperty(AggregateConfigurationType.PERCENT_DATA_BAD, value);
+    }
+
+    @Override
     public UByte getPercentDataGood() {
-        Optional<UByte> percentDataGood = getProperty("PercentDataGood");
+        Optional<UByte> property = getProperty(AggregateConfigurationType.PERCENT_DATA_GOOD);
 
-        return percentDataGood.orElse(null);
+        return property.orElse(null);
     }
 
+    @Override
+    public PropertyNode getPercentDataGoodNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(AggregateConfigurationType.PERCENT_DATA_GOOD.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
+    }
+
+    @Override
+    public void setPercentDataGood(UByte value) {
+        setProperty(AggregateConfigurationType.PERCENT_DATA_GOOD, value);
+    }
+
+    @Override
     public Boolean getUseSlopedExtrapolation() {
-        Optional<Boolean> useSlopedExtrapolation = getProperty("UseSlopedExtrapolation");
+        Optional<Boolean> property = getProperty(AggregateConfigurationType.USE_SLOPED_EXTRAPOLATION);
 
-        return useSlopedExtrapolation.orElse(null);
+        return property.orElse(null);
     }
 
-    public synchronized void setTreatUncertainAsBad(Boolean treatUncertainAsBad) {
-        getPropertyNode("TreatUncertainAsBad").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(treatUncertainAsBad)));
-        });
+    @Override
+    public PropertyNode getUseSlopedExtrapolationNode() {
+        Optional<VariableNode> propertyNode = getPropertyNode(AggregateConfigurationType.USE_SLOPED_EXTRAPOLATION.getBrowseName());
+
+        return propertyNode.map(n -> (PropertyNode) n).orElse(null);
     }
 
-    public synchronized void setPercentDataBad(UByte percentDataBad) {
-        getPropertyNode("PercentDataBad").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(percentDataBad)));
-        });
+    @Override
+    public void setUseSlopedExtrapolation(Boolean value) {
+        setProperty(AggregateConfigurationType.USE_SLOPED_EXTRAPOLATION, value);
     }
 
-    public synchronized void setPercentDataGood(UByte percentDataGood) {
-        getPropertyNode("PercentDataGood").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(percentDataGood)));
-        });
-    }
-
-    public synchronized void setUseSlopedExtrapolation(Boolean useSlopedExtrapolation) {
-        getPropertyNode("UseSlopedExtrapolation").ifPresent(n -> {
-            n.setValue(new DataValue(new Variant(useSlopedExtrapolation)));
-        });
-    }
 }
