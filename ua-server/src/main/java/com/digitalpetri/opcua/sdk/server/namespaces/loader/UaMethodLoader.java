@@ -22,7 +22,7 @@ package com.digitalpetri.opcua.sdk.server.namespaces.loader;
 import java.util.Optional;
 
 import com.digitalpetri.opcua.sdk.core.Reference;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.sdk.server.model.UaMethodNode;
 import com.digitalpetri.opcua.stack.core.types.builtin.ExpandedNodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
@@ -33,9 +33,9 @@ import com.digitalpetri.opcua.stack.core.types.enumerated.NodeClass;
 
 public class UaMethodLoader {
 
-    private final UaNamespace nodeManager;
+    private final UaNodeManager nodeManager;
 
-    public UaMethodLoader(UaNamespace nodeManager) {
+    public UaMethodLoader(UaNodeManager nodeManager) {
         this.nodeManager = nodeManager;
     }
 

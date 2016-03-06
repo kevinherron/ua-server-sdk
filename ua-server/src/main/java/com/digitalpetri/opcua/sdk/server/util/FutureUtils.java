@@ -19,11 +19,10 @@
 
 package com.digitalpetri.opcua.sdk.server.util;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 import com.digitalpetri.opcua.stack.core.UaException;
 import com.digitalpetri.opcua.stack.core.types.builtin.StatusCode;
@@ -37,8 +36,15 @@ public class FutureUtils {
 
         CompletableFuture[] fa = futures.toArray(new CompletableFuture[futures.size()]);
 
-        return CompletableFuture.allOf(fa).thenApply(
-                v -> futures.stream().map(CompletableFuture::join).collect(Collectors.toList()));
+        return CompletableFuture.allOf(fa).thenApply(v -> {
+            List<T> results = new ArrayList<>(futures.size());
+
+            for (CompletableFuture<T> cf : futures) {
+                results.add(cf.join());
+            }
+
+            return results;
+        });
     }
 
     public static <T> CompletableFuture<List<T>> sequence(CompletableFuture<T>[] futures) {
@@ -46,8 +52,15 @@ public class FutureUtils {
             return CompletableFuture.completedFuture(Collections.emptyList());
         }
 
-        return CompletableFuture.allOf(futures).thenApply(
-                v -> Arrays.stream(futures).map(CompletableFuture::join).collect(Collectors.toList()));
+        return CompletableFuture.allOf(futures).thenApply(v -> {
+            List<T> results = new ArrayList<>(futures.length);
+
+            for (CompletableFuture<T> cf : futures) {
+                results.add(cf.join());
+            }
+
+            return results;
+        });
     }
 
     /**

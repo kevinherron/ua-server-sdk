@@ -22,7 +22,7 @@ package com.digitalpetri.opcua.sdk.server.namespaces.loader;
 import java.util.Optional;
 
 import com.digitalpetri.opcua.sdk.core.Reference;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.sdk.server.model.UaObjectNode;
 import com.digitalpetri.opcua.sdk.server.model.objects.AddressSpaceFileNode;
 import com.digitalpetri.opcua.sdk.server.model.objects.AggregateConfigurationNode;
@@ -63,9 +63,9 @@ import com.digitalpetri.opcua.stack.core.types.enumerated.NodeClass;
 
 public class UaObjectLoader {
 
-    private final UaNamespace nodeManager;
+    private final UaNodeManager nodeManager;
 
-    public UaObjectLoader(UaNamespace nodeManager) {
+    public UaObjectLoader(UaNodeManager nodeManager) {
         this.nodeManager = nodeManager;
     }
 

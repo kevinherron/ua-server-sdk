@@ -19,15 +19,17 @@
 
 package com.digitalpetri.opcua.sdk.server.namespaces.loader;
 
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 
 public class UaNodeLoader {
 
-    private final UaNamespace nodeManager;
+    private final UaNodeManager nodeManager;
 
-    public UaNodeLoader(UaNamespace nodeManager)
-            throws Exception {
+    public UaNodeLoader(UaNodeManager nodeManager) {
         this.nodeManager = nodeManager;
+    }
+
+    public void loadNodes() throws Exception {
         new UaDataTypeLoader(nodeManager).buildNodes();
         new UaMethodLoader(nodeManager).buildNodes();
         new UaObjectLoader(nodeManager).buildNodes();

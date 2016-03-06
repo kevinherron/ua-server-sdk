@@ -24,7 +24,7 @@ import java.util.Optional;
 import com.digitalpetri.opcua.sdk.core.model.objects.DirectoryType;
 import com.digitalpetri.opcua.sdk.core.model.objects.FolderType;
 import com.digitalpetri.opcua.sdk.core.nodes.ObjectNode;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.sdk.server.util.UaObjectType;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
@@ -37,7 +37,7 @@ import com.digitalpetri.opcua.stack.core.types.builtin.unsigned.UInteger;
 public class DirectoryNode extends FolderNode implements DirectoryType {
 
     public DirectoryNode(
-            UaNamespace namespace,
+            UaNodeManager nodeManager,
             NodeId nodeId,
             QualifiedName browseName,
             LocalizedText displayName,
@@ -46,7 +46,7 @@ public class DirectoryNode extends FolderNode implements DirectoryType {
             Optional<UInteger> userWriteMask,
             UByte eventNotifier) {
 
-        super(namespace, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
+        super(nodeManager, nodeId, browseName, displayName, description, writeMask, userWriteMask, eventNotifier);
     }
 
     public FolderType getApplications() {

@@ -19,13 +19,13 @@
 
 package com.digitalpetri.opcua.sdk.server.model;
 
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 
 public abstract class DerivedVariableNode extends UaVariableNode {
 
-    public DerivedVariableNode(UaNamespace namespace, UaVariableNode variableNode) {
+    public DerivedVariableNode(UaNodeManager nodeManager, UaVariableNode variableNode) {
 
-        super(namespace,
+        super(nodeManager,
                 variableNode.getNodeId(),
                 variableNode.getBrowseName(),
                 variableNode.getDisplayName(),

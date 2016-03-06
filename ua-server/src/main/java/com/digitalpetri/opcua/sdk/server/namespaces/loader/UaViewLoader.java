@@ -19,13 +19,13 @@
 
 package com.digitalpetri.opcua.sdk.server.namespaces.loader;
 
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 
 public class UaViewLoader {
 
-    private final UaNamespace nodeManager;
+    private final UaNodeManager nodeManager;
 
-    public UaViewLoader(UaNamespace nodeManager) {
+    public UaViewLoader(UaNodeManager nodeManager) {
         this.nodeManager = nodeManager;
     }
 

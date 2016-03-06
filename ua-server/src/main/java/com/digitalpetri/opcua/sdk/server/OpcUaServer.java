@@ -36,6 +36,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 
 import com.digitalpetri.opcua.sdk.core.ServerTable;
+import com.digitalpetri.opcua.sdk.server.api.AbstractUaNodeManager;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.sdk.server.api.config.OpcUaServerConfig;
 import com.digitalpetri.opcua.sdk.server.namespaces.OpcUaNamespace;
 import com.digitalpetri.opcua.sdk.server.namespaces.VendorNamespace;
@@ -83,6 +85,8 @@ public class OpcUaServer {
 
     private final Map<ByteString, BrowseContinuationPoint> browseContinuationPoints = Maps.newConcurrentMap();
 
+    private final UaNodeManager nodeManager = new OpcUaNodeManager();
+
     private final Map<NodeId, ReferenceType> referenceTypes = Maps.newConcurrentMap();
 
     private final Map<UInteger, Subscription> subscriptions = Maps.newConcurrentMap();
@@ -95,6 +99,7 @@ public class OpcUaServer {
     private final EventBus eventBus;
 
     private final OpcUaNamespace uaNamespace;
+    private final VendorNamespace vendorNamespace;
 
     private final OpcUaServerConfig config;
 
@@ -113,7 +118,7 @@ public class OpcUaServer {
 
         namespaceManager.addNamespace(uaNamespace = new OpcUaNamespace(this));
 
-        namespaceManager.registerAndAdd(
+        vendorNamespace = namespaceManager.registerAndAdd(
                 config.getApplicationUri(),
                 index -> new VendorNamespace(OpcUaServer.this, config.getApplicationUri()));
 
@@ -222,6 +227,10 @@ public class OpcUaServer {
         return namespaceManager;
     }
 
+    public UaNodeManager getNodeManager() {
+        return nodeManager;
+    }
+
     public SessionManager getSessionManager() {
         return sessionManager;
     }
@@ -293,5 +302,7 @@ public class OpcUaServer {
     public Map<ByteString, BrowseContinuationPoint> getBrowseContinuationPoints() {
         return browseContinuationPoints;
     }
+
+    private static class OpcUaNodeManager extends AbstractUaNodeManager {}
 
 }

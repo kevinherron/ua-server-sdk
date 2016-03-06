@@ -21,7 +21,6 @@ package com.digitalpetri.opcua.sdk.server.namespaces;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -34,7 +33,8 @@ import com.digitalpetri.opcua.sdk.server.api.EventItem;
 import com.digitalpetri.opcua.sdk.server.api.MethodInvocationHandler;
 import com.digitalpetri.opcua.sdk.server.api.MethodInvocationHandler.NotImplementedHandler;
 import com.digitalpetri.opcua.sdk.server.api.MonitoredItem;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
+import com.digitalpetri.opcua.sdk.server.api.Namespace;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.sdk.server.api.config.OpcUaServerConfigLimits;
 import com.digitalpetri.opcua.sdk.server.model.DerivedVariableNode;
 import com.digitalpetri.opcua.sdk.server.model.UaMethodNode;
@@ -67,7 +67,6 @@ import com.digitalpetri.opcua.stack.core.types.enumerated.ServerState;
 import com.digitalpetri.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import com.digitalpetri.opcua.stack.core.types.structured.ReadValueId;
 import com.digitalpetri.opcua.stack.core.types.structured.WriteValue;
-import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,12 +76,11 @@ import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.
 import static com.google.common.collect.Lists.newArrayListWithCapacity;
 import static java.util.stream.Collectors.toList;
 
-public class OpcUaNamespace implements UaNamespace {
+public class OpcUaNamespace implements Namespace {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final Map<NodeId, UaNode> nodes = Maps.newConcurrentMap();
-
+    private final UaNodeManager nodeManager;
     private final SubscriptionModel subscriptionModel;
 
     private final OpcUaServer server;
@@ -90,10 +88,10 @@ public class OpcUaNamespace implements UaNamespace {
     public OpcUaNamespace(OpcUaServer server) {
         this.server = server;
 
-        loadNodes();
-
+        nodeManager = server.getNodeManager();
         subscriptionModel = new SubscriptionModel(server, this);
 
+        loadNodes();
         configureServerObject();
     }
 
@@ -108,28 +106,8 @@ public class OpcUaNamespace implements UaNamespace {
     }
 
     @Override
-    public void addNode(UaNode node) {
-        nodes.put(node.getNodeId(), node);
-    }
-
-    @Override
-    public Optional<UaNode> getNode(NodeId nodeId) {
-        return Optional.ofNullable(nodes.get(nodeId));
-    }
-
-    @Override
-    public Optional<UaNode> getNode(ExpandedNodeId nodeId) {
-        return nodeId.local().flatMap(this::getNode);
-    }
-
-    @Override
-    public Optional<UaNode> removeNode(NodeId nodeId) {
-        return Optional.ofNullable(nodes.remove(nodeId));
-    }
-
-    @Override
     public CompletableFuture<List<Reference>> getReferences(NodeId nodeId) {
-        UaNode node = nodes.get(nodeId);
+        UaNode node = nodeManager.get(nodeId);
 
         if (node != null) {
             return CompletableFuture.completedFuture(node.getReferences());
@@ -150,7 +128,7 @@ public class OpcUaNamespace implements UaNamespace {
         for (ReadValueId id : readValueIds) {
             DataValue value;
 
-            UaNode node = nodes.get(id.getNodeId());
+            UaNode node = nodeManager.get(id.getNodeId());
 
             if (node != null) {
                 value = node.readAttribute(
@@ -170,7 +148,7 @@ public class OpcUaNamespace implements UaNamespace {
     @Override
     public void write(WriteContext context, List<WriteValue> writeValues) {
         List<StatusCode> results = writeValues.stream().map(value -> {
-            if (nodes.containsKey(value.getNodeId())) {
+            if (nodeManager.containsKey(value.getNodeId())) {
                 return new StatusCode(StatusCodes.Bad_NotWritable);
             } else {
                 return new StatusCode(StatusCodes.Bad_NodeIdUnknown);
@@ -229,7 +207,7 @@ public class OpcUaNamespace implements UaNamespace {
                              ExpandedNodeId targetNodeId,
                              NodeClass targetNodeClass) throws UaException {
 
-        UaNode node = nodes.get(sourceNodeId);
+        UaNode node = nodeManager.get(sourceNodeId);
 
         if (node != null) {
             Reference reference = new Reference(
@@ -247,7 +225,7 @@ public class OpcUaNamespace implements UaNamespace {
 
     @Override
     public Optional<MethodInvocationHandler> getInvocationHandler(NodeId methodId) {
-        return Optional.ofNullable(nodes.get(methodId))
+        return Optional.ofNullable(nodeManager.get(methodId))
                 .filter(n -> n instanceof UaMethodNode)
                 .map(n -> {
                     UaMethodNode m = (UaMethodNode) n;
@@ -257,23 +235,23 @@ public class OpcUaNamespace implements UaNamespace {
     }
 
     public UaObjectNode getObjectsFolder() {
-        return (UaObjectNode) nodes.get(Identifiers.ObjectsFolder);
+        return (UaObjectNode) nodeManager.get(Identifiers.ObjectsFolder);
     }
 
     public ServerNode getServerNode() {
-        return (ServerNode) nodes.get(Identifiers.Server);
+        return (ServerNode) nodeManager.get(Identifiers.Server);
     }
 
     private void loadNodes() {
         try {
             long startTime = System.nanoTime();
 
-            new UaNodeLoader(this);
+            new UaNodeLoader(nodeManager).loadNodes();
 
             long endTime = System.nanoTime();
             long deltaMs = TimeUnit.MILLISECONDS.convert(endTime - startTime, TimeUnit.NANOSECONDS);
 
-            logger.info("Loaded {} nodes in {}ms.", nodes.size(), deltaMs);
+            logger.info("Loaded nodes in {}ms.", deltaMs);
         } catch (Exception e) {
             logger.error("Error loading nodes.", e);
         }
@@ -282,7 +260,7 @@ public class OpcUaNamespace implements UaNamespace {
     private void configureServerObject() {
         OpcUaServerConfigLimits limits = server.getConfig().getLimits();
 
-        ServerNode serverNode = (ServerNode) nodes.get(Identifiers.Server);
+        ServerNode serverNode = (ServerNode) nodeManager.get(Identifiers.Server);
 
         replaceServerArrayNode();
         replaceNamespaceArrayNode();
@@ -299,14 +277,14 @@ public class OpcUaNamespace implements UaNamespace {
         serverStatus.setState(ServerState.Running);
         serverStatus.setStartTime(DateTime.now());
 
-        UaVariableNode currentTime = (UaVariableNode) nodes.get(Identifiers.Server_ServerStatus_CurrentTime);
-        DerivedVariableNode derivedCurrentTime = new DerivedVariableNode(this, currentTime) {
+        UaVariableNode currentTime = (UaVariableNode) nodeManager.get(Identifiers.Server_ServerStatus_CurrentTime);
+        DerivedVariableNode derivedCurrentTime = new DerivedVariableNode(nodeManager, currentTime) {
             @Override
             public DataValue getValue() {
                 return new DataValue(new Variant(DateTime.now()));
             }
         };
-        nodes.put(Identifiers.Server_ServerStatus_CurrentTime, derivedCurrentTime);
+        nodeManager.put(Identifiers.Server_ServerStatus_CurrentTime, derivedCurrentTime);
 
         ServerCapabilitiesNode serverCapabilities = serverNode.getServerCapabilitiesNode();
         serverCapabilities.setLocaleIdArray(new String[]{Locale.ENGLISH.getLanguage()});
@@ -334,10 +312,10 @@ public class OpcUaNamespace implements UaNamespace {
         serverNode.getServerRedundancyNode().setRedundancySupport(RedundancySupport.None);
 
         try {
-            UaMethodNode getMonitoredItems = (UaMethodNode) nodes.get(Identifiers.Server_GetMonitoredItems);
+            UaMethodNode getMonitoredItems = (UaMethodNode) nodeManager.get(Identifiers.Server_GetMonitoredItems);
 
             AnnotationBasedInvocationHandler handler =
-                    AnnotationBasedInvocationHandler.fromAnnotatedObject(this, new GetMonitoredItems(server));
+                    AnnotationBasedInvocationHandler.fromAnnotatedObject(nodeManager, new GetMonitoredItems(server));
 
             getMonitoredItems.setInvocationHandler(handler);
             getMonitoredItems.setInputArguments(handler.getInputArguments());
@@ -347,10 +325,10 @@ public class OpcUaNamespace implements UaNamespace {
         }
 
         try {
-            UaMethodNode resendData = (UaMethodNode) nodes.get(Identifiers.Server_ResendData);
+            UaMethodNode resendData = (UaMethodNode) nodeManager.get(Identifiers.Server_ResendData);
 
             AnnotationBasedInvocationHandler handler =
-                    AnnotationBasedInvocationHandler.fromAnnotatedObject(this, new ResendData(server));
+                    AnnotationBasedInvocationHandler.fromAnnotatedObject(nodeManager, new ResendData(server));
 
             resendData.setInvocationHandler(handler);
             resendData.setInputArguments(handler.getInputArguments());
@@ -360,29 +338,29 @@ public class OpcUaNamespace implements UaNamespace {
     }
 
     private void replaceServerArrayNode() {
-        UaVariableNode originalNode = (UaVariableNode) nodes.get(Identifiers.Server_ServerArray);
+        UaVariableNode originalNode = (UaVariableNode) nodeManager.get(Identifiers.Server_ServerArray);
 
-        UaVariableNode derived = new DerivedVariableNode(this, originalNode) {
+        UaVariableNode derived = new DerivedVariableNode(nodeManager, originalNode) {
             @Override
             public DataValue getValue() {
                 return new DataValue(new Variant(server.getServerTable().toArray()));
             }
         };
 
-        nodes.put(derived.getNodeId(), derived);
+        nodeManager.put(derived.getNodeId(), derived);
     }
 
     private void replaceNamespaceArrayNode() {
-        UaVariableNode originalNode = (UaVariableNode) nodes.get(Identifiers.Server_NamespaceArray);
+        UaVariableNode originalNode = (UaVariableNode) nodeManager.get(Identifiers.Server_NamespaceArray);
 
-        UaVariableNode derived = new DerivedVariableNode(this, originalNode) {
+        UaVariableNode derived = new DerivedVariableNode(nodeManager, originalNode) {
             @Override
             public DataValue getValue() {
                 return new DataValue(new Variant(server.getNamespaceManager().getNamespaceTable().toArray()));
             }
         };
 
-        nodes.put(derived.getNodeId(), derived);
+        nodeManager.put(derived.getNodeId(), derived);
     }
 
 }

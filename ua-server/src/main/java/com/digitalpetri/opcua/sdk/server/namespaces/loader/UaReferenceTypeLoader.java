@@ -22,7 +22,7 @@ package com.digitalpetri.opcua.sdk.server.namespaces.loader;
 import java.util.Optional;
 
 import com.digitalpetri.opcua.sdk.core.Reference;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.sdk.server.model.UaReferenceTypeNode;
 import com.digitalpetri.opcua.stack.core.types.builtin.ExpandedNodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
@@ -33,9 +33,9 @@ import com.digitalpetri.opcua.stack.core.types.enumerated.NodeClass;
 
 public class UaReferenceTypeLoader {
 
-    private final UaNamespace nodeManager;
+    private final UaNodeManager nodeManager;
 
-    public UaReferenceTypeLoader(UaNamespace nodeManager) {
+    public UaReferenceTypeLoader(UaNodeManager nodeManager) {
         this.nodeManager = nodeManager;
     }
 

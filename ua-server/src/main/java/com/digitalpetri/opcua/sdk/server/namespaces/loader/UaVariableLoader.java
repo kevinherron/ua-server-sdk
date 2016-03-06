@@ -23,7 +23,7 @@ import java.io.StringReader;
 import java.util.Optional;
 
 import com.digitalpetri.opcua.sdk.core.Reference;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.sdk.server.model.UaVariableNode;
 import com.digitalpetri.opcua.sdk.server.model.variables.BaseDataVariableNode;
 import com.digitalpetri.opcua.sdk.server.model.variables.BuildInfoNode;
@@ -61,9 +61,9 @@ import com.digitalpetri.opcua.stack.core.types.enumerated.NodeClass;
 
 public class UaVariableLoader {
 
-    private final UaNamespace nodeManager;
+    private final UaNodeManager nodeManager;
 
-    public UaVariableLoader(UaNamespace nodeManager) {
+    public UaVariableLoader(UaNodeManager nodeManager) {
         this.nodeManager = nodeManager;
     }
 

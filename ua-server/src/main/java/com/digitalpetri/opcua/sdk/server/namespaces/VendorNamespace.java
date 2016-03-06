@@ -22,15 +22,14 @@ package com.digitalpetri.opcua.sdk.server.namespaces;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 import com.digitalpetri.opcua.sdk.core.Reference;
 import com.digitalpetri.opcua.sdk.server.OpcUaServer;
 import com.digitalpetri.opcua.sdk.server.api.DataItem;
 import com.digitalpetri.opcua.sdk.server.api.MonitoredItem;
-import com.digitalpetri.opcua.sdk.server.api.UaNamespace;
+import com.digitalpetri.opcua.sdk.server.api.Namespace;
+import com.digitalpetri.opcua.sdk.server.api.UaNodeManager;
 import com.digitalpetri.opcua.sdk.server.model.UaNode;
 import com.digitalpetri.opcua.sdk.server.model.UaObjectNode;
 import com.digitalpetri.opcua.sdk.server.model.UaVariableNode;
@@ -39,7 +38,6 @@ import com.digitalpetri.opcua.stack.core.Identifiers;
 import com.digitalpetri.opcua.stack.core.StatusCodes;
 import com.digitalpetri.opcua.stack.core.UaException;
 import com.digitalpetri.opcua.stack.core.types.builtin.DataValue;
-import com.digitalpetri.opcua.stack.core.types.builtin.ExpandedNodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.LocalizedText;
 import com.digitalpetri.opcua.stack.core.types.builtin.NodeId;
 import com.digitalpetri.opcua.stack.core.types.builtin.QualifiedName;
@@ -50,19 +48,17 @@ import com.digitalpetri.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import com.digitalpetri.opcua.stack.core.types.structured.ReadValueId;
 import com.digitalpetri.opcua.stack.core.types.structured.WriteValue;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.sun.management.OperatingSystemMXBean;
 import com.sun.management.UnixOperatingSystemMXBean;
 
 import static com.digitalpetri.opcua.stack.core.types.builtin.unsigned.Unsigned.ushort;
 import static java.util.stream.Collectors.toList;
 
-public class VendorNamespace implements UaNamespace {
+public class VendorNamespace implements Namespace {
 
     public static final UShort NAMESPACE_INDEX = ushort(1);
 
-    private final Map<NodeId, UaNode> nodes = Maps.newConcurrentMap();
-
+    private final UaNodeManager nodeManager;
     private final SubscriptionModel subscriptionModel;
 
     private final OpcUaServer server;
@@ -72,6 +68,7 @@ public class VendorNamespace implements UaNamespace {
         this.server = server;
         this.namespaceUri = namespaceUri;
 
+        nodeManager = server.getNodeManager();
         subscriptionModel = new SubscriptionModel(server, this);
 
         addVendorServerInfoNodes();
@@ -88,28 +85,8 @@ public class VendorNamespace implements UaNamespace {
     }
 
     @Override
-    public void addNode(UaNode node) {
-        nodes.put(node.getNodeId(), node);
-    }
-
-    @Override
-    public Optional<UaNode> getNode(NodeId nodeId) {
-        return Optional.ofNullable(nodes.get(nodeId));
-    }
-
-    @Override
-    public Optional<UaNode> getNode(ExpandedNodeId nodeId) {
-        return nodeId.local().flatMap(this::getNode);
-    }
-
-    @Override
-    public Optional<UaNode> removeNode(NodeId nodeId) {
-        return Optional.ofNullable(nodes.remove(nodeId));
-    }
-
-    @Override
     public CompletableFuture<List<Reference>> getReferences(NodeId nodeId) {
-        UaNode node = nodes.get(nodeId);
+        UaNode node = nodeManager.get(nodeId);
 
         if (node != null) {
             return CompletableFuture.completedFuture(node.getReferences());
@@ -125,7 +102,7 @@ public class VendorNamespace implements UaNamespace {
         List<DataValue> results = Lists.newArrayListWithCapacity(readValueIds.size());
 
         for (ReadValueId id : readValueIds) {
-            UaNode node = nodes.get(id.getNodeId());
+            UaNode node = nodeManager.get(id.getNodeId());
 
             DataValue value = (node != null) ?
                     node.readAttribute(id.getAttributeId().intValue()) :
@@ -140,7 +117,7 @@ public class VendorNamespace implements UaNamespace {
     @Override
     public void write(WriteContext context, List<WriteValue> writeValues) {
         List<StatusCode> results = writeValues.stream().map(value -> {
-            if (nodes.containsKey(value.getNodeId())) {
+            if (nodeManager.containsKey(value.getNodeId())) {
                 return new StatusCode(StatusCodes.Bad_NotWritable);
             } else {
                 return new StatusCode(StatusCodes.Bad_NodeIdUnknown);
@@ -171,14 +148,14 @@ public class VendorNamespace implements UaNamespace {
     }
 
     private void addVendorServerInfoNodes() {
-        server.getUaNamespace().getNode(Identifiers.Server_VendorServerInfo).ifPresent(node -> {
+        nodeManager.getNode(Identifiers.Server_VendorServerInfo).ifPresent(node -> {
             UaObjectNode vendorServerInfo = (UaObjectNode) node;
 
             OperatingSystemMXBean osBean = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
             MemoryMXBean memoryBean = ManagementFactory.getMemoryMXBean();
 
             UaVariableNode processCpuLoad = new UaVariableNode(
-                    this,
+                    nodeManager,
                     new NodeId(1, "VendorServerInfo/ProcessCpuLoad"),
                     new QualifiedName(1, "ProcessCpuLoad"),
                     LocalizedText.english("ProcessCpuLoad")) {
@@ -191,7 +168,7 @@ public class VendorNamespace implements UaNamespace {
             processCpuLoad.setDataType(Identifiers.Double);
 
             UaVariableNode systemCpuLoad = new UaVariableNode(
-                    this,
+                    nodeManager,
                     new NodeId(1, "VendorServerInfo/SystemCpuLoad"),
                     new QualifiedName(1, "SystemCpuLoad"),
                     LocalizedText.english("SystemCpuLoad")) {
@@ -203,7 +180,7 @@ public class VendorNamespace implements UaNamespace {
             systemCpuLoad.setDataType(Identifiers.Double);
 
             UaVariableNode usedMemory = new UaVariableNode(
-                    this,
+                    nodeManager,
                     new NodeId(1, "VendorServerInfo/UsedMemory"),
                     new QualifiedName(1, "UsedMemory"),
                     LocalizedText.english("UsedMemory")) {
@@ -215,7 +192,7 @@ public class VendorNamespace implements UaNamespace {
             usedMemory.setDataType(Identifiers.Int64);
 
             UaVariableNode maxMemory = new UaVariableNode(
-                    this,
+                    nodeManager,
                     new NodeId(1, "VendorServerInfo/MaxMemory"),
                     new QualifiedName(1, "MaxMemory"),
                     LocalizedText.english("MaxMemory")) {
@@ -227,7 +204,7 @@ public class VendorNamespace implements UaNamespace {
             maxMemory.setDataType(Identifiers.Int64);
 
             UaVariableNode osName = new UaVariableNode(
-                    this,
+                    nodeManager,
                     new NodeId(1, "VendorServerInfo/OsName"),
                     new QualifiedName(1, "OsName"),
                     LocalizedText.english("OsName")) {
@@ -240,7 +217,7 @@ public class VendorNamespace implements UaNamespace {
 
 
             UaVariableNode osArch = new UaVariableNode(
-                    this,
+                    nodeManager,
                     new NodeId(1, "VendorServerInfo/OsArch"),
                     new QualifiedName(1, "OsArch"),
                     LocalizedText.english("OsArch")) {
@@ -252,7 +229,7 @@ public class VendorNamespace implements UaNamespace {
             osArch.setDataType(Identifiers.String);
 
             UaVariableNode osVersion = new UaVariableNode(
-                    this,
+                    nodeManager,
                     new NodeId(1, "VendorServerInfo/OsVersion"),
                     new QualifiedName(1, "OsVersion"),
                     LocalizedText.english("OsVersion")) {
@@ -275,7 +252,7 @@ public class VendorNamespace implements UaNamespace {
                 UnixOperatingSystemMXBean unixBean = (UnixOperatingSystemMXBean) osBean;
 
                 UaVariableNode openFileDescriptors = new UaVariableNode(
-                        this,
+                        nodeManager,
                         new NodeId(1, "VendorServerInfo/OpenFileDescriptors"),
                         new QualifiedName(1, "OpenFileDescriptors"),
                         LocalizedText.english("OpenFileDescriptors")) {
@@ -287,7 +264,7 @@ public class VendorNamespace implements UaNamespace {
                 openFileDescriptors.setDataType(Identifiers.Int64);
 
                 UaVariableNode maxFileDescriptors = new UaVariableNode(
-                        this,
+                        nodeManager,
                         new NodeId(1, "VendorServerInfo/MaxFileDescriptors"),
                         new QualifiedName(1, "MaxFileDescriptors"),
                         LocalizedText.english("MaxFileDescriptors")) {
