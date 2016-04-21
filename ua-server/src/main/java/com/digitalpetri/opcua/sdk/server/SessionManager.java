@@ -20,6 +20,7 @@
 package com.digitalpetri.opcua.sdk.server;
 
 import java.math.RoundingMode;
+import java.net.URI;
 import java.nio.ByteBuffer;
 import java.security.KeyPair;
 import java.security.cert.CertificateParsingException;
@@ -238,7 +239,10 @@ public class SessionManager implements
 
         ByteString serverCertificate = serviceRequest.getSecureChannel().getEndpointDescription().getServerCertificate();
         SignedSoftwareCertificate[] serverSoftwareCertificates = server.getSoftwareCertificates();
-        EndpointDescription[] serverEndpoints = server.getEndpointDescriptions();
+
+        EndpointDescription[] serverEndpoints = Arrays.stream(server.getEndpointDescriptions())
+            .filter(ed -> endpointMatchesUrl(ed, request.getEndpointUrl()))
+            .toArray(EndpointDescription[]::new);
 
         ByteString clientNonce = request.getClientNonce();
         if (clientNonce.isNotNull() && (clientNonce.length() < 32)) {
@@ -275,7 +279,6 @@ public class SessionManager implements
 
         NodeId sessionId = new NodeId(1, "Session:" + UUID.randomUUID());
         String sessionName = request.getSessionName();
-        String endpointUrl = request.getEndpointUrl();
         Duration sessionTimeout = Duration.ofMillis(DoubleMath.roundToLong(revisedSessionTimeout, RoundingMode.UP));
         Session session = new Session(server, sessionId, sessionName, sessionTimeout, secureChannel.getChannelId());
         createdSessions.put(authenticationToken, session);
@@ -301,6 +304,18 @@ public class SessionManager implements
         );
 
         serviceRequest.setResponse(response);
+    }
+
+    private boolean endpointMatchesUrl(EndpointDescription endpoint, String endpointUrl) {
+        try {
+            String requestedHost = new URI(endpointUrl).parseServerAuthority().getHost();
+            String endpointHost = new URI(endpoint.getEndpointUrl()).parseServerAuthority().getHost();
+
+            return requestedHost.equalsIgnoreCase(endpointHost);
+        } catch (Throwable e) {
+            logger.warn("Unable to create URI.", e);
+            return false;
+        }
     }
 
     /**
