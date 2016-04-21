@@ -35,8 +35,6 @@ import com.digitalpetri.opcua.stack.core.types.structured.UserTokenPolicy;
 
 public class UsernameIdentityValidator extends IdentityValidator {
 
-    private static final Object ANON_IDENTITY_OBJECT = new Object();
-
     private final boolean allowAnonymous;
     private final Predicate<AuthenticationChallenge> predicate;
 
@@ -51,8 +49,12 @@ public class UsernameIdentityValidator extends IdentityValidator {
     public Object validateAnonymousToken(AnonymousIdentityToken token, UserTokenPolicy tokenPolicy,
                                          SecureChannel channel, Session session) throws UaException {
 
-        if (allowAnonymous) return ANON_IDENTITY_OBJECT;
-        else throw new UaException(StatusCodes.Bad_UserAccessDenied);
+        if (allowAnonymous) {
+            return String.format("anonymous_%s_%s",
+                session.getSessionName(), session.getSessionId().toParseableString());
+        } else {
+            throw new UaException(StatusCodes.Bad_UserAccessDenied);
+        }
     }
 
     @Override

@@ -27,12 +27,15 @@ import com.digitalpetri.opcua.stack.core.types.structured.UserTokenPolicy;
 
 public class AnonymousIdentityValidator extends IdentityValidator {
 
-    public static final Object ANONYMOUS_IDENTITY_OBJECT = new Object();
-
     @Override
-    public Object validateAnonymousToken(AnonymousIdentityToken token, UserTokenPolicy tokenPolicy,
-                                         SecureChannel channel, Session session) throws UaException {
-        return ANONYMOUS_IDENTITY_OBJECT;
+    public Object validateAnonymousToken(
+        AnonymousIdentityToken token,
+        UserTokenPolicy tokenPolicy,
+        SecureChannel channel,
+        Session session) throws UaException {
+
+        return String.format("anonymous_%s_%s",
+            session.getSessionName(), session.getSessionId().toParseableString());
     }
 
 }
